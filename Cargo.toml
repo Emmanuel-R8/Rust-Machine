@@ -1,0 +1,17 @@
+[package]
+name = "manny8888_rust_machine"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+c2rust-bitfields = "0.3.0"
+chrono = "0.4.22"
+close-file = "0.1.0"
+fern = "0.6.1"
+interpolate = "0.2.3"
+libc = "0.2.134"
+log = "0.4.17"
+modular-bitfield = "0.11.2"
+simplelog = "0.12.0"
