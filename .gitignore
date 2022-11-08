@@ -1,5 +1,8 @@
 /target
-src/gen/*
+/data/*
+/docs/*
+
+/src/generated/*
 
 # RStudio
 .Rproj.user
