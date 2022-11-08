@@ -13,6 +13,7 @@ extern crate num_derive;
 mod common {
     pub mod constants;
     pub mod types;
+    pub mod instruction_format;
 }
 
 mod world {

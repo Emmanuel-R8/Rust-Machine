@@ -225,11 +225,7 @@ impl Default for CPU {
 }
 
 impl CPU {
-    pub fn initialise(&mut self, mut dataBase: *mut isize, mut tagsBase: *mut QTag) {
-        let mut p: *mut QWord = 0 as *mut QWord;
-        let mut q: *mut *mut QWord = 0 as *mut *mut QWord;
-        let mut j: u32 = 0;
-
+    pub fn initialise(&mut self) {
         if !self.allocated_caches {
             self.instruction_cache = [InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE];
             self.stack_cache = [QWord::default(); IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE];
