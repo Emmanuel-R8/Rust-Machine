@@ -16,32 +16,32 @@ extern "C" {
     fn free(_: *mut libc::c_void);
     fn atexit(__func: Option::<fn() -> ()>) -> u32;
     fn pthread_create(
-        __newthread: *mut pthread_t,
-        __attr: *const pthread_attr_t,
+        __newthread: *mut u64,
+        __attr: *const u64,
         __start_routine: Option::<
             fn(*mut libc::c_void) -> *mut libc::c_void,
         >,
         __arg: *mut libc::c_void,
     ) -> u32;
     fn pthread_join(
-        __th: pthread_t,
+        __th: u64,
         __thread_return: *mut *mut libc::c_void,
     ) -> u32;
-    fn pthread_detach(__th: pthread_t) -> u32;
-    fn pthread_self() -> pthread_t;
-    fn pthread_cancel(__th: pthread_t) -> u32;
-    fn pthread_testcancel();
+    fn pthread_detach(__th: u64) -> u32;
+    fn pthread_self() -> u64;
+    fn pthread_cancel(__th: u64) -> u32;
+    fn u64estcancel();
     fn __pthread_register_cancel(__buf: *mut __pthread_unwind_buf_t);
     fn __pthread_unregister_cancel(__buf: *mut __pthread_unwind_buf_t);
     fn __pthread_unwind_next(__buf: *mut __pthread_unwind_buf_t) -> !;
     fn __sigsetjmp(__env: *mut __jmp_buf_tag, __savemask: u32) -> u32;
     fn pthread_mutex_init(
-        __mutex: *mut pthread_mutex_t,
+        __mutex: *mut u64,
         __mutexattr: *const pthread_mutexattr_t,
     ) -> u32;
-    fn pthread_mutex_destroy(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_lock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_unlock(__mutex: *mut pthread_mutex_t) -> u32;
+    fn pthread_mutex_destroy(__mutex: *mut u64) -> u32;
+    fn pthread_mutex_lock(__mutex: *mut u64) -> u32;
+    fn pthread_mutex_unlock(__mutex: *mut u64) -> u32;
     fn pthread_key_create(
         __key: *mut pthread_key_t,
         __destr_function: Option::<fn(*mut libc::c_void) -> ()>,
@@ -93,18 +93,18 @@ extern "C" {
         __addr_len: socklen_t,
     ) -> ssize_t;
     fn ntohs(__netshort: uint16_t) -> uint16_t;
-    fn htonl(__hostlong: ui32) -> ui32;
+    fn htonl(__hostlong: u32) -> u32;
     fn htons(__hostshort: uint16_t) -> uint16_t;
-    fn LispObjTag(lo: LispObj) -> ui32;
-    fn LispObjData(lo: LispObj) -> ui32;
-    fn WriteLispObjTag(lo: *mut LispObj, newtag: ui32);
-    fn WriteLispObjData(lo: *mut LispObj, newdata: ui32);
+    fn LispObjTag(lo: QWord) -> u32;
+    fn LispObjData(lo: QWord) -> u32;
+    fn WriteLispObjTag(lo: *mut LispObj, newtag: u32);
+    fn WriteLispObjData(lo: *mut LispObj, newdata: u32);
     fn InitializeIvoryProcessor(dataBase: *mut isize, tagsBase: *mut Tag);
-    fn IvoryProcessorSystemStartup(bootingP: Boole) -> Boole;
+    fn IvoryProcessorSystemStartup(bootingP: bool) -> Boole;
     fn Runningp() -> Boole;
     fn PushOneFakeFrame();
     fn HaltMachine();
-    fn StartMachine(resumeP: Boole);
+    fn StartMachine(resumeP: bool);
     fn ReadInternalRegister(regno: u32, val: *mut LispObj) -> Boole;
     fn WriteInternalRegister(regno: u32, val: *mut LispObj) -> Boole;
     fn WriteVirtualMemory(vma: isize, object: *mut LispObj) -> u32;
@@ -114,7 +114,7 @@ extern "C" {
     fn EnsureVirtualAddressRange(
         virtualaddress: isize,
         count: u32,
-        faultp: Boole,
+        faultp: bool,
     ) -> isize;
     fn SignalLater(signal_0: SignalNumber);
     static mut EmbCommAreaPtr: *mut EmbCommArea;
@@ -138,10 +138,10 @@ pub type u64 = libc::c_ulong;
 pub type __time_t = libc::c_long;
 pub type __ssize_t = libc::c_long;
 pub type __syscall_slong_t = libc::c_long;
-pub type __caddr_t =&str;
+pub type __u64 =&str;
 pub type __socklen_t = libc::c_uint;
 pub type ssize_t = __ssize_t;
-pub type caddr_t = __caddr_t;
+pub type u64 = __u64;
 pub type i32 = i32;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -162,7 +162,7 @@ pub union __atomic_wide_counter {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct C2RustUnnamed {
+pub struct QData {
     pub __low: libc::c_uint,
     pub __high: libc::c_uint,
 }
@@ -196,7 +196,7 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union pthread_mutexattr_t {
@@ -206,27 +206,27 @@ pub union pthread_mutexattr_t {
 pub type pthread_key_t = libc::c_uint;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
 }
 pub type u8 = u8;
 pub type uint16_t = __uint16_t;
-pub type ui32 = u32;
+pub type u32 = u32;
 pub type u64 = u64;
 pub type __jmp_buf = [libc::c_long; 8];
 #[derive(Copy, Clone)]
@@ -305,9 +305,9 @@ pub union __SOCKADDR_ARG {
 pub struct sockaddr_in6 {
     pub sin6_family: sa_family_t,
     pub sin6_port: in_port_t,
-    pub sin6_flowinfo: ui32,
+    pub sin6_flowinfo: u32,
     pub sin6_addr: in6_addr,
-    pub sin6_scope_id: ui32,
+    pub sin6_scope_id: u32,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -319,7 +319,7 @@ pub struct in6_addr {
 pub union C2RustUnnamed_0 {
     pub __u6_addr8: [u8; 16],
     pub __u6_addr16: [uint16_t; 8],
-    pub __u6_addr32: [ui32; 4],
+    pub __u6_addr32: [u32; 4],
 }
 pub type in_port_t = uint16_t;
 #[derive(Copy, Clone)]
@@ -335,7 +335,7 @@ pub struct sockaddr_in {
 pub struct in_addr {
     pub s_addr: in_addr_t,
 }
-pub type in_addr_t = ui32;
+pub type in_addr_t = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union __CONST_SOCKADDR_ARG {
@@ -354,9 +354,9 @@ pub union __CONST_SOCKADDR_ARG {
     pub __sockaddr_x25__: *const sockaddr_x25,
 }
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -372,21 +372,21 @@ pub union LispObj {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _LispObj {
-    pub tag: ui32,
+    pub tag: u32,
     pub data: C2RustUnnamed_1,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_1 {
-    pub u: ui32,
+    pub u: u32,
     pub s: i32,
     pub f: libc::c_float,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
+    pub handlerThread: u64,
+    pub handlerThreadSetup: bool,
     pub signal: SignalMask,
     pub handlerFunction: ProcPtrV,
     pub handlerArgument: PtrV,
@@ -442,46 +442,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_2,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -507,8 +507,8 @@ pub struct EmbMessageChannel {
     pub hostToGuestQueue: EmbPtr,
     pub hostToGuestSupplyQueue: EmbPtr,
     pub hostToGuestImpulse: EmbWord,
-    pub subtypeData0: uEmbWord,
-    pub subtypeData1: uEmbWord,
+    pub subtypeData0: UEmbWord,
+    pub subtypeData1: UEmbWord,
 }
 pub type EmbMessageImpulse = libc::c_uint;
 pub const EmbMessageImpulseNone: EmbMessageImpulse = 0;
@@ -535,7 +535,7 @@ pub const rm_discard: C2RustUnnamed_8 = 0;
 #[repr(C)]
 pub struct C2RustUnnamed_7 {
     pub id: libc::c_uint,
-    pub acked: Boole,
+    pub acked: bool,
 }
 
 pub const rm_mbin: C2RustUnnamed_8 = 9;
@@ -554,10 +554,10 @@ pub const rm_ack: C2RustUnnamed_8 = 2;
 pub const rm_trap: C2RustUnnamed_8 = 6;
 pub type C2RustUnnamed_8 = libc::c_uint;
 pub type C2RustUnnamed_9 = libc::c_uint;
-static mut spy: usize = -(1);
-static mut send_trap: usize = 0;
+static mut spy: u32 = -(1);
+static mut send_trap: u32 = 0;
 static mut mainThread: pthread_key_t = 0;
-static mut spyLock: pthread_mutex_t = pthread_mutex_t {
+static mut spyLock: u64 = u64 {
     __data: __pthread_mutex_s {
         __lock: 0,
         __count: 0,
@@ -572,10 +572,10 @@ static mut spyLock: pthread_mutex_t = pthread_mutex_t {
         },
     },
 };
-static mut spyLockSetup: Boole = 0 as usize as Boole;
-static mut spyThread: pthread_t = 0;
-static mut spyThreadSetup: Boole = 0 as usize as Boole;
-#[no_mangle]
+static mut spyLockSetup: bool = false;
+static mut spyThread: u64 = 0;
+static mut spyThreadSetup: bool = false;
+
 pub static mut activeMBINChannel: *mut EmbMBINChannel = 0 as *const EmbMBINChannel
     as *mut EmbMBINChannel;
 static mut MBINHistory: [C2RustUnnamed_7; 16] = [C2RustUnnamed_7 {
@@ -584,21 +584,21 @@ static mut MBINHistory: [C2RustUnnamed_7; 16] = [C2RustUnnamed_7 {
 }; 16];
  fn divine_port_number(
     mut diagnosticAddress: libc::c_ulong,
-) -> usize {
+) -> u32 {
     let mut port: libc::c_ulong = 0;
-    port = (htonl(diagnosticAddress as ui32))
-        .wrapping_sub(0x80512900 as libc::c_uint) as libc::c_ulong;
-    if port < 0 as usize as libc::c_ulong {
+    port = (htonl(diagnosticAddress ))
+        .wrapping_sub(0x80512900 );
+    if port < 0 {
         port = port.wrapping_neg();
     }
-    if port > 256 as usize as libc::c_ulong {
+    if port > 256 {
         port = port
-            .wrapping_rem(256 as usize as libc::c_ulong)
-            .wrapping_add(256 as usize as libc::c_ulong);
+            .wrapping_rem(256)
+            .wrapping_add(256);
     } else {
-        port = port.wrapping_rem(256 as usize as libc::c_ulong);
+        port = port.wrapping_rem(256);
     }
-    port = port.wrapping_add(2900 as usize as libc::c_ulong);
+    port = port.wrapping_add(2900);
     return port;
 }
  fn bind_a_port(
@@ -615,18 +615,18 @@ static mut MBINHistory: [C2RustUnnamed_7; 16] = [C2RustUnnamed_7 {
     ) != 0
     {
         verror(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-             "" ,
+            b"spy\0"   as&str,
+
         );
         (*sin)
             .sin_port = htons(
-            (ntohs((*sin).sin_port) as usize + 1) as uint16_t,
+            (ntohs((*sin).sin_port)  + 1) as uint16_t,
         );
         bind_a_port(spy_0, sin, len);
     } else {
         vwarn(
-             "" ,
-            b"Spy started on port %d.\0" as *const u8 as *const libc::c_char
+
+            b"Spy started on port %d.\0"
                 as&str,
             ntohs((*sin).sin_port),
         );
@@ -636,91 +636,91 @@ static mut MBINHistory: [C2RustUnnamed_7; 16] = [C2RustUnnamed_7 {
     mut pkt: *mut rm_pkt,
     mut rm_length: u32,
     mut sin: *mut sockaddr_in,
-) -> usize {
-    let mut result: usize = 0;
+) -> u32 {
+    let mut result: u32 = 0;
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(*mut pthread_mutex_t) -> u32>,
+        Option::<fn(*mut u64) -> u32>,
         pthread_cleanuproutine_t,
     >(
         Some(
             pthread_mutex_unlock
-                as fn(*mut pthread_mutex_t) -> u32,
+                as fn(*mut u64) -> u32,
         ),
     );
-    let mut __cancel_arg: *mut libc::c_void = &mut spyLock as *mut pthread_mutex_t
-        as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+    let mut __cancel_arg: *mut libc::c_void = &mut spyLock as *mut u64
+        ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut spyLock) != 0 {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to lock the spy lock in thread %x\0" as *const u8
-                as *const libc::c_char as&str,
+            b"spy\0"   as&str,
+            b"Unable to lock the spy lock in thread %x\0"
+                 as&str,
             pthread_self(),
         );
     }
     if sendto(
         spy,
-        &mut *((*pkt).rm_pad).as_mut_ptr().offset(0 as usize as isize)
-            as *mut libc::c_uchar as *const libc::c_void,
-        rm_length as size_t,
+        &mut *((*pkt).rm_pad).as_mut_ptr().offset(0 )
+            as *mut libc::c_uchar ,
+        rm_length,
         0,
         __CONST_SOCKADDR_ARG {
             __sockaddr__: sin as *mut sockaddr,
         },
-        ::std::mem::size_of::<sockaddr_in>() as libc::c_ulong as socklen_t,
-    ) < 0 as usize as libc::c_long
+        ::std::mem::size_of::<sockaddr_in>() as socklen_t,
+    ) < 0
     {
         verror(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-             "" ,
+            b"spy\0"   as&str,
+
         );
         result = 1;
     }
     if pthread_mutex_unlock(&mut spyLock) != 0 {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to unlock the spy lock in thread %x\0" as *const u8
-                as *const libc::c_char as&str,
+            b"spy\0"   as&str,
+            b"Unable to unlock the spy lock in thread %x\0"
+                 as&str,
             pthread_self(),
         );
     }
     __pthread_unregister_cancel(&mut __cancel_buf);
     return result;
 }
- fn read_long(mut bytes: *mut libc::c_uchar) -> ui32 {
-    return (*bytes.offset(0 as usize as isize)
-        | (*bytes.offset(1 as usize as isize)) << 8
-        | (*bytes.offset(2 as usize as isize)) << 16
-        | (*bytes.offset(3 as usize as isize)) << 24)
-        as ui32;
+ fn read_long(mut bytes: *mut libc::c_uchar) -> u32 {
+    return (*bytes.offset(0 )
+        | (*bytes.offset(1 )) << 8
+        | (*bytes.offset(2 )) << 16
+        | (*bytes.offset(3 )) << 24)
+        ;
 }
  fn write_long(mut bytes: *mut libc::c_uchar, mut data: libc::c_uint) {
-    *bytes.offset(0 as usize as isize) = data as libc::c_uchar;
+    *bytes.offset(0 ) = data as libc::c_uchar;
     *bytes
-        .offset(1 as usize as isize) = (data >> 8) as libc::c_uchar;
+        .offset(1 ) = (data >> 8) as libc::c_uchar;
     *bytes
         .offset(
-            2 as usize as isize,
+            2 ,
         ) = (data >> 16) as libc::c_uchar;
     *bytes
         .offset(
-            3 as usize as isize,
+            3 ,
         ) = (data >> 24) as libc::c_uchar;
 }
 static mut trap_sin: sockaddr_in = sockaddr_in {
@@ -729,14 +729,14 @@ static mut trap_sin: sockaddr_in = sockaddr_in {
     sin_addr: in_addr { s_addr: 0 },
     sin_zero: [0; 8],
 };
-static mut trap_sinValid: Boole = 0 as usize as Boole;
+static mut trap_sinValid: bool = false;
 static mut mbin_sin: sockaddr_in = sockaddr_in {
     sin_family: 0,
     sin_port: 0,
     sin_addr: in_addr { s_addr: 0 },
     sin_zero: [0; 8],
 };
-static mut mbin_sinValid: Boole = 0 as usize as Boole;
+static mut mbin_sinValid: bool = false;
 static mut trap_environment: jmp_buf = [__jmp_buf_tag {
     __jmpbuf: [0; 8],
     __mask_was_saved: 0,
@@ -746,42 +746,42 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
     _longjmp(trap_environment.as_mut_ptr(), -(1));
 }
  fn SpyTopLevel(mut argument: pthread_addr_t) {
-    let mut self_0: pthread_t = pthread_self();
+    let mut self_0: u64 = pthread_self();
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(pthread_t) -> u32>,
+        Option::<fn(u64) -> u32>,
         pthread_cleanuproutine_t,
-    >(Some(pthread_detach as fn(pthread_t) -> u32));
-    let mut __cancel_arg: *mut libc::c_void = self_0 as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+    >(Some(pthread_detach as fn(u64) -> u32));
+    let mut __cancel_arg: *mut libc::c_void = self_0 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut spyLock) != 0 {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to lock the spy lock in thread %x\0" as *const u8
-                as *const libc::c_char as&str,
+            b"spy\0"   as&str,
+            b"Unable to lock the spy lock in thread %x\0"
+                 as&str,
             self_0,
         );
     }
     if pthread_mutex_unlock(&mut spyLock) != 0 {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to unlock the spy lock in thread %x\0" as *const u8
-                as *const libc::c_char as&str,
+            b"spy\0"   as&str,
+            b"Unable to unlock the spy lock in thread %x\0"
+                 as&str,
             self_0,
         );
     }
@@ -815,13 +815,13 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
     let mut p: *mut libc::c_uchar = 0 as *mut libc::c_uchar;
     let mut vma: libc::c_uint = 0;
     let mut operand: libc::c_uint = 0;
-    let mut nwords: usize = 0;
-    let mut nchunks: usize = 0;
-    let mut i: usize = 0;
-    let mut pkt_length: usize = 0;
-    let mut reply_length: usize = 0;
-    let mut sinlen: usize = 0;
-    let mut booted: usize = 0;
+    let mut nwords: u32 = 0;
+    let mut nchunks: u32 = 0;
+    let mut i: u32 = 0;
+    let mut pkt_length: u32 = 0;
+    let mut reply_length: u32 = 0;
+    let mut sinlen: u32 = 0;
+    let mut booted: u32 = 0;
     let mut pkt_source: sockaddr_in = sockaddr_in {
         sin_family: 0,
         sin_port: 0,
@@ -833,11 +833,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
         events: 0,
         revents: 0,
     };
-    let mut forciblyHalted: Boole = 0 as usize as Boole;
+    let mut forciblyHalted: bool = false;
     pollSpy.fd = spy;
-    pollSpy.events = 0x1 as usize as libc::c_short;
+    pollSpy.events = 0x1  as libc::c_short;
     loop {
-        pthread_testcancel();
+        u64estcancel();
         if Runningp() == 0 {
             if send_trap != 0 {
                 PushOneFakeFrame();
@@ -849,95 +849,95 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                 send_trap = 0;
             }
         }
-        i = poll(&mut pollSpy, 1 as usize as nfds_t, 1000);
-        if 0 as usize == i {
+        i = poll(&mut pollSpy, 1  as nfds_t, 1000);
+        if 0  == i {
             continue;
         }
-        if i < 0 as usize {
+        if i < 0  {
             vpunt(
-                b"spy\0" as *const u8 as *const libc::c_char as&str,
-                b"Waiting for a packet from the remote debugger\0" as *const u8
-                    as *const libc::c_char as&str,
+                b"spy\0"   as&str,
+                b"Waiting for a packet from the remote debugger\0"
+                     as&str,
             );
         } else if pollSpy.revents
-            & (0x10 as usize | 0x20) != 0
+            & (0x10  | 0x20) != 0
         {
             break;
         }
-        sinlen = ::std::mem::size_of::<sockaddr_in>() as libc::c_ulong;
+        sinlen = ::std::mem::size_of::<sockaddr_in>();
         pkt_length = recvfrom(
             spy,
-            &mut *(pkt.rm_pad).as_mut_ptr().offset(0 as usize as isize)
-                as *mut libc::c_uchar as *mut libc::c_void,
-            (10 as usize + 1284) as size_t,
+            &mut *(pkt.rm_pad).as_mut_ptr().offset(0 )
+                as *mut libc::c_uchar ,
+            (10  + 1284),
             0,
             __SOCKADDR_ARG {
                 __sockaddr__: &mut pkt_source as *mut sockaddr_in as *mut sockaddr,
             },
-            &mut sinlen as *mut usize as *mut socklen_t,
+            &mut sinlen as *mut u32 as *mut socklen_t,
         );
-        if pkt_length < 0 as usize {
+        if pkt_length < 0  {
             vpunt(
-                b"spy\0" as *const u8 as *const libc::c_char as&str,
-                b"Reading packet from remote debugger\0" as *const u8
-                    as *const libc::c_char as&str,
+                b"spy\0"   as&str,
+                b"Reading packet from remote debugger\0"
+                     as&str,
             );
         }
-        reply.rm_operand[0 as usize as usize] = 0 as usize as libc::c_uchar;
-        reply.rm_operand[1 as usize as usize] = 0 as usize as libc::c_uchar;
-        reply.rm_operand[2 as usize as usize] = 0 as usize as libc::c_uchar;
+        reply.rm_operand[0  ] = 0  as libc::c_uchar;
+        reply.rm_operand[1  ] = 0  as libc::c_uchar;
+        reply.rm_operand[2  ] = 0  as libc::c_uchar;
         reply_length = 10;
         reply.set_rm_opcode(rm_ack);
         memcpy(
-            &mut *(reply.rm_id).as_mut_ptr().offset(0 as usize as isize)
-                as *mut libc::c_uchar as *mut libc::c_void,
-            &mut *(pkt.rm_id).as_mut_ptr().offset(0 as usize as isize)
-                as *mut libc::c_uchar as *const libc::c_void,
-            4 as usize as libc::c_ulong,
+            &mut *(reply.rm_id).as_mut_ptr().offset(0 )
+                as *mut libc::c_uchar ,
+            &mut *(pkt.rm_id).as_mut_ptr().offset(0 )
+                as *mut libc::c_uchar ,
+            4,
         );
         operand = read_long(
-            &mut *(pkt.rm_operand).as_mut_ptr().offset(0 as usize as isize),
-        ) & 0xffffff as usize as libc::c_uint;
+            &mut *(pkt.rm_operand).as_mut_ptr().offset(0 ),
+        ) & 0xffffff;
         match pkt.rm_opcode() {
             7 => {
                 if Runningp() != 0 {
-                    forciblyHalted = 1 as usize as Boole;
+                    forciblyHalted = true;
                     HaltMachine();
                     while Runningp() != 0 {}
                 }
                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                 InitializeIvoryProcessor(
-                    MapVirtualAddressData(0 as usize as isize),
-                    MapVirtualAddressTag(0 as usize as isize),
+                    MapVirtualAddressData(0 ),
+                    MapVirtualAddressTag(0 ),
                 );
                 booted = 1;
                 if forciblyHalted != 0 {
-                    forciblyHalted = 0 as usize as Boole;
-                    StartMachine(1 as usize as Boole);
+                    forciblyHalted = false;
+                    StartMachine(true);
                 }
                 continue;
             }
             8 => {
                 if Runningp() != 0 {
-                    forciblyHalted = 1 as usize as Boole;
+                    forciblyHalted = true;
                     HaltMachine();
                     while Runningp() != 0 {}
                 }
                 vma = read_long(
-                    &mut *(pkt.data).as_mut_ptr().offset(0 as usize as isize),
+                    &mut *(pkt.data).as_mut_ptr().offset(0 ),
                 );
                 nwords = read_long(
-                    &mut *(pkt.data).as_mut_ptr().offset(4 as usize as isize),
+                    &mut *(pkt.data).as_mut_ptr().offset(4 ),
                 );
                 EnsureVirtualAddressRange(
-                    vma as isize,
+                    vma ,
                     nwords,
-                    0 as usize as Boole,
+                    false,
                 );
                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                 if forciblyHalted != 0 {
-                    forciblyHalted = 0 as usize as Boole;
-                    StartMachine(1 as usize as Boole);
+                    forciblyHalted = false;
+                    StartMachine(true);
                 }
                 continue;
             }
@@ -947,16 +947,16 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
             }
             4 => {
                 if Runningp() != 0 {
-                    forciblyHalted = 1 as usize as Boole;
+                    forciblyHalted = true;
                     HaltMachine();
                     while Runningp() != 0 {}
                 }
                 vma = read_long(
-                    &mut *(pkt.data).as_mut_ptr().offset(0 as usize as isize),
+                    &mut *(pkt.data).as_mut_ptr().offset(0 ),
                 );
-                nwords = (operand & 0x3ff as usize as libc::c_uint);
+                nwords = (operand & 0x3ff);
                 nchunks = (nwords + 3) / 4;
-                match operand >> 10 as usize & 3 as usize as libc::c_uint {
+                match operand >> 10  & 3 {
                     0 => {}
                     1 => {
                         current_block = 7385833325316299293;
@@ -988,8 +988,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         ReadVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1007,8 +1007,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     ReadInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     );
                                     i += 1;
                                 }
@@ -1018,11 +1018,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Read of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Read of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1036,56 +1036,56 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 bufferp = &mut *buffer
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut LispObj;
+                                    .offset(0 ) as *mut LispObj;
                                 p = &mut *(reply.data)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar;
+                                    .offset(0 ) as *mut libc::c_uchar;
                                 while i < nchunks {
                                     *p
                                         .offset(
-                                            0 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(0 as usize as isize))
+                                            0 ,
+                                        ) = LispObjTag(*bufferp.offset(0 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            1 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(1 as usize as isize))
+                                            1 ,
+                                        ) = LispObjTag(*bufferp.offset(1 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            2 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(2 as usize as isize))
+                                            2 ,
+                                        ) = LispObjTag(*bufferp.offset(2 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            3 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(3 as usize as isize))
+                                            3 ,
+                                        ) = LispObjTag(*bufferp.offset(3 ))
                                         as libc::c_uchar;
                                     write_long(
-                                        &mut *p.offset(4 as usize as isize),
-                                        LispObjData(*bufferp.offset(0 as usize as isize)),
+                                        &mut *p.offset(4 ),
+                                        LispObjData(*bufferp.offset(0 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(8 as usize as isize),
-                                        LispObjData(*bufferp.offset(1 as usize as isize)),
+                                        &mut *p.offset(8 ),
+                                        LispObjData(*bufferp.offset(1 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(12 as usize as isize),
-                                        LispObjData(*bufferp.offset(2 as usize as isize)),
+                                        &mut *p.offset(12 ),
+                                        LispObjData(*bufferp.offset(2 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(16 as usize as isize),
-                                        LispObjData(*bufferp.offset(3 as usize as isize)),
+                                        &mut *p.offset(16 ),
+                                        LispObjData(*bufferp.offset(3 )),
                                     );
                                     i += 1;
-                                    bufferp = bufferp.offset(4 as usize as isize);
-                                    p = p.offset(20 as usize as isize);
+                                    bufferp = bufferp.offset(4 );
+                                    p = p.offset(20 );
                                 }
                                 reply_length += nchunks * 20;
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(1 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(true);
                                 }
                                 continue;
                             }
@@ -1121,8 +1121,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         ReadVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1140,8 +1140,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     ReadInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     );
                                     i += 1;
                                 }
@@ -1151,11 +1151,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Read of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Read of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1169,56 +1169,56 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 bufferp = &mut *buffer
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut LispObj;
+                                    .offset(0 ) as *mut LispObj;
                                 p = &mut *(reply.data)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar;
+                                    .offset(0 ) as *mut libc::c_uchar;
                                 while i < nchunks {
                                     *p
                                         .offset(
-                                            0 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(0 as usize as isize))
+                                            0 ,
+                                        ) = LispObjTag(*bufferp.offset(0 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            1 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(1 as usize as isize))
+                                            1 ,
+                                        ) = LispObjTag(*bufferp.offset(1 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            2 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(2 as usize as isize))
+                                            2 ,
+                                        ) = LispObjTag(*bufferp.offset(2 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            3 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(3 as usize as isize))
+                                            3 ,
+                                        ) = LispObjTag(*bufferp.offset(3 ))
                                         as libc::c_uchar;
                                     write_long(
-                                        &mut *p.offset(4 as usize as isize),
-                                        LispObjData(*bufferp.offset(0 as usize as isize)),
+                                        &mut *p.offset(4 ),
+                                        LispObjData(*bufferp.offset(0 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(8 as usize as isize),
-                                        LispObjData(*bufferp.offset(1 as usize as isize)),
+                                        &mut *p.offset(8 ),
+                                        LispObjData(*bufferp.offset(1 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(12 as usize as isize),
-                                        LispObjData(*bufferp.offset(2 as usize as isize)),
+                                        &mut *p.offset(12 ),
+                                        LispObjData(*bufferp.offset(2 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(16 as usize as isize),
-                                        LispObjData(*bufferp.offset(3 as usize as isize)),
+                                        &mut *p.offset(16 ),
+                                        LispObjData(*bufferp.offset(3 )),
                                     );
                                     i += 1;
-                                    bufferp = bufferp.offset(4 as usize as isize);
-                                    p = p.offset(20 as usize as isize);
+                                    bufferp = bufferp.offset(4 );
+                                    p = p.offset(20 );
                                 }
                                 reply_length += nchunks * 20;
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(1 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(true);
                                 }
                                 continue;
                             }
@@ -1254,8 +1254,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         ReadVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1273,8 +1273,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     ReadInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     );
                                     i += 1;
                                 }
@@ -1284,11 +1284,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Read of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Read of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1302,56 +1302,56 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 bufferp = &mut *buffer
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut LispObj;
+                                    .offset(0 ) as *mut LispObj;
                                 p = &mut *(reply.data)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar;
+                                    .offset(0 ) as *mut libc::c_uchar;
                                 while i < nchunks {
                                     *p
                                         .offset(
-                                            0 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(0 as usize as isize))
+                                            0 ,
+                                        ) = LispObjTag(*bufferp.offset(0 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            1 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(1 as usize as isize))
+                                            1 ,
+                                        ) = LispObjTag(*bufferp.offset(1 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            2 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(2 as usize as isize))
+                                            2 ,
+                                        ) = LispObjTag(*bufferp.offset(2 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            3 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(3 as usize as isize))
+                                            3 ,
+                                        ) = LispObjTag(*bufferp.offset(3 ))
                                         as libc::c_uchar;
                                     write_long(
-                                        &mut *p.offset(4 as usize as isize),
-                                        LispObjData(*bufferp.offset(0 as usize as isize)),
+                                        &mut *p.offset(4 ),
+                                        LispObjData(*bufferp.offset(0 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(8 as usize as isize),
-                                        LispObjData(*bufferp.offset(1 as usize as isize)),
+                                        &mut *p.offset(8 ),
+                                        LispObjData(*bufferp.offset(1 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(12 as usize as isize),
-                                        LispObjData(*bufferp.offset(2 as usize as isize)),
+                                        &mut *p.offset(12 ),
+                                        LispObjData(*bufferp.offset(2 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(16 as usize as isize),
-                                        LispObjData(*bufferp.offset(3 as usize as isize)),
+                                        &mut *p.offset(16 ),
+                                        LispObjData(*bufferp.offset(3 )),
                                     );
                                     i += 1;
-                                    bufferp = bufferp.offset(4 as usize as isize);
-                                    p = p.offset(20 as usize as isize);
+                                    bufferp = bufferp.offset(4 );
+                                    p = p.offset(20 );
                                 }
                                 reply_length += nchunks * 20;
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(1 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(true);
                                 }
                                 continue;
                             }
@@ -1387,8 +1387,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         ReadVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1406,8 +1406,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     ReadInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     );
                                     i += 1;
                                 }
@@ -1417,11 +1417,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Read of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Read of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1435,56 +1435,56 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 bufferp = &mut *buffer
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut LispObj;
+                                    .offset(0 ) as *mut LispObj;
                                 p = &mut *(reply.data)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar;
+                                    .offset(0 ) as *mut libc::c_uchar;
                                 while i < nchunks {
                                     *p
                                         .offset(
-                                            0 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(0 as usize as isize))
+                                            0 ,
+                                        ) = LispObjTag(*bufferp.offset(0 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            1 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(1 as usize as isize))
+                                            1 ,
+                                        ) = LispObjTag(*bufferp.offset(1 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            2 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(2 as usize as isize))
+                                            2 ,
+                                        ) = LispObjTag(*bufferp.offset(2 ))
                                         as libc::c_uchar;
                                     *p
                                         .offset(
-                                            3 as usize as isize,
-                                        ) = LispObjTag(*bufferp.offset(3 as usize as isize))
+                                            3 ,
+                                        ) = LispObjTag(*bufferp.offset(3 ))
                                         as libc::c_uchar;
                                     write_long(
-                                        &mut *p.offset(4 as usize as isize),
-                                        LispObjData(*bufferp.offset(0 as usize as isize)),
+                                        &mut *p.offset(4 ),
+                                        LispObjData(*bufferp.offset(0 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(8 as usize as isize),
-                                        LispObjData(*bufferp.offset(1 as usize as isize)),
+                                        &mut *p.offset(8 ),
+                                        LispObjData(*bufferp.offset(1 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(12 as usize as isize),
-                                        LispObjData(*bufferp.offset(2 as usize as isize)),
+                                        &mut *p.offset(12 ),
+                                        LispObjData(*bufferp.offset(2 )),
                                     );
                                     write_long(
-                                        &mut *p.offset(16 as usize as isize),
-                                        LispObjData(*bufferp.offset(3 as usize as isize)),
+                                        &mut *p.offset(16 ),
+                                        LispObjData(*bufferp.offset(3 )),
                                     );
                                     i += 1;
-                                    bufferp = bufferp.offset(4 as usize as isize);
-                                    p = p.offset(20 as usize as isize);
+                                    bufferp = bufferp.offset(4 );
+                                    p = p.offset(20 );
                                 }
                                 reply_length += nchunks * 20;
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(1 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(true);
                                 }
                                 continue;
                             }
@@ -1493,7 +1493,7 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                 }
             }
             10 => {
-                forciblyHalted = 0 as usize as Boole;
+                forciblyHalted = false;
                 HaltMachine();
                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                 continue;
@@ -1501,22 +1501,22 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
             5 => {
                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                 memcpy(
-                    &mut trap_sin as *mut sockaddr_in as *mut libc::c_void,
-                    &mut pkt_source as *mut sockaddr_in as *const libc::c_void,
-                    ::std::mem::size_of::<sockaddr_in>() as libc::c_ulong,
+                    &mut trap_sin as *mut sockaddr_in ,
+                    &mut pkt_source as *mut sockaddr_in ,
+                    ::std::mem::size_of::<sockaddr_in>(),
                 );
-                trap_sinValid = 1 as usize as Boole;
+                trap_sinValid = true;
                 memcpy(
-                    &mut mbin_sin as *mut sockaddr_in as *mut libc::c_void,
-                    &mut pkt_source as *mut sockaddr_in as *const libc::c_void,
-                    ::std::mem::size_of::<sockaddr_in>() as libc::c_ulong,
+                    &mut mbin_sin as *mut sockaddr_in ,
+                    &mut pkt_source as *mut sockaddr_in ,
+                    ::std::mem::size_of::<sockaddr_in>(),
                 );
-                mbin_sinValid = 1 as usize as Boole;
+                mbin_sinValid = true;
                 if IvoryProcessorSystemStartup(booted as Boole) == 0 {
                     vwarn(
-                        b"spy\0" as *const u8 as *const libc::c_char
+                        b"spy\0"
                             as&str,
-                        b"Bad start routine.\0" as *const u8 as *const libc::c_char
+                        b"Bad start routine.\0"
                             as&str,
                     );
                 }
@@ -1525,58 +1525,58 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
             }
             3 => {
                 if Runningp() != 0 {
-                    forciblyHalted = 1 as usize as Boole;
+                    forciblyHalted = true;
                     HaltMachine();
                     while Runningp() != 0 {}
                 }
                 vma = read_long(
-                    &mut *(pkt.data).as_mut_ptr().offset(0 as usize as isize),
+                    &mut *(pkt.data).as_mut_ptr().offset(0 ),
                 );
-                nwords = (operand & 0x3ff as usize as libc::c_uint);
+                nwords = (operand & 0x3ff);
                 nchunks = (nwords + 3) / 4;
                 i = 0;
-                bufferp = &mut *buffer.as_mut_ptr().offset(0 as usize as isize)
+                bufferp = &mut *buffer.as_mut_ptr().offset(0 )
                     as *mut LispObj;
-                p = &mut *(pkt.data).as_mut_ptr().offset(4 as usize as isize)
+                p = &mut *(pkt.data).as_mut_ptr().offset(4 )
                     as *mut libc::c_uchar;
                 while i < nchunks {
                     WriteLispObjTag(
-                        &mut *bufferp.offset(0 as usize as isize),
-                        *p.offset(0 as usize as isize) as ui32,
+                        &mut *bufferp.offset(0 ),
+                        *p.offset(0 ) ,
                     );
                     WriteLispObjTag(
-                        &mut *bufferp.offset(1 as usize as isize),
-                        *p.offset(1 as usize as isize) as ui32,
+                        &mut *bufferp.offset(1 ),
+                        *p.offset(1 ) ,
                     );
                     WriteLispObjTag(
-                        &mut *bufferp.offset(2 as usize as isize),
-                        *p.offset(2 as usize as isize) as ui32,
+                        &mut *bufferp.offset(2 ),
+                        *p.offset(2 ) ,
                     );
                     WriteLispObjTag(
-                        &mut *bufferp.offset(3 as usize as isize),
-                        *p.offset(3 as usize as isize) as ui32,
+                        &mut *bufferp.offset(3 ),
+                        *p.offset(3 ) ,
                     );
                     WriteLispObjData(
-                        &mut *bufferp.offset(0 as usize as isize),
-                        read_long(&mut *p.offset(4 as usize as isize)),
+                        &mut *bufferp.offset(0 ),
+                        read_long(&mut *p.offset(4 )),
                     );
                     WriteLispObjData(
-                        &mut *bufferp.offset(1 as usize as isize),
-                        read_long(&mut *p.offset(8 as usize as isize)),
+                        &mut *bufferp.offset(1 ),
+                        read_long(&mut *p.offset(8 )),
                     );
                     WriteLispObjData(
-                        &mut *bufferp.offset(2 as usize as isize),
-                        read_long(&mut *p.offset(12 as usize as isize)),
+                        &mut *bufferp.offset(2 ),
+                        read_long(&mut *p.offset(12 )),
                     );
                     WriteLispObjData(
-                        &mut *bufferp.offset(3 as usize as isize),
-                        read_long(&mut *p.offset(16 as usize as isize)),
+                        &mut *bufferp.offset(3 ),
+                        read_long(&mut *p.offset(16 )),
                     );
                     i += 1;
-                    bufferp = bufferp.offset(4 as usize as isize);
-                    p = p.offset(20 as usize as isize);
+                    bufferp = bufferp.offset(4 );
+                    p = p.offset(20 );
                 }
-                match operand >> 10 as usize & 3 as usize as libc::c_uint {
+                match operand >> 10  & 3 {
                     0 => {}
                     1 => {
                         current_block = 9354678635443812511;
@@ -1608,8 +1608,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         WriteVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1627,16 +1627,16 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     if WriteInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     ) == 0
                                     {
                                         vwarn(
-                                            b"spy\0" as *const u8 as *const libc::c_char
+                                            b"spy\0"
                                                 as&str,
-                                            b"Write of internal register %d failed\0" as *const u8
-                                                as *const libc::c_char as&str,
-                                            vma.wrapping_add(i as libc::c_uint),
+                                            b"Write of internal register %d failed\0"
+                                                 as&str,
+                                            vma.wrapping_add(i ),
                                         );
                                     }
                                     i += 1;
@@ -1647,11 +1647,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Write of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Write of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1664,8 +1664,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                             _ => {
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(0 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(false);
                                 }
                                 continue;
                             }
@@ -1701,8 +1701,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         WriteVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1720,16 +1720,16 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     if WriteInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     ) == 0
                                     {
                                         vwarn(
-                                            b"spy\0" as *const u8 as *const libc::c_char
+                                            b"spy\0"
                                                 as&str,
-                                            b"Write of internal register %d failed\0" as *const u8
-                                                as *const libc::c_char as&str,
-                                            vma.wrapping_add(i as libc::c_uint),
+                                            b"Write of internal register %d failed\0"
+                                                 as&str,
+                                            vma.wrapping_add(i ),
                                         );
                                     }
                                     i += 1;
@@ -1740,11 +1740,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Write of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Write of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1757,8 +1757,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                             _ => {
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(0 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(false);
                                 }
                                 continue;
                             }
@@ -1794,8 +1794,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         WriteVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1813,16 +1813,16 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     if WriteInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     ) == 0
                                     {
                                         vwarn(
-                                            b"spy\0" as *const u8 as *const libc::c_char
+                                            b"spy\0"
                                                 as&str,
-                                            b"Write of internal register %d failed\0" as *const u8
-                                                as *const libc::c_char as&str,
-                                            vma.wrapping_add(i as libc::c_uint),
+                                            b"Write of internal register %d failed\0"
+                                                 as&str,
+                                            vma.wrapping_add(i ),
                                         );
                                     }
                                     i += 1;
@@ -1833,11 +1833,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Write of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Write of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1850,8 +1850,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                             _ => {
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(0 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(false);
                                 }
                                 continue;
                             }
@@ -1887,8 +1887,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                     i = 0;
                                     while i < nwords {
                                         WriteVirtualMemory(
-                                            vma.wrapping_add(i as libc::c_uint) as isize,
-                                            &mut *buffer.as_mut_ptr().offset(i as isize),
+                                            vma.wrapping_add(i ) ,
+                                            &mut *buffer.as_mut_ptr().offset(i ),
                                         ) != 0;
                                         i += 1;
                                     }
@@ -1906,16 +1906,16 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     if WriteInternalRegister(
-                                        vma.wrapping_add(i as libc::c_uint),
-                                        &mut *buffer.as_mut_ptr().offset(i as isize),
+                                        vma.wrapping_add(i ),
+                                        &mut *buffer.as_mut_ptr().offset(i ),
                                     ) == 0
                                     {
                                         vwarn(
-                                            b"spy\0" as *const u8 as *const libc::c_char
+                                            b"spy\0"
                                                 as&str,
-                                            b"Write of internal register %d failed\0" as *const u8
-                                                as *const libc::c_char as&str,
-                                            vma.wrapping_add(i as libc::c_uint),
+                                            b"Write of internal register %d failed\0"
+                                                 as&str,
+                                            vma.wrapping_add(i ),
                                         );
                                     }
                                     i += 1;
@@ -1926,11 +1926,11 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                                 i = 0;
                                 while i < nwords {
                                     vwarn(
-                                        b"spy\0" as *const u8 as *const libc::c_char
+                                        b"spy\0"
                                             as&str,
-                                        b"Write of coprocessor register %d failed.\0" as *const u8
-                                            as *const libc::c_char as&str,
-                                        vma.wrapping_add(i as libc::c_uint),
+                                        b"Write of coprocessor register %d failed.\0"
+                                             as&str,
+                                        vma.wrapping_add(i ),
                                     );
                                     i += 1;
                                 }
@@ -1943,8 +1943,8 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                             _ => {
                                 spy_transmit(&mut reply, reply_length, &mut pkt_source);
                                 if forciblyHalted != 0 {
-                                    forciblyHalted = 0 as usize as Boole;
-                                    StartMachine(0 as usize as Boole);
+                                    forciblyHalted = false;
+                                    StartMachine(false);
                                 }
                                 continue;
                             }
@@ -1956,20 +1956,20 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                 let mut bufferEmbPtr: EmbPtr = 0;
                 let mut buffer_0: *mut rm_aligned_pkt = 0 as *mut rm_aligned_pkt;
                 let mut id: libc::c_uint = 0;
-                let mut historyID: usize = 0;
+                let mut historyID: u32 = 0;
                 memcpy(
-                    &mut mbin_sin as *mut sockaddr_in as *mut libc::c_void,
-                    &mut pkt_source as *mut sockaddr_in as *const libc::c_void,
-                    ::std::mem::size_of::<sockaddr_in>() as libc::c_ulong,
+                    &mut mbin_sin as *mut sockaddr_in ,
+                    &mut pkt_source as *mut sockaddr_in ,
+                    ::std::mem::size_of::<sockaddr_in>(),
                 );
-                mbin_sinValid = 1 as usize as Boole;
+                mbin_sinValid = true;
                 if !activeMBINChannel.is_null() {
                     id = read_long(
-                        &mut *(pkt.rm_id).as_mut_ptr().offset(0 as usize as isize),
+                        &mut *(pkt.rm_id).as_mut_ptr().offset(0 ),
                     );
-                    historyID = (id & 0xf as usize as libc::c_uint);
-                    if MBINHistory[historyID as usize].id == id {
-                        if MBINHistory[historyID as usize].acked != 0 {
+                    historyID = (id & 0xf);
+                    if MBINHistory[historyID ].id == id {
+                        if MBINHistory[historyID ].acked != 0 {
                             spy_transmit(&mut reply, reply_length, &mut pkt_source);
                         }
                     } else if EmbQueueFilled((*activeMBINChannel).hostToGuestSupplyQueue)
@@ -1980,37 +1980,37 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                         );
                         if bufferEmbPtr != 0 && bufferEmbPtr != -(1) {
                             buffer_0 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                                .offset(bufferEmbPtr as isize) as *mut EmbWord as PtrV
+                                .offset(bufferEmbPtr ) as *mut EmbWord as PtrV
                                 as *mut rm_aligned_pkt;
                             memcpy(
                                 &mut *((*buffer_0).rm_id)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar
-                                    as *mut libc::c_void,
+                                    .offset(0 ) as *mut libc::c_uchar
+                                    ,
                                 &mut *(pkt.rm_id)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar
-                                    as *const libc::c_void,
-                                8 as usize as libc::c_ulong,
+                                    .offset(0 ) as *mut libc::c_uchar
+                                    ,
+                                8,
                             );
                             memcpy(
                                 &mut *((*buffer_0).data)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar
-                                    as *mut libc::c_void,
+                                    .offset(0 ) as *mut libc::c_uchar
+                                    ,
                                 &mut *(pkt.data)
                                     .as_mut_ptr()
-                                    .offset(0 as usize as isize) as *mut libc::c_uchar
-                                    as *const libc::c_void,
-                                operand as libc::c_ulong,
+                                    .offset(0 ) as *mut libc::c_uchar
+                                    ,
+                                operand,
                             );
                             EmbQueuePutWord(
                                 (*activeMBINChannel).hostToGuestQueue,
                                 bufferEmbPtr,
                             );
-                            MBINHistory[historyID as usize].id = id;
-                            MBINHistory[historyID as usize]
-                                .acked = 0 as usize as Boole;
+                            MBINHistory[historyID ].id = id;
+                            MBINHistory[historyID ]
+                                .acked = false;
                         }
                     }
                 }
@@ -2020,19 +2020,19 @@ static mut trap_environment: jmp_buf = [__jmp_buf_tag {
                 continue;
             }
         }
-        reply.rm_operand[0 as usize as usize] = 1 as usize as libc::c_uchar;
+        reply.rm_operand[0  ] = 1  as libc::c_uchar;
         spy_transmit(&mut reply, reply_length, &mut pkt_source);
         if forciblyHalted != 0 {
-            forciblyHalted = 0 as usize as Boole;
+            forciblyHalted = false;
             StartMachine(
-                (rm_read as usize == pkt.rm_opcode()) as usize as Boole,
+                (rm_read  == pkt.rm_opcode()) as bool,
             );
         }
     };
 }
-#[no_mangle]
+
 pub  fn InitializeSpy(
-    mut sendTrapP: Boole,
+    mut sendTrapP: bool,
     mut diagnosticAddress: libc::c_ulong,
 ) {
     let mut sin: sockaddr_in = sockaddr_in {
@@ -2041,48 +2041,48 @@ pub  fn InitializeSpy(
         sin_addr: in_addr { s_addr: 0 },
         sin_zero: [0; 8],
     };
-    let mut ipport_remote_memory: usize = 0;
+    let mut ipport_remote_memory: u32 = 0;
     if pthread_key_create(&mut mainThread, None) != 0 {
         vpunt(
-             "" ,
-            b"Unable to establish per-thread data.\0" as *const u8 as *const libc::c_char
+
+            b"Unable to establish per-thread data.\0"
                 as&str,
         );
     }
-    pthread_setspecific(mainThread, 1 as usize as *mut libc::c_void);
+    pthread_setspecific(mainThread, 1  );
     atexit(Some(TerminateSpy as fn() -> ()));
     ipport_remote_memory = divine_port_number(diagnosticAddress);
     spy = socket(2, SOCK_DGRAM, 0);
-    if spy < 0 as usize {
+    if spy < 0  {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to create spy socket\0" as *const u8 as *const libc::c_char
+            b"spy\0"   as&str,
+            b"Unable to create spy socket\0"
                 as&str,
         );
     }
-    sin.sin_family = 2 as usize as sa_family_t;
-    sin.sin_addr.s_addr = 0 as usize as in_addr_t;
+    sin.sin_family = 2  as sa_family_t;
+    sin.sin_addr.s_addr = 0  as in_addr_t;
     sin.sin_port = htons(ipport_remote_memory as uint16_t);
     bind_a_port(
         spy,
         &mut sin,
-        ::std::mem::size_of::<sockaddr_in>() as libc::c_ulong,
+        ::std::mem::size_of::<sockaddr_in>(),
     );
     send_trap = sendTrapP;
     memset(
-        &mut *MBINHistory.as_mut_ptr().offset(0 as usize as isize)
-            as *mut C2RustUnnamed_7 as &str as *mut libc::c_void,
+        &mut *MBINHistory.as_mut_ptr().offset(0 )
+            as *mut C2RustUnnamed_7 as &str ,
         0,
-        ::std::mem::size_of::<[C2RustUnnamed_7; 16]>() as libc::c_ulong,
+        ::std::mem::size_of::<[C2RustUnnamed_7; 16]>(),
     );
     if pthread_mutex_init(&mut spyLock, 0 as *const pthread_mutexattr_t) != 0 {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to create the spy lock\0" as *const u8 as *const libc::c_char
+            b"spy\0"   as&str,
+            b"Unable to create the spy lock\0"
                 as&str,
         );
     }
-    spyLockSetup = 1 as usize as Boole;
+    spyLockSetup = true;
     if pthread_create(
         &mut spyThread,
         &mut (*EmbCommAreaPtr).pollThreadAttrs,
@@ -2090,29 +2090,29 @@ pub  fn InitializeSpy(
             Option::<fn(pthread_addr_t) -> ()>,
             pthread_startroutine_t,
         >(Some(SpyTopLevel as fn(pthread_addr_t) -> ())),
-        0 as *mut libc::c_void,
+        0 ,
     ) != 0
     {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to create the spy thread\0" as *const u8 as *const libc::c_char
+            b"spy\0"   as&str,
+            b"Unable to create the spy thread\0"
                 as&str,
         );
     }
-    spyThreadSetup = 1 as usize as Boole;
+    spyThreadSetup = true;
 }
-#[no_mangle]
+
 pub  fn ReleaseSpyLock() {
     if pthread_mutex_unlock(&mut spyLock) != 0 {
         vpunt(
-            b"spy\0" as *const u8 as *const libc::c_char as&str,
-            b"Unable to unlock the spy lock in thread %x\0" as *const u8
-                as *const libc::c_char as&str,
+            b"spy\0"   as&str,
+            b"Unable to unlock the spy lock in thread %x\0"
+                 as&str,
             pthread_self(),
         );
     }
 }
-#[no_mangle]
+
 pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
     let mut gthQ: *mut EmbQueue = (*mbinChannel).guestToHostQueue;
     let mut gthrQ: *mut EmbQueue = (*mbinChannel).guestToHostReturnQueue;
@@ -2127,7 +2127,7 @@ pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
     };
     let mut nBytes: libc::c_uint = 0;
     let mut id: libc::c_uint = 0;
-    let mut historyID: usize = 0;
+    let mut historyID: u32 = 0;
     if (*(*mbinChannel).header.messageChannel).guestToHostImpulse != 0 {
         match (*(*mbinChannel).header.messageChannel).guestToHostImpulse {
             1 => {
@@ -2139,7 +2139,7 @@ pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
                 (*(*mbinChannel).header.messageChannel)
                     .guestToHostImpulse = EmbMessageImpulseNone;
                 UnthreadMessageChannel((*mbinChannel).header.messageChannel);
-                free(mbinChannel as *mut libc::c_void);
+                free(mbinChannel );
                 return;
             }
             _ => {
@@ -2149,72 +2149,72 @@ pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
         }
     }
     while EmbQueueFilled(gthQ) != 0 {
-        if 0 as usize == EmbQueueSpace(gthrQ) {
+        if 0  == EmbQueueSpace(gthrQ) {
             SignalLater((*gthQ).signal);
             return;
         }
         bufferPtr = EmbQueueTakeWord(gthQ);
         if bufferPtr != 0 && bufferPtr != -(1)
-            && mbin_sinValid as usize != 0
+            && mbin_sinValid  != 0
         {
-            buffer = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(bufferPtr as isize)
+            buffer = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(bufferPtr )
                 as *mut EmbWord as PtrV as *mut rm_aligned_pkt;
             nBytes = read_long(
                 &mut *((*buffer).rm_operand)
                     .as_mut_ptr()
-                    .offset(0 as usize as isize),
-            ) & 0xffffff as usize as libc::c_uint;
+                    .offset(0 ),
+            ) & 0xffffff;
             memcpy(
-                &mut *(pkt.rm_id).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *mut libc::c_void,
-                &mut *((*buffer).rm_id).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *const libc::c_void,
-                8 as usize as libc::c_ulong,
+                &mut *(pkt.rm_id).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                &mut *((*buffer).rm_id).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                8,
             );
             memcpy(
-                &mut *(pkt.data).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *mut libc::c_void,
-                &mut *((*buffer).data).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *const libc::c_void,
-                nBytes as libc::c_ulong,
+                &mut *(pkt.data).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                &mut *((*buffer).data).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                nBytes,
             );
-            if rm_ack as usize == (*buffer).rm_opcode() {
+            if rm_ack  == (*buffer).rm_opcode() {
                 id = read_long(
                     &mut *((*buffer).rm_id)
                         .as_mut_ptr()
-                        .offset(0 as usize as isize),
+                        .offset(0 ),
                 );
-                historyID = (id & 0xf as usize as libc::c_uint);
-                MBINHistory[historyID as usize].id = id;
-                MBINHistory[historyID as usize].acked = 1 as usize as Boole;
+                historyID = (id & 0xf);
+                MBINHistory[historyID ].id = id;
+                MBINHistory[historyID ].acked = true;
             }
             spy_transmit(
                 &mut pkt,
-                (10 as usize as libc::c_uint).wrapping_add(nBytes),
+                (10).wrapping_add(nBytes),
                 &mut mbin_sin,
             );
         }
         EmbQueuePutWord(gthrQ, bufferPtr);
     }
 }
-#[no_mangle]
+
 pub  fn TerminateSpy() {
     let mut killSleep: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
-    let mut exit_code: *mut libc::c_void = 0 as *mut libc::c_void;
+    let mut exit_code: *mut libc::c_void = 0 ;
     if (pthread_getspecific(mainThread)).is_null() {
         return;
     }
     if spyThreadSetup != 0 {
         pthread_cancel(spyThread);
-        killSleep.tv_sec = 1 as usize as __time_t;
-        killSleep.tv_nsec = 250000000 as usize as __syscall_slong_t;
+        killSleep.tv_sec = 1  as __time_t;
+        killSleep.tv_nsec = 250000000  as __syscall_slong_t;
         pthread_delay_np(&mut killSleep);
         pthread_join(spyThread, &mut exit_code);
-        spyThreadSetup = 0 as usize as Boole;
+        spyThreadSetup = false;
     }
     if spyLockSetup != 0 {
         pthread_mutex_destroy(&mut spyLock);
-        spyLockSetup = 0 as usize as Boole;
+        spyLockSetup = false;
     }
     if spy != -(1) {
         close(spy);

@@ -1,107 +1,5 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals, unused_assignments, unused_mut)]
-#![register_tool(c2rust)]
-#![feature(register_tool)]
-extern "C" {
-    fn MemoryReadInternal(vma: isize, object: *mut LispObj, row: *mut Byte) -> isize;
-    static mut MemoryActionTable: [[Byte; 64]; 12];
-    fn StackCacheScrollUp();
-    static mut processor: *mut ProcessorState;
-}
-pub type u8 = libc::c_uchar;
-pub type i32 = u32;
-pub type u32 = libc::c_uint;
-pub type u64 = libc::c_ulong;
-pub type i32 = i32;
-pub type u8 = u8;
-pub type ui32 = u32;
-pub type u64 = u64;
-pub type Byte = u8;
-pub type isize = u64;
-pub type Boole = u8;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union LispObj {
-    pub parts: _LispObj,
-    pub whole: u64,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _LispObj {
-    pub tag: ui32,
-    pub data: C2RustUnnamed,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union C2RustUnnamed {
-    pub u: ui32,
-    pub s: i32,
-    pub f: libc::c_float,
-}
-pub type PC = LispObj;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _InstructionCacheLine {
-    pub pc: PC,
-    pub next_pc: PC,
-    pub code: u32,
-    pub operand: u32,
-    pub instruction: libc::c_uint,
-    pub next_cp: *mut _InstructionCacheLine,
-}
-pub type InstructionCacheLine = _InstructionCacheLine;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _ProcessorState {
-    pub sp: *mut LispObj,
-    pub restartsp: *mut LispObj,
-    pub fp: *mut LispObj,
-    pub lp: *mut LispObj,
-    pub pc: PC,
-    pub continuation: PC,
-    pub InstructionCache: *mut InstructionCacheLine,
-    pub StackCache: *mut LispObj,
-    pub StackCacheLimit: *mut LispObj,
-    pub bar: [_bar; 4],
-    pub ListCacheArea: LispObj,
-    pub ListCacheAddress: LispObj,
-    pub StructureCacheArea: LispObj,
-    pub StructureCacheAddress: LispObj,
-    pub CatchBlockPointer: LispObj,
-    pub control: isize,
-    pub StackCacheBase: isize,
-    pub ArrayEventCount: isize,
-    pub ListCacheLength: isize,
-    pub StructureCacheLength: isize,
-    pub BindingStackPointer: isize,
-    pub BindingStackLimit: isize,
-    pub DeepBoundP: Boole,
-    pub PreemptRegister: isize,
-    pub AluAndRotateControl: isize,
-    pub AluOp: Option::<fn() -> isize>,
-    pub ByteSize: isize,
-    pub ByteRotate: isize,
-    pub RotateLatch: isize,
-    pub ALUOverflow: Boole,
-    pub ALUBorrow: Boole,
-    pub ALULessThan: Boole,
-    pub EphemeralOldspaceRegister: isize,
-    pub ZoneOldspaceRegister: isize,
-    pub ControlStackLimit: isize,
-    pub ControlStackExtraLimit: isize,
-    pub DynamicBindingCacheBase: isize,
-    pub DynamicBindingCacheMask: isize,
-    pub FEPModeTrapVectorAddress: isize,
-    pub MappingTableCache: isize,
-    pub MappingTableLength: isize,
-    pub running: Boole,
-    pub instruction_count: libc::c_uint,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _bar {
-    pub address: LispObj,
-    pub mapped: *mut LispObj,
-}
+
+
 pub type ProcessorState = _ProcessorState;
 pub type _MemoryCycleTypes = libc::c_uint;
 pub const CycleRawTranslate: _MemoryCycleTypes = 12;
@@ -221,7 +119,7 @@ pub struct _ExceptionInfo {
     pub arithp: u32,
 }
 pub type ExceptionInfo = _ExceptionInfo;
-#[no_mangle]
+
 pub static mut InstructionExceptionInfo: [ExceptionInfo; 256] = [
     {
         let mut init = _ExceptionInfo {
@@ -2272,333 +2170,205 @@ pub static mut InstructionExceptionInfo: [ExceptionInfo; 256] = [
         init
     },
 ];
- fn FetchTrapVectorEntry(
-    mut index: isize,
-    mut entry: *mut LispObj,
-) -> usize {
+fn FetchTrapVectorEntry(mut index: isize, mut entry: *mut LispObj) -> u32 {
     let mut ps: *mut ProcessorState = processor;
-    let mut previous: usize = ((*ps).control >> 30
-        & (((1) << 2) - 1) as libc::c_ulong)
-       ;
-    (*ps)
-        .control = ((3
-        & ((1) << 2) - 1)
-        << 30) as libc::c_ulong
-        | (*ps).control
-            & !((((1) << 2) - 1)
-                << 30) as libc::c_ulong;
+    let mut previous: u32 = ((*ps).control >> 30 & (((1) << 2) - 1));
+    (*ps).control = ((3 & ((1) << 2) - 1) << 30) | (*ps).control & !((((1) << 2) - 1) << 30);
     MemoryReadInternal(
-        (0xf8040000 as libc::c_uint as libc::c_ulong)
-            .wrapping_add(
-                (if previous < 3 as usize {
-                    index
-                } else {
-                    FepModeTrapVector as usize as libc::c_ulong
-                }),
-            ),
+        (0xf8040000).wrapping_add(
+            (if previous < 3 {
+                index
+            } else {
+                FepModeTrapVector
+            }),
+        ),
         entry,
-        (MemoryActionTable[CycleDataRead as usize as usize]).as_mut_ptr(),
+        (MemoryActionTable[CycleDataRead]).as_mut_ptr(),
     );
-    if !(((*entry).parts.tag ^ TypeOddPC as usize as libc::c_uint)
-        & (((1) << 6) - 1) as libc::c_uint
-        == 0 as usize as libc::c_uint
-        || ((*entry).parts.tag ^ TypeEvenPC as usize as libc::c_uint)
-            & (((1) << 6) - 1)
-                as libc::c_uint == 0 as usize as libc::c_uint)
+    if !(((*entry).parts.tag ^ TypeOddPC) & (((1) << 6) - 1) == 0
+        || ((*entry).parts.tag ^ TypeEvenPC) & (((1) << 6) - 1) == 0)
     {
-        if previous == 3 as usize || FetchTrapVectorEntry(index, entry) == 0 {
+        if previous == 3 || FetchTrapVectorEntry(index, entry) == 0 {
             return 0;
         }
     }
-    (*ps)
-        .control = ((previous
-        & ((1) << 2) - 1)
-        << 30) as libc::c_ulong
-        | (*ps).control
-            & !((((1) << 2) - 1)
-                << 30) as libc::c_ulong;
+    (*ps).control = ((previous & ((1) << 2) - 1) << 30) | (*ps).control & !((((1) << 2) - 1) << 30);
     return 1;
 }
-#[no_mangle]
-pub  fn TakePreTrap(
-    mut index: isize,
-    mut extra1: *mut LispObj,
-    mut extra2: *mut LispObj,
-) -> usize {
+
+pub fn TakePreTrap(mut index: isize, mut extra1: *mut LispObj, mut extra2: *mut LispObj) -> u32 {
     let mut ps: *mut ProcessorState = processor;
     let mut oldfp: *mut LispObj = (*ps).fp;
     let mut restartsp: *mut LispObj = (*ps).restartsp;
-    let mut entry: LispObj = LispObj {
+    let mut entry: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
-            data: C2RustUnnamed { u: 0 },
+            data: QData { u: 0 },
         },
     };
     let ref mut fresh0 = (*ps).sp;
     *fresh0 = restartsp;
-    if ((*ps).sp).offset(8 as usize as isize) > (*ps).StackCacheLimit {
+    if ((*ps).sp).offset(8) > (*ps).StackCacheLimit {
         StackCacheScrollUp();
     }
-    (*((*ps).sp).offset(1 as usize as isize))
-        .parts
-        .tag = 0o300 as usize as libc::c_uint | (*ps).continuation.parts.tag;
-    (*((*ps).sp).offset(1 as usize as isize))
-        .parts
-        .data = (*ps).continuation.parts.data;
+    (*((*ps).sp).offset(1)).parts.tag = 0o300 | (*ps).continuation.parts.tag;
+    (*((*ps).sp).offset(1)).parts.data = (*ps).continuation.parts.data;
     let ref mut fresh1 = (*ps).sp;
     *fresh1 = (*fresh1).offset(1);
-    (*((*ps).sp).offset(1 as usize as isize))
-        .parts
-        .tag = (0o300 as usize | TypeFixnum) as ui32;
-    (*((*ps).sp).offset(1 as usize as isize))
-        .parts
-        .data
-        .u = (*ps).control as ui32;
+    (*((*ps).sp).offset(1)).parts.tag = (0o300 | TypeFixnum);
+    (*((*ps).sp).offset(1)).parts.data.u = (*ps).control;
     let ref mut fresh2 = (*ps).sp;
     *fresh2 = (*fresh2).offset(1);
-    (*((*ps).sp).offset(1 as usize as isize))
-        .parts
-        .tag = TypeFixnum as usize as ui32;
-    (*((*ps).sp).offset(1 as usize as isize)).parts.data.u = index as ui32;
+    (*((*ps).sp).offset(1)).parts.tag = TypeFixnum;
+    (*((*ps).sp).offset(1)).parts.data.u = index;
     let ref mut fresh3 = (*ps).sp;
     *fresh3 = (*fresh3).offset(1);
-    (*((*ps).sp).offset(1 as usize as isize))
-        .parts
-        .tag = (*ps).pc.parts.tag
-        & (((1) << 6) - 1) as libc::c_uint;
-    (*((*ps).sp).offset(1 as usize as isize)).parts.data = (*ps).pc.parts.data;
+    (*((*ps).sp).offset(1)).parts.tag = (*ps).pc.parts.tag & (((1) << 6) - 1);
+    (*((*ps).sp).offset(1)).parts.data = (*ps).pc.parts.data;
     let ref mut fresh4 = (*ps).sp;
     *fresh4 = (*fresh4).offset(1);
     if !extra1.is_null() {
-        (*((*ps).sp).offset(1 as usize as isize))
-            .parts
-            .tag = (*extra1).parts.tag
-            & (((1) << 6) - 1)
-                as libc::c_uint;
-        (*((*ps).sp).offset(1 as usize as isize))
-            .parts
-            .data = (*extra1).parts.data;
+        (*((*ps).sp).offset(1)).parts.tag = (*extra1).parts.tag & (((1) << 6) - 1);
+        (*((*ps).sp).offset(1)).parts.data = (*extra1).parts.data;
         let ref mut fresh5 = (*ps).sp;
         *fresh5 = (*fresh5).offset(1);
     }
     if !extra2.is_null() {
-        (*((*ps).sp).offset(1 as usize as isize))
-            .parts
-            .tag = (*extra2).parts.tag
-            & (((1) << 6) - 1)
-                as libc::c_uint;
-        (*((*ps).sp).offset(1 as usize as isize))
-            .parts
-            .data = (*extra2).parts.data;
+        (*((*ps).sp).offset(1)).parts.tag = (*extra2).parts.tag & (((1) << 6) - 1);
+        (*((*ps).sp).offset(1)).parts.data = (*extra2).parts.data;
         let ref mut fresh6 = (*ps).sp;
         *fresh6 = (*fresh6).offset(1);
     }
     let ref mut fresh7 = (*ps).fp;
-    *fresh7 = restartsp.offset(1 as usize as isize);
+    *fresh7 = restartsp.offset(1);
     let ref mut fresh8 = (*ps).lp;
-    *fresh8 = ((*ps).sp).offset(1 as usize as isize);
-    (*ps)
-        .control = (*ps).control
-        & !(0o400000 as usize | 0o7000000000
-            | 0o700000000 as usize | 0o400
-            | 0o20000000 as usize | 0o377 as usize | 0o3000000
-            | 0o377000) as libc::c_ulong
-        | ((*ps).lp).offset_from((*ps).fp) as libc::c_long as libc::c_ulong
-        | ((ValueDispositionEffect) << 10) as libc::c_ulong
-        | ((((*ps).fp).offset_from(oldfp) as libc::c_long) << 9)
-            as libc::c_ulong;
+    *fresh8 = ((*ps).sp).offset(1);
+    (*ps).control = (*ps).control
+        & !(0o400000
+            | 0o7000000000
+            | 0o700000000
+            | 0o400
+            | 0o20000000
+            | 0o377
+            | 0o3000000
+            | 0o377000)
+        | ((*ps).lp).offset_from((*ps).fp)
+        | ((ValueDispositionEffect) << 10)
+        | ((((*ps).fp).offset_from(oldfp)) << 9);
     (*ps).continuation = (*ps).pc;
     if FetchTrapVectorEntry(index, &mut entry) == 0 {
         return 0;
     }
-    if (((*ps).control >> 30
-        & (((1) << 2) - 1) as libc::c_ulong)
-        as usize as libc::c_uint) < entry.parts.tag >> 6
-    {
-        (*ps)
-            .control = ((entry.parts.tag >> 6
-            & (((1) << 2) - 1)
-                as libc::c_uint) << 30) as libc::c_ulong
-            | (*ps).control
-                & !((((1) << 2) - 1)
-                    << 30) as libc::c_ulong;
+    if ((*ps).control >> 30 & (((1) << 2) - 1)) < entry.parts.tag >> 6 {
+        (*ps).control = ((entry.parts.tag >> 6 & (((1) << 2) - 1)) << 30)
+            | (*ps).control & !((((1) << 2) - 1) << 30);
     }
     (*ps).pc = entry;
     return 1;
 }
-#[no_mangle]
-pub  fn TakePostTrap(
-    mut index: u32,
-    mut arity: u32,
-    mut nextpc: *mut LispObj,
-) -> usize {
+
+pub fn TakePostTrap(mut index: u32, mut arity: u32, mut nextpc: *mut LispObj) -> u32 {
     let mut ps: *mut ProcessorState = processor;
     let mut oldfp: *mut LispObj = (*ps).fp;
-    let mut entry: LispObj = LispObj {
+    let mut entry: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
-            data: C2RustUnnamed { u: 0 },
+            data: QData { u: 0 },
         },
     };
-    let mut i: usize = 0;
-    if ((*ps).sp).offset(8 as usize as isize) > (*ps).StackCacheLimit {
+    let mut i: u32 = 0;
+    if ((*ps).sp).offset(8) > (*ps).StackCacheLimit {
         StackCacheScrollUp();
     }
     i = 0;
     while i < arity {
-        *((*ps).sp)
-            .offset((4 as usize - i) as isize) = *((*ps).sp).offset(-i as isize);
+        *((*ps).sp).offset((4 - i)) = *((*ps).sp).offset(-i);
         i += 1;
     }
     let ref mut fresh9 = (*ps).fp;
-    *fresh9 = ((*ps).sp).offset(-((arity - 1) as isize));
+    *fresh9 = ((*ps).sp).offset(-(arity - 1));
     let ref mut fresh10 = (*ps).sp;
-    *fresh10 = (*fresh10).offset(4 as usize as isize);
-    (*((*ps).fp).offset(0 as usize as isize))
-        .parts
-        .tag = 0o300 as usize as libc::c_uint | (*ps).continuation.parts.tag;
-    (*((*ps).fp).offset(0 as usize as isize))
-        .parts
-        .data = (*ps).continuation.parts.data;
-    (*((*ps).fp).offset(1 as usize as isize))
-        .parts
-        .tag = (0o300 as usize | TypeFixnum) as ui32;
-    (*((*ps).fp).offset(1 as usize as isize))
-        .parts
-        .data
-        .u = (*ps).control as ui32;
-    if ((*ps).control >> 29
-        & (((1) << 1) - 1) as libc::c_ulong)
-        as usize != 0
-    {
-        (*((*ps).fp).offset(1 as usize as isize))
-            .parts
-            .data
-            .u = ((1
-            & ((1) << 1) - 1)
-            << 27) as libc::c_uint
-            | (*((*ps).fp).offset(1 as usize as isize)).parts.data.u
-                & !((((1) << 1) - 1)
-                    << 27) as libc::c_uint;
+    *fresh10 = (*fresh10).offset(4);
+    (*((*ps).fp).offset(0)).parts.tag = 0o300 | (*ps).continuation.parts.tag;
+    (*((*ps).fp).offset(0)).parts.data = (*ps).continuation.parts.data;
+    (*((*ps).fp).offset(1)).parts.tag = (0o300 | TypeFixnum);
+    (*((*ps).fp).offset(1)).parts.data.u = (*ps).control;
+    if ((*ps).control >> 29 & (((1) << 1) - 1)) != 0 {
+        (*((*ps).fp).offset(1)).parts.data.u = ((1 & ((1) << 1) - 1) << 27)
+            | (*((*ps).fp).offset(1)).parts.data.u & !((((1) << 1) - 1) << 27);
     }
-    (*((*ps).fp).offset(2 as usize as isize))
-        .parts
-        .tag = TypeFixnum as usize as ui32;
-    (*((*ps).fp).offset(2 as usize as isize)).parts.data.u = index as ui32;
-    (*((*ps).fp).offset(3 as usize as isize))
-        .parts
-        .tag = (*ps).pc.parts.tag
-        & (((1) << 6) - 1) as libc::c_uint;
-    (*((*ps).fp).offset(3 as usize as isize)).parts.data = (*ps).pc.parts.data;
+    (*((*ps).fp).offset(2)).parts.tag = TypeFixnum;
+    (*((*ps).fp).offset(2)).parts.data.u = index;
+    (*((*ps).fp).offset(3)).parts.tag = (*ps).pc.parts.tag & (((1) << 6) - 1);
+    (*((*ps).fp).offset(3)).parts.data = (*ps).pc.parts.data;
     let ref mut fresh11 = (*ps).lp;
-    *fresh11 = ((*ps).sp).offset(1 as usize as isize);
-    (*ps)
-        .control = (*ps).control
-        & !(0o400000 as usize | 0o7000000000
-            | 0o700000000 as usize | 0o400
-            | 0o20000000 as usize | 0o377 as usize | 0o3000000
-            | 0o377000) as libc::c_ulong
-        | ((*ps).lp).offset_from((*ps).fp) as libc::c_long as libc::c_ulong
-        | ((ValueDispositionEffect) << 10) as libc::c_ulong
-        | ((((*ps).fp).offset_from(oldfp) as libc::c_long) << 9)
-            as libc::c_ulong;
+    *fresh11 = ((*ps).sp).offset(1);
+    (*ps).control = (*ps).control
+        & !(0o400000
+            | 0o7000000000
+            | 0o700000000
+            | 0o400
+            | 0o20000000
+            | 0o377
+            | 0o3000000
+            | 0o377000)
+        | ((*ps).lp).offset_from((*ps).fp)
+        | ((ValueDispositionEffect) << 10)
+        | ((((*ps).fp).offset_from(oldfp)) << 9);
     (*ps).continuation = *nextpc;
-    if FetchTrapVectorEntry(index as isize, &mut entry) == 0 {
+    if FetchTrapVectorEntry(index, &mut entry) == 0 {
         return 0;
     }
-    if (((*ps).control >> 30
-        & (((1) << 2) - 1) as libc::c_ulong)
-        as usize as libc::c_uint) < entry.parts.tag >> 6
-    {
-        (*ps)
-            .control = ((entry.parts.tag >> 6
-            & (((1) << 2) - 1)
-                as libc::c_uint) << 30) as libc::c_ulong
-            | (*ps).control
-                & !((((1) << 2) - 1)
-                    << 30) as libc::c_ulong;
+    if ((*ps).control >> 30 & (((1) << 2) - 1)) < entry.parts.tag >> 6 {
+        (*ps).control = ((entry.parts.tag >> 6 & (((1) << 2) - 1)) << 30)
+            | (*ps).control & !((((1) << 2) - 1) << 30);
     }
     (*ps).pc = entry;
     return 1;
 }
-#[no_mangle]
-pub  fn TakeInstructionException(
+
+pub fn TakeInstructionException(
     mut instruction: u32,
     mut op2: *mut LispObj,
     mut nextpc: *mut LispObj,
-) -> usize {
-    let mut opcode: usize = instruction >> 10
-        & ((1) << 8) - 1;
-    let mut ei: *const ExceptionInfo = &*InstructionExceptionInfo
-        .as_ptr()
-        .offset(opcode as isize) as *const ExceptionInfo;
+) -> u32 {
+    let mut opcode: u32 = instruction >> 10 & ((1) << 8) - 1;
+    let mut ei: *const ExceptionInfo =
+        &*InstructionExceptionInfo.as_ptr().offset(opcode) as *const ExceptionInfo;
     let mut ps: *mut ProcessorState = processor;
-    let mut vector: usize = 0;
+    let mut vector: u32 = 0;
     let ref mut fresh12 = (*ps).sp;
     *fresh12 = (*ps).restartsp;
     if (*ei).stackp == 0 {
-        if instruction >> 15
-            & ((1) << 2) - 1
-            == 3
-        {
-            (*((*ps).sp).offset(1 as usize as isize))
-                .parts
-                .tag = TypeLocative as usize as ui32;
-            (*((*ps).sp).offset(1 as usize as isize))
-                .parts
-                .data
-                .u = ((*ps).StackCacheBase)
-                .wrapping_add(
-                    op2.offset_from((*ps).StackCache) as libc::c_long as libc::c_ulong,
-                ) as ui32;
+        if instruction >> 15 & ((1) << 2) - 1 == 3 {
+            (*((*ps).sp).offset(1)).parts.tag = TypeLocative;
+            (*((*ps).sp).offset(1)).parts.data.u =
+                ((*ps).StackCacheBase).wrapping_add(op2.offset_from((*ps).StackCache));
             let ref mut fresh13 = (*ps).sp;
             *fresh13 = (*fresh13).offset(1);
-        } else if instruction >> 0
-            & ((1) << 10) - 1
-            != 0o1000
-        {
-            (*((*ps).sp).offset(1 as usize as isize))
-                .parts
-                .tag = (*op2).parts.tag
-                & (((1) << 6) - 1)
-                    as libc::c_uint;
-            (*((*ps).sp).offset(1 as usize as isize))
-                .parts
-                .data = (*op2).parts.data;
+        } else if instruction >> 0 & ((1) << 10) - 1 != 0o1000 {
+            (*((*ps).sp).offset(1)).parts.tag = (*op2).parts.tag & (((1) << 6) - 1);
+            (*((*ps).sp).offset(1)).parts.data = (*op2).parts.data;
             let ref mut fresh14 = (*ps).sp;
             *fresh14 = (*fresh14).offset(1);
         }
     }
     if (*ei).arithp == 0 {
-        vector = InstructionExceptionVector as usize + opcode;
-    } else if (*ei).arity > 1 as usize {
-        vector = (ArithmeticInstructionExceptionVector as usize as libc::c_uint)
-            .wrapping_add(
-                ((opcode & ((1) << 5) - 1)
-                    << 6) as libc::c_uint
-                    | (((*((*ps).sp).offset(-(1) as isize)).parts.tag
-                        & (((1) << 3) - 1)
-                            as libc::c_uint) << 3
-                        | (*((*ps).sp).offset(0 as usize as isize)).parts.tag
-                            & !((((1) << 3)
-                                - 1) << 3) as libc::c_uint)
-                        & !((((1) << 5) - 1)
-                            << 6) as libc::c_uint,
-            );
+        vector = InstructionExceptionVector + opcode;
+    } else if (*ei).arity > 1 {
+        vector = (ArithmeticInstructionExceptionVector).wrapping_add(
+            ((opcode & ((1) << 5) - 1) << 6)
+                | (((*((*ps).sp).offset(-(1))).parts.tag & (((1) << 3) - 1)) << 3
+                    | (*((*ps).sp).offset(0)).parts.tag & !((((1) << 3) - 1) << 3))
+                    & !((((1) << 5) - 1) << 6),
+        );
     } else {
-        vector = (ArithmeticInstructionExceptionVector as usize as libc::c_uint)
-            .wrapping_add(
-                ((opcode & ((1) << 5) - 1)
-                    << 6) as libc::c_uint
-                    | (((*((*ps).sp).offset(0 as usize as isize)).parts.tag
-                        & (((1) << 3) - 1)
-                            as libc::c_uint) << 3
-                        | (0
-                            & !((((1) << 3)
-                                - 1) << 3)) as libc::c_uint)
-                        & !((((1) << 5) - 1)
-                            << 6) as libc::c_uint,
-            );
+        vector = (ArithmeticInstructionExceptionVector).wrapping_add(
+            ((opcode & ((1) << 5) - 1) << 6)
+                | (((*((*ps).sp).offset(0)).parts.tag & (((1) << 3) - 1)) << 3
+                    | (0 & !((((1) << 3) - 1) << 3)))
+                    & !((((1) << 5) - 1) << 6),
+        );
     }
     return TakePostTrap(vector, (*ei).arity, nextpc);
 }

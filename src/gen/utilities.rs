@@ -28,7 +28,7 @@ extern "C" {
         __requested_time: *const timespec,
         __remaining: *mut timespec,
     ) -> u32;
-    fn pthread_testcancel();
+    fn u64estcancel();
     fn __errno_location() -> *mut u32;
     fn close(__fd: u32) -> u32;
     fn getcwd(__buf:&str, __size: size_t) ->&str;
@@ -55,8 +55,8 @@ extern "C" {
     fn strchr(_: *const libc::c_char, _: u32) ->&str;
     fn open(__file: *const libc::c_char, __oflag: u32, _: ...) -> u32;
     fn gethostbyname(__name: *const libc::c_char) -> *mut hostent;
-    fn ntohl(__netlong: ui32) -> ui32;
-    fn htonl(__hostlong: ui32) -> ui32;
+    fn ntohl(__netlong: u32) -> u32;
+    fn htonl(__hostlong: u32) -> u32;
     fn inet_addr(__cp: *const libc::c_char) -> in_addr_t;
     fn XrmInitialize();
     fn XrmPutStringResource(
@@ -149,7 +149,7 @@ pub struct _IO_FILE {
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
 pub type u8 = u8;
-pub type ui32 = u32;
+pub type u32 = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct timezone {
@@ -161,7 +161,7 @@ pub struct timezone {
 pub struct in_addr {
     pub s_addr: in_addr_t,
 }
-pub type in_addr_t = ui32;
+pub type in_addr_t = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct hostent {
@@ -219,7 +219,7 @@ pub struct XParams {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NetworkInterface {
-    pub present: Boole,
+    pub present: bool,
     pub device: [libc::c_char; 257],
     pub myProtocol: libc::c_ushort,
     pub myAddress: in_addr,
@@ -229,8 +229,8 @@ pub struct NetworkInterface {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TraceConfig {
-    pub traceP: Boole,
-    pub tracePOST: Boole,
+    pub traceP: bool,
+    pub tracePOST: bool,
     pub bufferSize: u32,
     pub startPC: libc::c_uint,
     pub stopPC: libc::c_uint,
@@ -239,7 +239,7 @@ pub struct TraceConfig {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VLMConfig {
-    pub enableSpy: Boole,
+    pub enableSpy: bool,
     pub tracing: TraceConfig,
     pub commAreaSize: size_t,
     pub hostBufferSpace: size_t,
@@ -247,44 +247,44 @@ pub struct VLMConfig {
     pub vlmDebuggerPath: [libc::c_char; 257],
     pub worldPath: [libc::c_char; 257],
     pub worldSearchPath:&str,
-    pub enableIDS: Boole,
+    pub enableIDS: bool,
     pub virtualMemory: size_t,
     pub coldLoadXParams: XParams,
     pub generaXParams: XParams,
     pub diagnosticIPAddress: in_addr,
     pub interfaces: [NetworkInterface; 8],
-    pub testFunction: Boole,
+    pub testFunction: bool,
 }
-static mut CommandName: &str = b"genera\0" as *const u8
-    as *const libc::c_char as&str;
+static mut CommandName: &str = b"genera\0"
+     as&str;
  fn PrintMessage(
     mut section:&str,
     mut format:&str,
     mut arguments: ::std::ffi::VaList,
-) -> usize {
+) -> u32 {
     let mut name: [libc::c_char; 128] = [0; 128];
     if section.is_null() {
         sprintf(
             name.as_mut_ptr(),
-            b"%s: \0" as *const u8 as *const libc::c_char,
+            b"%s: \0"  ,
             CommandName,
         );
     } else {
         sprintf(
             name.as_mut_ptr(),
-            b"%s (%s): \0" as *const u8 as *const libc::c_char,
+            b"%s (%s): \0"  ,
             CommandName,
             section,
         );
     }
-    fprintf(stderr, b"%s\0" as *const u8 as *const libc::c_char, name.as_mut_ptr());
+    fprintf(stderr, b"%s\0"  , name.as_mut_ptr());
     if !format.is_null() {
         vfprintf(stderr, format, arguments.as_va_list());
-        fprintf(stderr, b"\n\0" as *const u8 as *const libc::c_char);
+        fprintf(stderr, b"\n\0"  );
     }
     return strlen(name.as_mut_ptr());
 }
-#[no_mangle]
+
 pub  fn vpunt(
     mut section:&str,
     mut format:&str,
@@ -292,26 +292,26 @@ pub  fn vpunt(
 ) {
     let mut ap: ::std::ffi::VaListImpl;
     let mut errmsg: &str =  "" ;
-    let mut prefixLength: usize = 0;
+    let mut prefixLength: u32 = 0;
     ap = args.clone();
     prefixLength = PrintMessage(section, format, ap.as_va_list());
     if *__errno_location() != 0 {
         errmsg = strerror(*__errno_location());
         if format.is_null() {
-            fprintf(stderr, b"%s\n\0" as *const u8 as *const libc::c_char, errmsg);
+            fprintf(stderr, b"%s\n\0"  , errmsg);
         } else {
             fprintf(
                 stderr,
-                b"%*s%s\n\0" as *const u8 as *const libc::c_char,
+                b"%*s%s\n\0"  ,
                 prefixLength,
-                b"\0" as *const u8 as *const libc::c_char,
+                b"\0"  ,
                 errmsg,
             );
         }
     }
     loop {};
 }
-#[no_mangle]
+
 pub  fn verror(
     mut section:&str,
     mut format:&str,
@@ -319,40 +319,40 @@ pub  fn verror(
 ) {
     let mut ap: ::std::ffi::VaListImpl;
     let mut errmsg: &str =  "" ;
-    let mut prefixLength: usize = 0;
+    let mut prefixLength: u32 = 0;
     ap = args.clone();
     prefixLength = PrintMessage(section, format, ap.as_va_list());
     if *__errno_location() != 0 {
         errmsg = strerror(*__errno_location());
         if format.is_null() {
-            fprintf(stderr, b"%s\n\0" as *const u8 as *const libc::c_char, errmsg);
+            fprintf(stderr, b"%s\n\0"  , errmsg);
         } else {
             fprintf(
                 stderr,
-                b"%*s%s\n\0" as *const u8 as *const libc::c_char,
+                b"%*s%s\n\0"  ,
                 prefixLength,
-                b"\0" as *const u8 as *const libc::c_char,
+                b"\0"  ,
                 errmsg,
             );
         }
     }
 }
-#[no_mangle]
+
 pub  fn vwarn(
     mut section:&str,
     mut format:&str,
     mut args: ...
 ) {
     let mut ap: ::std::ffi::VaListImpl;
-    let mut prefixLength: usize = 0;
+    let mut prefixLength: u32 = 0;
     ap = args.clone();
     PrintMessage(section, format, ap.as_va_list());
 }
-#[no_mangle]
+
 pub  fn SetCommandName(mut newCommandName:&str) {
-    CommandName = strndup(newCommandName, 32 as usize as libc::c_ulong);
+    CommandName = strndup(newCommandName, 32);
 }
-#[no_mangle]
+
 pub  fn BuildXDisplayName(
     mut displayName:&str,
     mut hostName:&str,
@@ -361,19 +361,19 @@ pub  fn BuildXDisplayName(
 ) {
     sprintf(
         displayName,
-        b"%s\0" as *const u8 as *const libc::c_char,
+        b"%s\0"  ,
         if hostName.is_null() {
-            b"\0" as *const u8 as *const libc::c_char
+            b"\0"
         } else {
-            hostName as *const libc::c_char
+            hostName
         },
     );
     if display != -(1) || screen != -(1) {
-        sprintf(displayName, b"%s:\0" as *const u8 as *const libc::c_char, displayName);
+        sprintf(displayName, b"%s:\0"  , displayName);
         if display != -(1) {
             sprintf(
                 displayName,
-                b"%s%d\0" as *const u8 as *const libc::c_char,
+                b"%s%d\0"  ,
                 displayName,
                 display,
             );
@@ -381,14 +381,14 @@ pub  fn BuildXDisplayName(
         if screen != -(1) {
             sprintf(
                 displayName,
-                b"%s.%d\0" as *const u8 as *const libc::c_char,
+                b"%s.%d\0"  ,
                 displayName,
                 screen,
             );
         }
     }
 }
-#[no_mangle]
+
 pub  fn BuildConfiguration(
     mut config: *mut VLMConfig,
     mut argc: u32,
@@ -403,26 +403,26 @@ pub  fn BuildConfiguration(
     MaybeReadConfigurationFile(
         config,
         &mut options,
-        b"VLM.conf\0" as *const u8 as *const libc::c_char as&str,
+        b"VLM.conf\0"   as&str,
     );
-    homeDir = getenv(b"HOME\0" as *const u8 as *const libc::c_char);
+    homeDir = getenv(b"HOME\0"  );
     if !homeDir.is_null() {
         sprintf(
             configFile.as_mut_ptr(),
-            b"%s/.VLM\0" as *const u8 as *const libc::c_char,
+            b"%s/.VLM\0"  ,
             homeDir,
         );
         MaybeReadConfigurationFile(config, &mut options, configFile.as_mut_ptr());
     }
     if !(getcwd(
         workingDir.as_mut_ptr(),
-        ::std::mem::size_of::<[libc::c_char; 257]>() as libc::c_ulong,
+        ::std::mem::size_of::<[libc::c_char; 257]>(),
     ))
         .is_null()
     {
         sprintf(
             configFile.as_mut_ptr(),
-            b"%s/.VLM\0" as *const u8 as *const libc::c_char,
+            b"%s/.VLM\0"  ,
             workingDir.as_mut_ptr(),
         );
         MaybeReadConfigurationFile(config, &mut options, configFile.as_mut_ptr());
@@ -436,97 +436,97 @@ pub  fn BuildConfiguration(
 ) {
     let mut display: &str =  "" ;
     let mut worldSearchPath: &str =  "" ;
-    let mut i: usize = 0;
+    let mut i: u32 = 0;
     XrmPutStringResource(
         options,
-        b"*spy\0" as *const u8 as *const libc::c_char,
-        b"no\0" as *const u8 as *const libc::c_char,
+        b"*spy\0"  ,
+        b"no\0"  ,
     );
     XrmPutStringResource(
         options,
-        b"*trace\0" as *const u8 as *const libc::c_char,
-        b"no\0" as *const u8 as *const libc::c_char,
+        b"*trace\0"  ,
+        b"no\0"  ,
     );
     XrmPutStringResource(
         options,
-        b"*tracePOST\0" as *const u8 as *const libc::c_char,
-        b"no\0" as *const u8 as *const libc::c_char,
+        b"*tracePOST\0"  ,
+        b"no\0"  ,
     );
     XrmPutStringResource(
         options,
-        b"*testfunction\0" as *const u8 as *const libc::c_char,
-        b"no\0" as *const u8 as *const libc::c_char,
+        b"*testfunction\0"  ,
+        b"no\0"  ,
     );
-    (*config).commAreaSize = 0x1ff80 as usize as size_t;
-    (*config).hostBufferSpace = 15000 as usize as size_t;
-    (*config).guestBufferSpace = 100000 as usize as size_t;
+    (*config).commAreaSize = 0x1ff80;
+    (*config).hostBufferSpace = 15000;
+    (*config).guestBufferSpace = 100000;
     XrmPutStringResource(
         options,
-        b"*debugger\0" as *const u8 as *const libc::c_char,
-        b"/usr/lib/symbolics/VLM_debugger\0" as *const u8 as *const libc::c_char,
+        b"*debugger\0"  ,
+        b"/usr/lib/symbolics/VLM_debugger\0"  ,
     );
     i = 0;
-    while i < 8 as usize {
-        (*config).interfaces[i as usize].present = 0 as usize as Boole;
+    while i < 8  {
+        (*config).interfaces[i ].present = false;
         i += 1;
     }
     XrmPutStringResource(
         options,
-        b"genera.world\0" as *const u8 as *const libc::c_char,
-        b"/usr/lib/symbolics/Genera-8-5.vlod\0" as *const u8 as *const libc::c_char,
+        b"genera.world\0"  ,
+        b"/usr/lib/symbolics/Genera-8-5.vlod\0"  ,
     );
     XrmPutStringResource(
         options,
-        b"minima.world\0" as *const u8 as *const libc::c_char,
-        b"/usr/lib/symbolics/Minima.mlod\0" as *const u8 as *const libc::c_char,
+        b"minima.world\0"  ,
+        b"/usr/lib/symbolics/Minima.mlod\0"  ,
     );
-    worldSearchPath = getenv(b"WORLDPATH\0" as *const u8 as *const libc::c_char);
+    worldSearchPath = getenv(b"WORLDPATH\0"  );
     if !worldSearchPath.is_null() {
         XrmPutStringResource(
             options,
-            b"genera.worldSearchPath\0" as *const u8 as *const libc::c_char,
+            b"genera.worldSearchPath\0"  ,
             MergeSearchPaths(
                 worldSearchPath,
-                b"/var/lib/symbolics:/usr/lib/symbolics\0" as *const u8
-                    as *const libc::c_char as&str,
+                b"/var/lib/symbolics:/usr/lib/symbolics\0"
+                     as&str,
             ),
         );
     } else {
         XrmPutStringResource(
             options,
-            b"genera.worldSearchPath\0" as *const u8 as *const libc::c_char,
-            b"/var/lib/symbolics:/usr/lib/symbolics\0" as *const u8
-                as *const libc::c_char,
+            b"genera.worldSearchPath\0"  ,
+            b"/var/lib/symbolics:/usr/lib/symbolics\0"
+                ,
         );
     }
     XrmPutStringResource(
         options,
-        b"genera.enableIDS\0" as *const u8 as *const libc::c_char,
-        b"no\0" as *const u8 as *const libc::c_char,
+        b"genera.enableIDS\0"  ,
+        b"no\0"  ,
     );
     XrmPutStringResource(
         options,
-        b"genera.virtualMemory\0" as *const u8 as *const libc::c_char,
-        b"200\0" as *const u8 as *const libc::c_char,
+        b"genera.virtualMemory\0"  ,
+        b"200\0"  ,
     );
-    display = getenv(b"DISPLAY\0" as *const u8 as *const libc::c_char);
+    display = getenv(b"DISPLAY\0"  );
     if !display.is_null() {
         XrmPutStringResource(
             options,
-            b"*display\0" as *const u8 as *const libc::c_char,
+            b"*display\0"  ,
             display,
         );
     } else {
         XrmPutStringResource(
             options,
-            b"*display\0" as *const u8 as *const libc::c_char,
-            b":0.0\0" as *const u8 as *const libc::c_char,
+            b"*display\0"  ,
+            b":0.0\0"  ,
         );
     }
     XrmPutStringResource(
         options,
-        b"*coldLoad.iconic\0" as *const u8 as *const libc::c_char,
-        b"yes\0" as *const u8 as *const libc::c_char,
+        b"*coldLoad.iconic\0"  ,
+        b"yes\0"  ,
     );
 }
  fn MaybeReadConfigurationFile(
@@ -539,17 +539,17 @@ pub  fn BuildConfiguration(
     let mut oldSearchPath: [libc::c_char; 4096] = [0; 4096];
     let mut mergedSearchPath: &str =  "" ;
     let mut searchPathOption: [libc::c_char; 128] = [0; 128];
-    let mut fd: usize = 0;
+    let mut fd: u32 = 0;
     fd = open(pathname, 0);
     if -(1) == fd {
-        if 2 as usize == *__errno_location() {
+        if 2  == *__errno_location() {
             *__errno_location() = 0;
             return;
         } else {
             vpunt(
-                 "" ,
-                b"Unable to verify existence of configuration file %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unable to verify existence of configuration file %s\0"
+                     as&str,
                 pathname,
             );
         }
@@ -558,24 +558,24 @@ pub  fn BuildConfiguration(
     fileOptions = XrmGetFileDatabase(pathname);
     if fileOptions.is_null() {
         vpunt(
-             "" ,
-            b"Unable to parse configuration file %s\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to parse configuration file %s\0"
+                 as&str,
             pathname,
         );
     }
     if GetOption(
         fileOptions,
-        b"worldSearchPath\0" as *const u8 as *const libc::c_char as&str,
-        b"WorldSearchPath\0" as *const u8 as *const libc::c_char as&str,
+        b"worldSearchPath\0"   as&str,
+        b"WorldSearchPath\0"   as&str,
         newSearchPath.as_mut_ptr(),
     ) != 0
     {
         GetOption(
             *options,
-            b"worldSearchPath\0" as *const u8 as *const libc::c_char
+            b"worldSearchPath\0"
                 as&str,
-            b"WorldSearchPath\0" as *const u8 as *const libc::c_char
+            b"WorldSearchPath\0"
                 as&str,
             oldSearchPath.as_mut_ptr(),
         );
@@ -585,7 +585,7 @@ pub  fn BuildConfiguration(
         );
         sprintf(
             searchPathOption.as_mut_ptr(),
-            b"%s.worldSearchPath\0" as *const u8 as *const libc::c_char,
+            b"%s.worldSearchPath\0"  ,
             CommandName,
         );
         XrmPutStringResource(
@@ -599,349 +599,349 @@ pub  fn BuildConfiguration(
 static mut OptionsTable: [XrmOptionDescRec; 33] = [
     {
         let mut init = XrmOptionDescRec {
-            option: b"-spy\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".spy\0" as *const u8 as *const libc::c_char
+            option: b"-spy\0"   as&str,
+            specifier: b".spy\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-diagnostic\0" as *const u8 as *const libc::c_char
+            option: b"-diagnostic\0"
                 as&str,
-            specifier: b".diagnosticHost\0" as *const u8 as *const libc::c_char
+            specifier: b".diagnosticHost\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-testfunction\0" as *const u8 as *const libc::c_char
+            option: b"-testfunction\0"
                 as&str,
-            specifier: b".testfunction\0" as *const u8 as *const libc::c_char
+            specifier: b".testfunction\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-world\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".world\0" as *const u8 as *const libc::c_char
+            option: b"-world\0"   as&str,
+            specifier: b".world\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-network\0" as *const u8 as *const libc::c_char
+            option: b"-network\0"
                 as&str,
-            specifier: b".network\0" as *const u8 as *const libc::c_char
+            specifier: b".network\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-debugger\0" as *const u8 as *const libc::c_char
+            option: b"-debugger\0"
                 as&str,
-            specifier: b".debugger\0" as *const u8 as *const libc::c_char
+            specifier: b".debugger\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-ids\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".enableIDS\0" as *const u8 as *const libc::c_char
+            option: b"-ids\0"   as&str,
+            specifier: b".enableIDS\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-vm\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".virtualMemory\0" as *const u8 as *const libc::c_char
+            option: b"-vm\0"   as&str,
+            specifier: b".virtualMemory\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-display\0" as *const u8 as *const libc::c_char
+            option: b"-display\0"
                 as&str,
-            specifier: b".main.display\0" as *const u8 as *const libc::c_char
+            specifier: b".main.display\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-geometry\0" as *const u8 as *const libc::c_char
+            option: b"-geometry\0"
                 as&str,
-            specifier: b".main.geometry\0" as *const u8 as *const libc::c_char
+            specifier: b".main.geometry\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-iconic\0" as *const u8 as *const libc::c_char
+            option: b"-iconic\0"
                 as&str,
-            specifier: b".main.iconic\0" as *const u8 as *const libc::c_char
+            specifier: b".main.iconic\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-foreground\0" as *const u8 as *const libc::c_char
+            option: b"-foreground\0"
                 as&str,
-            specifier: b".main.foreground\0" as *const u8 as *const libc::c_char
+            specifier: b".main.foreground\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-fg\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".main.foreground\0" as *const u8 as *const libc::c_char
+            option: b"-fg\0"   as&str,
+            specifier: b".main.foreground\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-background\0" as *const u8 as *const libc::c_char
+            option: b"-background\0"
                 as&str,
-            specifier: b".main.background\0" as *const u8 as *const libc::c_char
+            specifier: b".main.background\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-bg\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".main.background\0" as *const u8 as *const libc::c_char
+            option: b"-bg\0"   as&str,
+            specifier: b".main.background\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-bordercolor\0" as *const u8 as *const libc::c_char
+            option: b"-bordercolor\0"
                 as&str,
-            specifier: b".main.borderColor\0" as *const u8 as *const libc::c_char
+            specifier: b".main.borderColor\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-bd\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".main.borderColor\0" as *const u8 as *const libc::c_char
+            option: b"-bd\0"   as&str,
+            specifier: b".main.borderColor\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-borderwidth\0" as *const u8 as *const libc::c_char
+            option: b"-borderwidth\0"
                 as&str,
-            specifier: b".main.borderWidth\0" as *const u8 as *const libc::c_char
+            specifier: b".main.borderWidth\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-bw\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".main.borderWidth\0" as *const u8 as *const libc::c_char
+            option: b"-bw\0"   as&str,
+            specifier: b".main.borderWidth\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloaddisplay\0" as *const u8 as *const libc::c_char
+            option: b"-coldloaddisplay\0"
                 as&str,
-            specifier: b".coldLoad.display\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.display\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-cld\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.display\0" as *const u8 as *const libc::c_char
+            option: b"-cld\0"   as&str,
+            specifier: b".coldLoad.display\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloadgeometry\0" as *const u8 as *const libc::c_char
+            option: b"-coldloadgeometry\0"
                 as&str,
-            specifier: b".coldLoad.geometry\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.geometry\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-clg\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.geometry\0" as *const u8 as *const libc::c_char
+            option: b"-clg\0"   as&str,
+            specifier: b".coldLoad.geometry\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloadiconic\0" as *const u8 as *const libc::c_char
+            option: b"-coldloadiconic\0"
                 as&str,
-            specifier: b".coldLoad.iconic\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.iconic\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-cli\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.iconic\0" as *const u8 as *const libc::c_char
+            option: b"-cli\0"   as&str,
+            specifier: b".coldLoad.iconic\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloadforeground\0" as *const u8 as *const libc::c_char
+            option: b"-coldloadforeground\0"
                 as&str,
-            specifier: b".coldLoad.foreground\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.foreground\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-clfg\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.foreground\0" as *const u8 as *const libc::c_char
+            option: b"-clfg\0"   as&str,
+            specifier: b".coldLoad.foreground\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloadbackground\0" as *const u8 as *const libc::c_char
+            option: b"-coldloadbackground\0"
                 as&str,
-            specifier: b".coldLoad.background\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.background\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-clbg\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.background\0" as *const u8 as *const libc::c_char
+            option: b"-clbg\0"   as&str,
+            specifier: b".coldLoad.background\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloadbordercolor\0" as *const u8 as *const libc::c_char
+            option: b"-coldloadbordercolor\0"
                 as&str,
-            specifier: b".coldLoad.borderColor\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.borderColor\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-clbd\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.borderColor\0" as *const u8 as *const libc::c_char
+            option: b"-clbd\0"   as&str,
+            specifier: b".coldLoad.borderColor\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-coldloadborderwidth\0" as *const u8 as *const libc::c_char
+            option: b"-coldloadborderwidth\0"
                 as&str,
-            specifier: b".coldLoad.borderWidth\0" as *const u8 as *const libc::c_char
+            specifier: b".coldLoad.borderWidth\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
     {
         let mut init = XrmOptionDescRec {
-            option: b"-clbw\0" as *const u8 as *const libc::c_char as&str,
-            specifier: b".coldLoad.borderWidth\0" as *const u8 as *const libc::c_char
+            option: b"-clbw\0"   as&str,
+            specifier: b".coldLoad.borderWidth\0"
                 as&str,
             argKind: XrmoptionSepArg,
-            value: 0 as *const libc::c_char as XPointer,
+            value: 0  as XPointer,
         };
         init
     },
@@ -955,42 +955,42 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     let mut oldSearchPath: [libc::c_char; 4096] = [0; 4096];
     let mut mergedSearchPath: &str =  "" ;
     let mut searchPathOption: [libc::c_char; 128] = [0; 128];
-    let mut argLength: usize = 0;
+    let mut argLength: u32 = 0;
     XrmParseCommand(
         options,
         OptionsTable.as_mut_ptr(),
-        33 as usize + 0,
+        33  + 0,
         CommandName,
         &mut argc,
         argv,
     );
-    while argc > 1 as usize {
+    while argc > 1  {
         argv = argv.offset(1);
         argc -= 1;
         argLength = strlen(*argv);
         if 0
             == strncmp(
                 *argv,
-                b"-searchpath\0" as *const u8 as *const libc::c_char,
-                (if argLength < 7 as usize { 7 as usize } else { argLength })
-                    as libc::c_ulong,
+                b"-searchpath\0"  ,
+                (if argLength < 7  { 7  } else { argLength })
+                  ,
             )
         {
-            if argc > 1 as usize {
+            if argc > 1  {
                 argv = argv.offset(1);
                 argc -= 1;
                 GetOption(
                     *options,
-                    b"worldSearchPath\0" as *const u8 as *const libc::c_char
+                    b"worldSearchPath\0"
                         as&str,
-                    b"WorldSearchPath\0" as *const u8 as *const libc::c_char
+                    b"WorldSearchPath\0"
                         as&str,
                     oldSearchPath.as_mut_ptr(),
                 );
                 mergedSearchPath = MergeSearchPaths(*argv, oldSearchPath.as_mut_ptr());
                 sprintf(
                     searchPathOption.as_mut_ptr(),
-                    b"%s.worldSearchPath\0" as *const u8 as *const libc::c_char,
+                    b"%s.worldSearchPath\0"  ,
                     CommandName,
                 );
                 XrmPutStringResource(
@@ -1000,15 +1000,15 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
                 );
             } else {
                 vpunt(
-                     "" ,
+
                     b"A list of directory pathnames must follow -searchpath\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                 );
             }
         } else {
             vpunt(
-                 "" ,
-                b"Unrecognized option %s\0" as *const u8 as *const libc::c_char
+
+                b"Unrecognized option %s\0"
                     as&str,
                 *argv,
             );
@@ -1027,118 +1027,118 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     let mut end2: &str =  "" ;
     let mut hostAddress: libc::c_ulong = 0;
     let mut datum: libc::c_ulong = 0;
-    let mut i: usize = 0;
+    let mut i: u32 = 0;
     GetOption(
         options,
-        b"spy\0" as *const u8 as *const libc::c_char as&str,
-        b"Spy\0" as *const u8 as *const libc::c_char as&str,
+        b"spy\0"   as&str,
+        b"Spy\0"   as&str,
         value.as_mut_ptr(),
     );
     if 0
-        == strcmp(value.as_mut_ptr(), b"yes\0" as *const u8 as *const libc::c_char)
+        == strcmp(value.as_mut_ptr(), b"yes\0"  )
     {
-        (*config).enableSpy = 1 as usize as Boole;
+        (*config).enableSpy = true;
     } else if 0
-        == strcmp(value.as_mut_ptr(), b"no\0" as *const u8 as *const libc::c_char)
+        == strcmp(value.as_mut_ptr(), b"no\0"  )
     {
-        (*config).enableSpy = 0 as usize as Boole;
+        (*config).enableSpy = false;
     } else {
         vpunt(
-             "" ,
-            b"Value of spy parameter, %s, is invalid\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Value of spy parameter, %s, is invalid\0"
+                 as&str,
             value.as_mut_ptr(),
         );
     }
     GetOption(
         options,
-        b"testfunction\0" as *const u8 as *const libc::c_char as&str,
-        b"TestFunction\0" as *const u8 as *const libc::c_char as&str,
+        b"testfunction\0"   as&str,
+        b"TestFunction\0"   as&str,
         value.as_mut_ptr(),
     );
     if 0
-        == strcmp(value.as_mut_ptr(), b"yes\0" as *const u8 as *const libc::c_char)
+        == strcmp(value.as_mut_ptr(), b"yes\0"  )
     {
-        (*config).testFunction = 1 as usize as Boole;
+        (*config).testFunction = true;
     } else if 0
-        == strcmp(value.as_mut_ptr(), b"no\0" as *const u8 as *const libc::c_char)
+        == strcmp(value.as_mut_ptr(), b"no\0"  )
     {
-        (*config).testFunction = 0 as usize as Boole;
+        (*config).testFunction = false;
     } else {
         vpunt(
-             "" ,
-            b"Value of testfunction parameter, %s, is invalid\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Value of testfunction parameter, %s, is invalid\0"
+                 as&str,
             value.as_mut_ptr(),
         );
     }
-    (*config).tracing.traceP = 0 as usize as Boole;
-    (*config).tracing.tracePOST = 0 as usize as Boole;
+    (*config).tracing.traceP = false;
+    (*config).tracing.tracePOST = false;
     GetOption(
         options,
-        b"world\0" as *const u8 as *const libc::c_char as&str,
-        b"World\0" as *const u8 as *const libc::c_char as&str,
+        b"world\0"   as&str,
+        b"World\0"   as&str,
         value.as_mut_ptr(),
     );
     strcpy(((*config).worldPath).as_mut_ptr(), value.as_mut_ptr());
     InterpretNetworkOptions(config, options);
     GetOption(
         options,
-        b"debugger\0" as *const u8 as *const libc::c_char as&str,
-        b"Debugger\0" as *const u8 as *const libc::c_char as&str,
+        b"debugger\0"   as&str,
+        b"Debugger\0"   as&str,
         value.as_mut_ptr(),
     );
     strcpy(((*config).vlmDebuggerPath).as_mut_ptr(), value.as_mut_ptr());
     GetOption(
         options,
-        b"enableIDS\0" as *const u8 as *const libc::c_char as&str,
-        b"EnableIDS\0" as *const u8 as *const libc::c_char as&str,
+        b"enableIDS\0"   as&str,
+        b"EnableIDS\0"   as&str,
         value.as_mut_ptr(),
     );
     if 0
-        == strcmp(value.as_mut_ptr(), b"yes\0" as *const u8 as *const libc::c_char)
+        == strcmp(value.as_mut_ptr(), b"yes\0"  )
     {
-        (*config).enableIDS = 1 as usize as Boole;
+        (*config).enableIDS = true;
     } else if 0
-        == strcmp(value.as_mut_ptr(), b"no\0" as *const u8 as *const libc::c_char)
+        == strcmp(value.as_mut_ptr(), b"no\0"  )
     {
-        (*config).enableIDS = 0 as usize as Boole;
+        (*config).enableIDS = false;
     } else {
         vpunt(
-             "" ,
-            b"Value of enable IDS parameter, %s, is invalid\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Value of enable IDS parameter, %s, is invalid\0"
+                 as&str,
             value.as_mut_ptr(),
         );
     }
     GetOption(
         options,
-        b"virtualMemory\0" as *const u8 as *const libc::c_char as&str,
-        b"VirtualMemory\0" as *const u8 as *const libc::c_char as&str,
+        b"virtualMemory\0"   as&str,
+        b"VirtualMemory\0"   as&str,
         value.as_mut_ptr(),
     );
     datum = strtoul(value.as_mut_ptr(), &mut end, 10);
     if *end != 0 {
         vpunt(
-             "" ,
-            b"Value of virtual memory size parameter, %s, is invalid\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Value of virtual memory size parameter, %s, is invalid\0"
+                 as&str,
             value.as_mut_ptr(),
         );
     }
-    if datum < 125 as usize as libc::c_ulong {
+    if datum < 125 {
         vpunt(
-             "" ,
-            b"Minimum virtual memory size is %d megabytes\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Minimum virtual memory size is %d megabytes\0"
+                 as&str,
             125,
         );
     }
     (*config).virtualMemory = datum;
     GetOption(
         options,
-        b"worldSearchPath\0" as *const u8 as *const libc::c_char as&str,
-        b"WorldSearchPath\0" as *const u8 as *const libc::c_char as&str,
+        b"worldSearchPath\0"   as&str,
+        b"WorldSearchPath\0"   as&str,
         value.as_mut_ptr(),
     );
     let ref mut fresh0 = (*config).worldSearchPath;
@@ -1146,22 +1146,22 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     InterpretXOptions(
         options,
         &mut (*config).generaXParams,
-        b"main X console\0" as *const u8 as *const libc::c_char as&str,
-        b"main\0" as *const u8 as *const libc::c_char as&str,
-        b"Main\0" as *const u8 as *const libc::c_char as&str,
+        b"main X console\0"   as&str,
+        b"main\0"   as&str,
+        b"Main\0"   as&str,
     );
     InterpretXOptions(
         options,
         &mut (*config).coldLoadXParams,
-        b"cold load\0" as *const u8 as *const libc::c_char as&str,
-        b"coldLoad\0" as *const u8 as *const libc::c_char as&str,
-        b"ColdLoad\0" as *const u8 as *const libc::c_char as&str,
+        b"cold load\0"   as&str,
+        b"coldLoad\0"   as&str,
+        b"ColdLoad\0"   as&str,
     );
     if (*config).enableSpy != 0 {
         if GetOption(
             options,
-            b"diagnosticHost\0" as *const u8 as *const libc::c_char as&str,
-            b"DiagnosticHost\0" as *const u8 as *const libc::c_char as&str,
+            b"diagnosticHost\0"   as&str,
+            b"DiagnosticHost\0"   as&str,
             value.as_mut_ptr(),
         ) != 0
         {
@@ -1169,35 +1169,35 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
                 value.as_mut_ptr(),
                 &mut hostName,
                 &mut hostAddress,
-                0 as usize as Boole,
+                false,
             ) != 0
             {
                 memcpy(
                     &mut (*config).diagnosticIPAddress.s_addr as *mut in_addr_t
-                        as &str as *mut libc::c_void,
+                        as &str ,
                     &mut hostAddress as *mut libc::c_ulong as&str
-                        as *const libc::c_void,
-                    ::std::mem::size_of::<in_addr_t>() as libc::c_ulong,
+                        ,
+                    ::std::mem::size_of::<in_addr_t>(),
                 );
             } else {
                 vpunt(
-                     "" ,
-                    b"Unknown diagnostic host %s\0" as *const u8 as *const libc::c_char
+
+                    b"Unknown diagnostic host %s\0"
                         as&str,
                     value.as_mut_ptr(),
                 );
             }
         } else {
-            (*config).diagnosticIPAddress.s_addr = 0 as usize as in_addr_t;
+            (*config).diagnosticIPAddress.s_addr = 0  as in_addr_t;
             i = 0;
             while i < 8
-                && 0 as usize as libc::c_uint
+                && 0
                     == (*config).diagnosticIPAddress.s_addr
             {
-                interface = &mut *((*config).interfaces).as_mut_ptr().offset(i as isize)
+                interface = &mut *((*config).interfaces).as_mut_ptr().offset(i )
                     as *mut NetworkInterface;
-                while !interface.is_null() && (*interface).present as usize != 0 {
-                    if 0x800 as usize == (*interface).myProtocol as usize {
+                while !interface.is_null() && (*interface).present  != 0 {
+                    if 0x800  == (*interface).myProtocol  {
                         (*config)
                             .diagnosticIPAddress
                             .s_addr = htonl((*interface).myAddress.s_addr);
@@ -1208,11 +1208,11 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
                 }
                 i += 1;
             }
-            if 0 as usize as libc::c_uint == (*config).diagnosticIPAddress.s_addr {
+            if 0 == (*config).diagnosticIPAddress.s_addr {
                 vpunt(
-                     "" ,
-                    b"You must specify a diagnostic host to use the spy.\0" as *const u8
-                        as *const libc::c_char as&str,
+
+                    b"You must specify a diagnostic host to use the spy.\0"
+                         as&str,
                 );
             }
         }
@@ -1233,26 +1233,26 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     let mut semicolonPosition: &str =  "" ;
     let mut end: &str =  "" ;
     let mut hostAddress: libc::c_ulong = 0;
-    let mut i: usize = 0;
+    let mut i: u32 = 0;
     if GetOption(
         options,
-        b"network\0" as *const u8 as *const libc::c_char as&str,
-        b"Network\0" as *const u8 as *const libc::c_char as&str,
+        b"network\0"   as&str,
+        b"Network\0"   as&str,
         buffer.as_mut_ptr(),
     ) == 0
     {
         vpunt(
-             "" ,
-            b"At least one network interface must be defined\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"At least one network interface must be defined\0"
+                 as&str,
         );
     }
-    value = &mut *buffer.as_mut_ptr().offset(0 as usize as isize)
+    value = &mut *buffer.as_mut_ptr().offset(0 )
         as&str;
-    while !value.is_null() && *value as usize != 0 {
+    while !value.is_null() && *value  != 0 {
         commaPosition = strchr(value, ',' as i32);
         if !commaPosition.is_null() {
-            *commaPosition = 0 as usize as libc::c_char;
+            *commaPosition = 0  ;
         }
         colonPosition = strchr(value, ':' as i32);
         semicolonPosition = strchr(value, ';' as i32);
@@ -1260,45 +1260,45 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
             && semicolonPosition < colonPosition
         {
             vpunt(
-                 "" ,
+
                 b"Invalid syntax in specification of network interface: %s\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 value,
             );
         }
         if !colonPosition.is_null() {
-            *colonPosition = 0 as usize as libc::c_char;
+            *colonPosition = 0  ;
             deviceName = strdup(value);
-            value = colonPosition.offset(1 as usize as isize);
+            value = colonPosition.offset(1 );
         } else {
-            deviceName = b"\0" as *const u8 as *const libc::c_char as&str;
+            deviceName = b"\0"   as&str;
         }
         interface = 0 as *mut NetworkInterface;
         i = 0;
-        while i < 8 as usize {
-            if (*config).interfaces[i as usize].present != 0 {
+        while i < 8  {
+            if (*config).interfaces[i ].present != 0 {
                 if 0
                     == strcmp(
                         deviceName,
-                        ((*config).interfaces[i as usize].device).as_mut_ptr(),
+                        ((*config).interfaces[i ].device).as_mut_ptr(),
                     )
                 {
                     mainInterface = &mut *((*config).interfaces)
                         .as_mut_ptr()
-                        .offset(i as isize) as *mut NetworkInterface;
+                        .offset(i ) as *mut NetworkInterface;
                     interface = mainInterface;
                     while !((*interface).anotherAddress).is_null() {
                         interface = (*interface).anotherAddress;
                     }
                     let ref mut fresh1 = (*interface).anotherAddress;
                     *fresh1 = malloc(
-                        ::std::mem::size_of::<NetworkInterface>() as libc::c_ulong,
+                        ::std::mem::size_of::<NetworkInterface>(),
                     ) as *mut NetworkInterface;
                     if ((*interface).anotherAddress).is_null() {
                         vpunt(
-                             "" ,
+
                             b"Unable to allocate space for an additional network address\0"
-                                as *const u8 as *const libc::c_char as&str,
+                                  as&str,
                         );
                     }
                     interface = (*interface).anotherAddress;
@@ -1309,130 +1309,130 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
             } else {
                 mainInterface = &mut *((*config).interfaces)
                     .as_mut_ptr()
-                    .offset(i as isize) as *mut NetworkInterface;
+                    .offset(i ) as *mut NetworkInterface;
                 interface = mainInterface;
                 break;
             }
         }
         if interface.is_null() {
             if !commaPosition.is_null() {
-                *commaPosition = ',' as i32 as libc::c_char;
+                *commaPosition = ',' as i32 ;
             }
             if !colonPosition.is_null() {
-                *colonPosition = ':' as i32 as libc::c_char;
+                *colonPosition = ':' as i32 ;
             }
             if !semicolonPosition.is_null() {
-                *semicolonPosition = ';' as i32 as libc::c_char;
+                *semicolonPosition = ';' as i32 ;
             }
             vpunt(
-                 "" ,
-                b"Too many distinct network interfaces in %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Too many distinct network interfaces in %s\0"
+                     as&str,
                 buffer.as_mut_ptr(),
             );
         }
         strcpy(((*interface).device).as_mut_ptr(), deviceName);
         if !semicolonPosition.is_null() {
-            *semicolonPosition = 0 as usize as libc::c_char;
+            *semicolonPosition = 0  ;
         }
         if 0
             == strncmp(
                 value,
-                b"CHAOS|\0" as *const u8 as *const libc::c_char,
-                strlen(b"CHAOS|\0" as *const u8 as *const libc::c_char),
+                b"CHAOS|\0"  ,
+                strlen(b"CHAOS|\0"  ),
             )
             || 0
                 == strncmp(
                     value,
-                    b"chaos|\0" as *const u8 as *const libc::c_char,
-                    strlen(b"chaos|\0" as *const u8 as *const libc::c_char),
+                    b"chaos|\0"  ,
+                    strlen(b"chaos|\0"  ),
                 )
         {
             value = value
                 .offset(
-                    strlen(b"CHAOS|\0" as *const u8 as *const libc::c_char) as isize,
+                    strlen(b"CHAOS|\0"  ) ,
                 );
-            (*interface).myProtocol = 0x804 as usize as libc::c_ushort;
+            (*interface).myProtocol = 0x804  as libc::c_ushort;
             hostAddress = strtoul(value, &mut end, 8);
             if *end != 0 {
                 if !colonPosition.is_null() {
-                    *colonPosition = ':' as i32 as libc::c_char;
+                    *colonPosition = ':' as i32 ;
                 }
                 if !semicolonPosition.is_null() {
-                    *semicolonPosition = ';' as i32 as libc::c_char;
+                    *semicolonPosition = ';' as i32 ;
                 }
                 vpunt(
-                     "" ,
+
                     b"Invalid chaos address in specification of network interface: %s\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     value,
                 );
             } else {
-                (*interface).myAddress.s_addr = ntohl(hostAddress as ui32);
+                (*interface).myAddress.s_addr = ntohl(hostAddress );
             }
         } else if 0
             == strncmp(
                 value,
-                b"INTERNET|\0" as *const u8 as *const libc::c_char,
-                strlen(b"INTERNET|\0" as *const u8 as *const libc::c_char),
+                b"INTERNET|\0"  ,
+                strlen(b"INTERNET|\0"  ),
             )
             || 0
                 == strncmp(
                     value,
-                    b"internet|\0" as *const u8 as *const libc::c_char,
-                    strlen(b"internet|\0" as *const u8 as *const libc::c_char),
+                    b"internet|\0"  ,
+                    strlen(b"internet|\0"  ),
                 )
         {
             value = value
                 .offset(
-                    strlen(b"INTERNET|\0" as *const u8 as *const libc::c_char) as isize,
+                    strlen(b"INTERNET|\0"  ) ,
                 );
-            (*interface).myProtocol = 0x800 as usize as libc::c_ushort;
-            hostAddress = ntohl(inet_addr(value)) as libc::c_ulong;
-            if hostAddress == ntohl(-(1) as ui32) as libc::c_ulong {
+            (*interface).myProtocol = 0x800  as libc::c_ushort;
+            hostAddress = ntohl(inet_addr(value));
+            if hostAddress == ntohl(-(1) ) {
                 if !colonPosition.is_null() {
-                    *colonPosition = ':' as i32 as libc::c_char;
+                    *colonPosition = ':' as i32 ;
                 }
                 if !semicolonPosition.is_null() {
-                    *semicolonPosition = ';' as i32 as libc::c_char;
+                    *semicolonPosition = ';' as i32 ;
                 }
                 vpunt(
-                     "" ,
+
                     b"Invalid Internet address in specification of network interface: %s\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     value,
                 );
             } else {
                 (*interface).myAddress.s_addr = hostAddress as in_addr_t;
             }
         } else {
-            (*interface).myProtocol = 0x800 as usize as libc::c_ushort;
+            (*interface).myProtocol = 0x800  as libc::c_ushort;
             if VerifyHostName(
                 value,
                 &mut hostName,
                 &mut hostAddress,
-                1 as usize as Boole,
+                true,
             ) != 0
             {
                 memcpy(
                     &mut (*interface).myAddress.s_addr as *mut in_addr_t
-                        as &str as *mut libc::c_void,
+                        as &str ,
                     &mut hostAddress as *mut libc::c_ulong as&str
-                        as *const libc::c_void,
-                    ::std::mem::size_of::<in_addr_t>() as libc::c_ulong,
+                        ,
+                    ::std::mem::size_of::<in_addr_t>(),
                 );
                 (*interface).myAddress.s_addr = ntohl((*interface).myAddress.s_addr);
             } else {
                 if !colonPosition.is_null() {
-                    *colonPosition = ':' as i32 as libc::c_char;
+                    *colonPosition = ':' as i32 ;
                 }
                 if !semicolonPosition.is_null() {
-                    *semicolonPosition = ';' as i32 as libc::c_char;
+                    *semicolonPosition = ';' as i32 ;
                 }
                 vpunt(
-                     "" ,
+
                     b"Unknown host in specification of network interface: %s\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     value,
                 );
             }
@@ -1440,17 +1440,17 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         if !semicolonPosition.is_null() {
             strcpy(
                 ((*interface).myOptions).as_mut_ptr(),
-                semicolonPosition.offset(1 as usize as isize),
+                semicolonPosition.offset(1 ),
             );
         } else {
             (*interface)
-                .myOptions[0 as usize as usize] = 0 as usize as libc::c_char;
+                .myOptions[0  ] = 0  ;
         }
         let ref mut fresh2 = (*interface).anotherAddress;
         *fresh2 = 0 as *mut NetworkInterface;
-        (*interface).present = 1 as usize as Boole;
+        (*interface).present = true;
         value = if !commaPosition.is_null() {
-            commaPosition.offset(1 as usize as isize)
+            commaPosition.offset(1 )
         } else {
              ""
         };
@@ -1474,59 +1474,59 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         options,
         windowName,
         windowClass,
-        b"display\0" as *const u8 as *const libc::c_char as&str,
-        b"Display\0" as *const u8 as *const libc::c_char as&str,
+        b"display\0"   as&str,
+        b"Display\0"   as&str,
         value.as_mut_ptr(),
     );
     colonPosition = strchr(value.as_mut_ptr(), ':' as i32);
     if !colonPosition.is_null() {
-        *colonPosition = 0 as usize as libc::c_char;
+        *colonPosition = 0  ;
         if VerifyHostName(
             value.as_mut_ptr(),
             &mut hostName,
             &mut hostAddress,
-            0 as usize as Boole,
+            false,
         ) != 0
         {
             let ref mut fresh3 = (*xParams).xpHostName;
             *fresh3 = hostName;
-            (*xParams).xpHostAddress = hostAddress as libc::c_long;
+            (*xParams).xpHostAddress = hostAddress ;
         } else {
             vpunt(
-                 "" ,
-                b"Unknown host %s specified for display of %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unknown host %s specified for display of %s\0"
+                     as&str,
                 value.as_mut_ptr(),
                 windowEnglishName,
             );
         }
-        *colonPosition = ':' as i32 as libc::c_char;
-        start = colonPosition.offset(1 as usize as isize);
+        *colonPosition = ':' as i32 ;
+        start = colonPosition.offset(1 );
         datum = strtoul(start, &mut end, 10);
         if start != end {
             (*xParams).xpDisplay = datum;
         }
         if *end != 0 {
-            if *end as usize == '.' as i32 {
-                start = end.offset(1 as usize as isize);
+            if *end  == '.' as i32 {
+                start = end.offset(1 );
                 datum = strtoul(start, &mut end, 0);
                 if start != end {
                     (*xParams).xpScreen = datum;
                 }
                 if *end != 0 {
                     vpunt(
-                         "" ,
-                        b"Invalid display specification %s for %s\0" as *const u8
-                            as *const libc::c_char as&str,
+
+                        b"Invalid display specification %s for %s\0"
+                             as&str,
                         value.as_mut_ptr(),
                         windowEnglishName,
                     );
                 }
             } else {
                 vpunt(
-                     "" ,
-                    b"Invalid display specification %s for %s\0" as *const u8
-                        as *const libc::c_char as&str,
+
+                    b"Invalid display specification %s for %s\0"
+                         as&str,
                     value.as_mut_ptr(),
                     windowEnglishName,
                 );
@@ -1539,17 +1539,17 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
             value.as_mut_ptr(),
             &mut hostName,
             &mut hostAddress,
-            0 as usize as Boole,
+            false,
         ) != 0
         {
             let ref mut fresh4 = (*xParams).xpHostName;
             *fresh4 = hostName;
-            (*xParams).xpHostAddress = hostAddress as libc::c_long;
+            (*xParams).xpHostAddress = hostAddress ;
         } else {
             vpunt(
-                 "" ,
-                b"Unknown host %s specified for display of %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unknown host %s specified for display of %s\0"
+                     as&str,
                 value.as_mut_ptr(),
                 windowEnglishName,
             );
@@ -1561,24 +1561,24 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         options,
         windowName,
         windowClass,
-        b"iconic\0" as *const u8 as *const libc::c_char as&str,
-        b"Iconic\0" as *const u8 as *const libc::c_char as&str,
+        b"iconic\0"   as&str,
+        b"Iconic\0"   as&str,
         value.as_mut_ptr(),
     ) != 0
     {
         if 0
-            == strcmp(value.as_mut_ptr(), b"yes\0" as *const u8 as *const libc::c_char)
+            == strcmp(value.as_mut_ptr(), b"yes\0"  )
         {
             (*xParams).xpInitialState = Iconic;
         } else if 0
-            == strcmp(value.as_mut_ptr(), b"no\0" as *const u8 as *const libc::c_char)
+            == strcmp(value.as_mut_ptr(), b"no\0"  )
         {
             (*xParams).xpInitialState = Normal;
         } else {
             vpunt(
-                 "" ,
-                b"Invalid value, %s, for iconic state of %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Invalid value, %s, for iconic state of %s\0"
+                     as&str,
                 value.as_mut_ptr(),
                 windowEnglishName,
             );
@@ -1590,8 +1590,8 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         options,
         windowName,
         windowClass,
-        b"geometry\0" as *const u8 as *const libc::c_char as&str,
-        b"Geometry\0" as *const u8 as *const libc::c_char as&str,
+        b"geometry\0"   as&str,
+        b"Geometry\0"   as&str,
         value.as_mut_ptr(),
     ) != 0
     {
@@ -1605,8 +1605,8 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         options,
         windowName,
         windowClass,
-        b"foreground\0" as *const u8 as *const libc::c_char as&str,
-        b"Foreground\0" as *const u8 as *const libc::c_char as&str,
+        b"foreground\0"   as&str,
+        b"Foreground\0"   as&str,
         value.as_mut_ptr(),
     ) != 0
     {
@@ -1620,8 +1620,8 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         options,
         windowName,
         windowClass,
-        b"background\0" as *const u8 as *const libc::c_char as&str,
-        b"Background\0" as *const u8 as *const libc::c_char as&str,
+        b"background\0"   as&str,
+        b"Background\0"   as&str,
         value.as_mut_ptr(),
     ) != 0
     {
@@ -1629,14 +1629,14 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         *fresh9 = strdup(value.as_mut_ptr());
     } else {
         let ref mut fresh10 = (*xParams).xpBackgroundColor;
-        *fresh10 = b"white\0" as *const u8 as *const libc::c_char as&str;
+        *fresh10 = b"white\0"   as&str;
     }
     if GetXOption(
         options,
         windowName,
         windowClass,
-        b"borderColor\0" as *const u8 as *const libc::c_char as&str,
-        b"BorderColor\0" as *const u8 as *const libc::c_char as&str,
+        b"borderColor\0"   as&str,
+        b"BorderColor\0"   as&str,
         value.as_mut_ptr(),
     ) != 0
     {
@@ -1650,17 +1650,17 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
         options,
         windowName,
         windowClass,
-        b"borderWidth\0" as *const u8 as *const libc::c_char as&str,
-        b"BorderWidth\0" as *const u8 as *const libc::c_char as&str,
+        b"borderWidth\0"   as&str,
+        b"BorderWidth\0"   as&str,
         value.as_mut_ptr(),
     ) != 0
     {
         datum = strtoul(value.as_mut_ptr(), &mut end, 10);
         if *end != 0 {
             vpunt(
-                 "" ,
-                b"Invalid value, %s, for border width of %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Invalid value, %s, for border width of %s\0"
+                     as&str,
                 value.as_mut_ptr(),
                 windowEnglishName,
             );
@@ -1679,29 +1679,29 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     if 0
         == strncmp(
             newSearchPath,
-            b"+:\0" as *const u8 as *const libc::c_char,
-            2 as usize as libc::c_ulong,
+            b"+:\0"  ,
+            2,
         )
     {
         newSearchPath = strcat(
-            strdup(&mut *newSearchPath.offset(1 as usize as isize)),
+            strdup(&mut *newSearchPath.offset(1 )),
             oldSearchPath,
         );
     }
     if 0
         == strncmp(
             newSearchPath
-                .offset(strlen(newSearchPath) as isize)
-                .offset(-(2 as usize as isize)),
-            b":+\0" as *const u8 as *const libc::c_char,
-            2 as usize as libc::c_ulong,
+                .offset(strlen(newSearchPath) )
+                .offset(-(2 )),
+            b":+\0"  ,
+            2,
         )
     {
         *newSearchPath
             .offset(
-                (strlen(newSearchPath)).wrapping_sub(1 as usize as libc::c_ulong)
-                    as isize,
-            ) = 0 as usize as libc::c_char;
+                (strlen(newSearchPath)).wrapping_sub(1)
+                    ,
+            ) = 0  ;
         newSearchPath = strcat(newSearchPath, oldSearchPath);
     }
     return newSearchPath;
@@ -1717,18 +1717,18 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     let mut valueClass: &str =  "" ;
     let mut dbValue: XrmValue = XrmValue {
         size: 0,
-        addr:  "" ,
+        addr: 0,
     };
     sprintf(
         optionName.as_mut_ptr(),
-        b"%s.%s\0" as *const u8 as *const libc::c_char,
+        b"%s.%s\0"  ,
         CommandName,
         name,
     );
     sprintf(
         optionClass.as_mut_ptr(),
-        b"%s.%s\0" as *const u8 as *const libc::c_char,
-        b"Genera\0" as *const u8 as *const libc::c_char,
+        b"%s.%s\0"  ,
+        b"Genera\0"  ,
         class,
     );
     if XrmGetResource(
@@ -1741,12 +1741,12 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     {
         strncpy(
             value,
-            dbValue.addr as *const libc::c_char,
-            dbValue.size as libc::c_ulong,
+            dbValue.addr ,
+            dbValue.size,
         );
-        return 1 as usize as Boole;
+        return true;
     } else {
-        return 0 as usize as Boole
+        return false
     };
 }
  fn GetXOption(
@@ -1761,13 +1761,13 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     let mut optionClass: [libc::c_char; 128] = [0; 128];
     sprintf(
         optionName.as_mut_ptr(),
-        b"%s.%s\0" as *const u8 as *const libc::c_char,
+        b"%s.%s\0"  ,
         windowName,
         name,
     );
     sprintf(
         optionClass.as_mut_ptr(),
-        b"%s.%s\0" as *const u8 as *const libc::c_char,
+        b"%s.%s\0"  ,
         windowClass,
         class,
     );
@@ -1777,103 +1777,103 @@ static mut OptionsTable: [XrmOptionDescRec; 33] = [
     mut name:&str,
     mut hostName: *mut&str,
     mut hostAddress: *mut libc::c_ulong,
-    mut rejectLocalHost: Boole,
+    mut rejectLocalHost: bool,
 ) -> Boole {
     let mut hp: *mut hostent = 0 as *mut hostent;
-    if *name as usize == '\0' as i32
-        || strcmp(name, b"unix\0" as *const u8 as *const libc::c_char) == 0
-        || strcmp(name, b"localhost\0" as *const u8 as *const libc::c_char) == 0
+    if *name  == '\0' as i32
+        || strcmp(name, b"unix\0"  ) == 0
+        || strcmp(name, b"localhost\0"  ) == 0
     {
         if rejectLocalHost != 0 {
-            return 0 as usize as Boole;
+            return false;
         }
-        hp = gethostbyname(b"localhost\0" as *const u8 as *const libc::c_char);
+        hp = gethostbyname(b"localhost\0"  );
         if hp.is_null() {
             vpunt(
-                 "" ,
-                b"Unable to determine local host network address\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unable to determine local host network address\0"
+                     as&str,
             );
         }
-        *hostAddress = *(*((*hp).h_addr_list).offset(0 as usize as isize)
+        *hostAddress = *(*((*hp).h_addr_list).offset(0 )
             as *mut libc::c_ulong);
-        *hostName = if *name as usize == '\0' as i32 {
+        *hostName = if *name  == '\0' as i32 {
              ""
         } else {
-            strdup(b"localhost\0" as *const u8 as *const libc::c_char)
+            strdup(b"localhost\0"  )
         };
     } else {
         hp = gethostbyname(name);
         if !hp.is_null() {
-            *hostAddress = *(*((*hp).h_addr_list).offset(0 as usize as isize)
+            *hostAddress = *(*((*hp).h_addr_list).offset(0 )
                 as *mut libc::c_ulong);
             *hostName = strdup((*hp).h_name);
         } else {
-            *hostAddress = ntohl(inet_addr(name)) as libc::c_ulong;
-            if *hostAddress == ntohl(-(1) as ui32) as libc::c_ulong {
-                if 11 as usize == *__errno_location() {
+            *hostAddress = ntohl(inet_addr(name));
+            if *hostAddress == ntohl(-(1) ) {
+                if 11  == *__errno_location() {
                     *__errno_location() = 0;
                 }
-                return 0 as usize as Boole;
+                return false;
             } else {
                 *hostName = strdup(name);
             }
         }
     }
-    return 1 as usize as Boole;
+    return true;
 }
-#[no_mangle]
+
 pub  fn pthread_get_expiration_np(
     mut delta: *const timespec,
     mut abstime: *mut timespec,
-) -> usize {
-    let mut status: usize = 0;
+) -> u32 {
+    let mut status: u32 = 0;
     let mut now: timeval = timeval { tv_sec: 0, tv_usec: 0 };
     let mut obsolete: timezone = timezone {
         tz_minuteswest: 0,
         tz_dsttime: 0,
     };
-    status = gettimeofday(&mut now, &mut obsolete as *mut timezone as *mut libc::c_void);
-    if status == 0 as usize {
+    status = gettimeofday(&mut now, &mut obsolete as *mut timezone );
+    if status == 0  {
         (*abstime).tv_sec = now.tv_sec + (*delta).tv_sec;
         (*abstime)
-            .tv_nsec = 1000 as usize as libc::c_long * now.tv_usec
+            .tv_nsec = 1000   * now.tv_usec
             + (*delta).tv_nsec;
         while (*abstime).tv_nsec
-            > (1000 as usize * 1000 as usize * 1000)
-                as libc::c_long
+            > (1000  * 1000  * 1000)
+
         {
             let ref mut fresh13 = (*abstime).tv_sec;
-            *fresh13 += 1 as usize as libc::c_long;
+            *fresh13 += 1  ;
             let ref mut fresh14 = (*abstime).tv_nsec;
             *fresh14
-                -= (1000 as usize * 1000 as usize * 1000)
-                    as libc::c_long;
+                -= (1000  * 1000  * 1000)
+                    ;
         }
     }
     return status;
 }
-#[no_mangle]
+
 pub  fn pthread_delay_np(
     mut ointerval: *const timespec,
-) -> usize {
-    let mut status: usize = 0;
+) -> u32 {
+    let mut status: u32 = 0;
     let mut interval: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
     let mut rinterval: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
     interval.tv_sec = (*ointerval).tv_sec;
     interval.tv_nsec = (*ointerval).tv_nsec;
-    pthread_testcancel();
+    u64estcancel();
     loop {
         status = nanosleep(&mut interval, &mut rinterval);
         if !(status != 0) {
             break;
         }
-        if *__errno_location() != 4 as usize {
+        if *__errno_location() != 4  {
             break;
         }
         interval.tv_sec = rinterval.tv_sec;
         interval.tv_nsec = rinterval.tv_nsec;
-        pthread_testcancel();
+        u64estcancel();
     }
     return status;
 }

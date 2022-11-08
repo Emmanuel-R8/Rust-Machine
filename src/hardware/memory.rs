@@ -1,135 +1,234 @@
-use crate::common::constants::{QTag, ADDRESS_NIL, ADDRESS_T, MEMORY_ADDRESS_PAGE_SHIFT, MEMORY_PAGE_MASK, VMAttribute, VMResultCode};
-use crate::common::types::{LispQ, QData, QTagdata};
+use std::arch::global_asm;
+
+use crate::common::constants::{
+    QTag, VMAttribute, VMResultCode, ADDRESS_NIL, ADDRESS_T, CDR, MEMORY_ADDRESS_PAGE_SHIFT,
+    MEMORY_PAGE_MASK, MEMORY_PAGE_SIZE, PROT_EXEC, PROT_READ, PROT_WRITE, VMATTRIBUTE_ACCESS_FAULT,
+    VMATTRIBUTE_EMPTY, VMATTRIBUTE_EPHEMERAL, VMATTRIBUTE_EXISTS, VMATTRIBUTE_MODIFIED,
+    VMATTRIBUTE_TRANSPORT_DISABLE, VMATTRIBUTE_TRANSPORT_FAULT, VMATTRIBUTE_WRITE_FAULT, MEMORYWAD_ADDRESS_SHIFT,
+};
+use crate::common::types::{QCDRTagData, QImmediate, QWord};
+use crate::emulator::emulator::GlobalContext;
 use crate::utils::{dpb, ldb};
 
+// From https://github.com/mohanson/gameboy/blob/master/src/memory.rs
+pub trait Memory {
+    fn get(&self, a: u16) -> u8;
+
+    fn set(&mut self, a: u16, v: u8);
+
+    fn get_word(&self, a: u16) -> u16 {
+        u16::from(self.get(a)) | (u16::from(self.get(a + 1)) << 8)
+    }
+
+    fn set_word(&mut self, a: u16, v: u16) {
+        self.set(a, (v & 0xFF) as u8);
+        self.set(a + 1, (v >> 8) as u8)
+    }
+}
+
 // Constants
-const OBJECT_T: LispQ = LispQ {
-    parts: QTagdata {
+const OBJECT_T: QWord = QWord {
+    parts: QCDRTagData {
+        cdr: CDR::Nil,
         tag: QTag::Symbol,
-        data: QData { u: ADDRESS_T },
+        data: QImmediate { u: ADDRESS_T },
     },
 };
-const OBJECT_NIL: LispQ = LispQ {
-    parts: QTagdata {
+const OBJECT_NIL: QWord = QWord {
+    parts: QCDRTagData {
+        cdr: CDR::Nil,
         tag: QTag::NIL,
-        data: QData { u: ADDRESS_NIL },
+        data: QImmediate { u: ADDRESS_NIL },
     },
 };
-const OBJECT_CDR_MASK: LispQ = LispQ {
-    parts: QTagdata {
+const OBJECT_CDR_MASK: QWord = QWord {
+    parts: QCDRTagData {
+        cdr: CDR::Nil,
         tag: QTag::TagCdrMask,
-        data: QData { u: 0 },
+        data: QImmediate { u: 0 },
     },
 };
 
+pub fn make_lisp_obj(c: CDR, t: QTag, d: QImmediate) -> QWord {
+    return QWord {
+        parts: QCDRTagData {
+            cdr: c,
+            tag: t,
+            data: d,
+        },
+    };
+}
+
+pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> QWord {
+    return QWord {
+        parts: QCDRTagData {
+            cdr: c,
+            tag: t,
+            data: QImmediate { u: val },
+        },
+    };
+}
+
+pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> QWord {
+    return QWord {
+        parts: QCDRTagData {
+            cdr: c,
+            tag: t,
+            data: QImmediate { s: val },
+        },
+    };
+}
+
+pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> QWord {
+    return QWord {
+        parts: QCDRTagData {
+            cdr: c,
+            tag: t,
+            data: QImmediate { f: val },
+        },
+    };
+}
+
+pub fn lisp_obj_cdr(q: QWord) -> CDR {
+    return unsafe { q.parts.cdr };
+}
+
+pub fn lisp_obj_tag(q: QWord) -> QTag {
+    return unsafe { q.parts.tag };
+}
+
+pub fn lisp_obj_data(q: QWord) -> QImmediate {
+    return unsafe { q.parts.data };
+}
+
+pub fn write_lisp_obj_cdr(q: &mut QWord, newcdr: CDR) {
+    q.parts.cdr = newcdr;
+}
+
+pub fn write_lisp_obj_tag(q: &mut QWord, newtag: QTag) {
+    q.parts.tag = newtag;
+}
+
+pub fn write_lisp_obj_data(q: &mut QWord, newdata: u32) {
+    q.parts.data.u = newdata;
+}
 
 pub fn memory_page_number(vma: u32) -> u32 {
-    return vma >> MEMORY_ADDRESS_PAGE_SHIFT
+    return vma >> MEMORY_ADDRESS_PAGE_SHIFT;
 }
 pub fn memory_page_offset(vma: u32) -> u32 {
-    return vma & MEMORY_PAGE_MASK
+    return vma & MEMORY_PAGE_MASK;
 }
 pub fn page_number_memory(vpn: u32) -> u32 {
-    return vpn << MEMORY_ADDRESS_PAGE_SHIFT
+    return vpn << MEMORY_ADDRESS_PAGE_SHIFT;
 }
 
 pub fn access_fault(vma: &VMAttribute) -> bool {
-    return vma & VMAttribute::AccessFault != 0
+    return vma & VMATTRIBUTE_ACCESS_FAULT != 0;
 }
 pub fn write_fault(vma: &VMAttribute) -> bool {
-   return  vma & VMAttribute::WriteFault != 0
+    return vma & VMATTRIBUTE_WRITE_FAULT != 0;
 }
 pub fn transport_fault(vma: &VMAttribute) -> bool {
-   return  vma & VMAttribute::TransportFault != 0
+    return vma & VMATTRIBUTE_TRANSPORT_FAULT != 0;
 }
 pub fn transport_disable(vma: &VMAttribute) -> bool {
- return    vma & VMAttribute::TransportDisable != 0
+    return vma & VMATTRIBUTE_TRANSPORT_DISABLE != 0;
 }
 pub fn ephemeral(vma: &VMAttribute) -> bool {
-   return  vma & VMAttribute::Ephemeral > 0
+    return vma & VMATTRIBUTE_EPHEMERAL > 0;
 }
 pub fn modified(vma: &VMAttribute) -> bool {
- return    vma & VMAttribute::Modified != 0
+    return vma & VMATTRIBUTE_MODIFIED != 0;
 }
 pub fn exists(vma: &VMAttribute) -> bool {
-   return  vma & VMAttribute::Exists != 0
+    return vma & VMATTRIBUTE_EXISTS != 0;
 }
 
 pub fn set_vmaccess_fault(mut vma: VMAttribute) {
-   return  vma = vma | VMAttribute::AccessFault
+    return vma = vma | VMATTRIBUTE_ACCESS_FAULT;
 }
 pub fn set_vmwrite_fault(mut vma: VMAttribute) {
- return    vma = vma | VMAttribute::WriteFault
+    return vma = vma | VMATTRIBUTE_WRITE_FAULT;
 }
 pub fn set_vmtransport_fault(mut vma: VMAttribute) {
-  return   vma = vma | VMAttribute::TransportFault
+    return vma = vma | VMATTRIBUTE_TRANSPORT_FAULT;
 }
 pub fn set_vmtransport_disable(mut vma: VMAttribute) {
-  return   vma = vma | VMAttribute::TransportDisable
+    return vma = vma | VMATTRIBUTE_TRANSPORT_DISABLE;
 }
 pub fn set_vmephemeral(mut vma: VMAttribute) {
- return    vma = vma | VMAttribute::Ephemeral
+    return vma = vma | VMATTRIBUTE_EPHEMERAL;
 }
 pub fn set_vmmodified(mut vma: VMAttribute) {
-  return   vma = vma | VMAttribute::Modified
+    return vma = vma | VMATTRIBUTE_MODIFIED;
 }
 pub fn set_vmexists(mut vma: VMAttribute) {
-  return   vma = vma | VMAttribute::Exists
+    return vma = vma | VMATTRIBUTE_EXISTS;
 }
 
 pub fn clear_vmaccess_fault(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::AccessFault ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_ACCESS_FAULT ^ 0b1111_1111);
 }
 pub fn clear_vmwrite_fault(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::WriteFault ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_WRITE_FAULT ^ 0b1111_1111);
 }
 pub fn clear_vmtransport_faultlt(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::TransportFault ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_TRANSPORT_FAULT ^ 0b1111_1111);
 }
 pub fn clear_vmtransport_disable(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::TransportDisable ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_TRANSPORT_DISABLE ^ 0b1111_1111);
 }
 pub fn clear_vmephemeral(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::Ephemeral ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_EPHEMERAL ^ 0b1111_1111);
 }
 pub fn clear_vmmodified(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::Modified ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_MODIFIED ^ 0b1111_1111);
 }
 pub fn clear_vmexists(mut vma: VMAttribute) {
- return    vma = vma & (VMAttribute::Exists ^ 0b1111_1111)
+    return vma = vma & (VMATTRIBUTE_EXISTS ^ 0b1111_1111);
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct VMMemory {
-    VMAttribute::table: [Vec<VMAttribute>; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
+    pub Space: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
+    pub attribute: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
+}
+
+impl VMMemory {
+    pub fn map_virtual_address_data(&self, start: usize, count: usize) -> Option<Vec<QWord>> {
+        let s = self.Space;
+
+        if count == 0 {
+            None
+        } else {
+            Some(s[start..start + count].to_vec())
+        }
+    }
 }
 
 static ENABLE_IDS: bool = false;
 
 pub fn default_attributes(faultp: bool, worldp: bool) -> u8 {
-    let mut accessfaultp: u8 = 0;
+    let mut accessfaultp = VMATTRIBUTE_EMPTY;
     if faultp {
-        accessfaultp = VMAttribute::AccessFault;
-    } else {
-        accessfaultp = 0;
+        accessfaultp = VMATTRIBUTE_ACCESS_FAULT;
     }
 
-    let mut modifiedp: u8 = 0;
+    let mut modifiedp = VMATTRIBUTE_EMPTY;
     if ENABLE_IDS && worldp {
-        modifiedp = 0;
-    } else {
-        modifiedp = VMAttribute::Modified;
+        modifiedp = VMATTRIBUTE_MODIFIED;
     }
 
-   return  VMAttribute::Exists | VMAttribute::Modified | accessfaultp | modifiedp
+    return VMATTRIBUTE_EXISTS | VMATTRIBUTE_MODIFIED | accessfaultp | modifiedp;
 }
 
 pub fn vmcommand_opcode(command: u32) -> u32 {
- return    ldb(13, 19, command)
+    return ldb(13, 19, command);
 }
 
 pub fn vmcommand_operand(command: u32) -> u32 {
- return    ldb(19, 0, command)
+    return ldb(19, 0, command);
 }
 
 pub fn set_vmreply_result(reply: u32, result: u32) -> u32 {
@@ -141,5 +240,163 @@ pub fn set_vmreply_result(reply: u32, result: u32) -> u32 {
         r = VMResultCode::Failure as u32;
     }
 
-   return  dpb(r, 13, 19, reply)
+    return dpb(r, 13, 19, reply);
 }
+
+pub fn memory_wad_number(vma: u32) -> u32 {
+    return vma >> MEMORYWAD_ADDRESS_SHIFT;
+}
+pub fn memory_wad_offset(vma: u32) -> u32 {
+    return vma & MEMORY_PAGE_MASK;
+}
+pub fn wad_number_memory(vwn: u32) -> u32 {
+    return vwn << MEMORYWAD_ADDRESS_SHIFT;
+}
+
+/* f-ing poor excuse for a macro language */
+pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
+pub fn wad_created(ctx: &GlobalContext, vma: u32) -> bool {
+    // WADs are 8 contiguous memory pages
+    let wad_addr = memory_wad_number(vma) << 3;
+    let mut is_created = true;
+
+    for vma in wad_addr..wad_addr+8{
+        is_created =is_created && ctx.vma_created_p(vma);
+    }
+
+    return is_created
+}
+
+// Computes the PROT_XXX setting for a particular combination of
+// VMAttribute's.  C.f., segv_handler, which translates resulting segfault
+// back to appropriate Lisp fault
+pub fn compute_protection(mut vma: VMAttribute) -> u32 {
+    //  Don't cause transport faults if they are overridden
+    if vma & VMATTRIBUTE_TRANSPORT_DISABLE != 0 {
+        clear_vmtransport_disable(vma);
+    }
+
+    // We would have liked Transport to use write-only pages, but that is not guaranteed by
+    // OSF/Unix, so we just use none
+    if vma & (VMATTRIBUTE_EXISTS | VMATTRIBUTE_TRANSPORT_FAULT | VMATTRIBUTE_ACCESS_FAULT)
+        != VMATTRIBUTE_EXISTS
+    {
+        return PROT_READ | PROT_EXEC;
+    }
+
+    // Unless the modified and ephemeral bits are set, use read-only, so we can update them
+    if vma & (VMATTRIBUTE_MODIFIED | VMATTRIBUTE_EPHEMERAL | VMATTRIBUTE_WRITE_FAULT)
+        != VMATTRIBUTE_MODIFIED | VMATTRIBUTE_EPHEMERAL
+    {
+        return PROT_READ | PROT_EXEC;
+    }
+    return PROT_READ | PROT_EXEC | PROT_WRITE;
+}
+
+// pub fn ensure_virtual_address(ctx:GlobalContext, vma: u32) -> bool {
+//     let mut data: u64 = 0;
+//     let mut tag: u64 = 0;
+//     let mut aligned_vma = memory_page_offset(vma);
+
+//     if ctx.vma_created_p(vma) {
+//         return true
+//     }
+
+//     data = &mut *DataSpace.offset(aligned_vma) as *mut u32 as u64;
+//     tag = &mut *TagSpace.offset(aligned_vma) as *mut Tag as u64;
+//     if data
+//         != mmap(
+//             data,
+//             ::std::mem::size_of::<[u32; 8192]>(),
+//             0x1 | 0x2,
+//             0x20 | 0x2 | 0x10,
+//             -(1),
+//             0 as __off_t,
+//         ) as u64
+//     {
+//         printf(b"Couldn't map data page at %s for VMA %016lx\0", data, vma);
+//     }
+//     if tag
+//         != mmap(
+//             tag,
+//             ::std::mem::size_of::<[Tag; 8192]>(),
+//             0x1 | 0x2,
+//             0x20 | 0x2 | 0x10,
+//             -(1),
+//             0 as __off_t,
+//         ) as u64
+//     {
+//         printf(b"Couldn't map tag page at %s for VMA %016lx\0", tag, vma);
+//     }
+//     VMAttributeTable[(vma >> 13)] = (0o1 | 0o4 | 0o100) as VMAttribute;
+
+//     return vma;
+// }
+
+// pub fn ensure_virtual_address_range(virtualaddress: u32, count: u32, faultp: bool) -> u32 {
+//     // let mut pages: u32 = (count + (0x2000 - 1)) / 0x2000;
+//     // let mut data: u64 = "";
+//     // let mut tag: u64 = "";
+//     // let mut aligned_vma: u32 = virtualaddress.wrapping_sub(virtualaddress & (0x2000 - 1));
+
+//     let mut pages = ceiling(count, MEMORY_PAGE_SIZE);
+//     let aligned_vma = virtualaddress - memory_page_offset(virtualaddress);
+
+//     // let mut n: u32 = 0;
+//     // while pages != 0 {
+//     //     n = 0;
+//     //     while VMAttributeTable[(virtualaddress >> 13)] & 0o100 == 0 && pages != 0 {
+//     //         n += 1;
+//     //         pages -= 1;
+//     //         VMAttributeTable[(virtualaddress >> 13)] = (0o1 | 0o4 | 0o100) as VMAttribute;
+//     //         virtualaddress = (virtualaddress).wrapping_add(0x2000);
+//     //     }
+//     //     if n != 0 {
+//     //         data = &mut *DataSpace.offset(aligned_vma) as *mut u32 as u64;
+//     //         tag = &mut *TagSpace.offset(aligned_vma) as *mut Tag as u64;
+//     //         if data
+//     //             != mmap(
+//     //                 data,
+//     //                 (n).wrapping_mul(::std::mem::size_of::<[u32; 8192]>()),
+//     //                 0x1 | 0x2,
+//     //                 0x20 | 0x2 | 0x10,
+//     //                 -(1),
+//     //                 0 as __off_t,
+//     //             ) as u64
+//     //         {
+//     //             printf(
+//     //                 b"Couldn't map %d data pages at %s for VMA %016lx\0",
+//     //                 n,
+//     //                 data,
+//     //                 aligned_vma,
+//     //             );
+//     //         }
+//     //         if tag
+//     //             != mmap(
+//     //                 tag,
+//     //                 (n).wrapping_mul(::std::mem::size_of::<[Tag; 8192]>()),
+//     //                 0x1 | 0x2,
+//     //                 0x20 | 0x2 | 0x10,
+//     //                 -(1),
+//     //                 0 as __off_t,
+//     //             ) as u64
+//     //         {
+//     //             printf(
+//     //                 b"Couldn't map %d tag pages at %s for VMA %016lx\0",
+//     //                 n,
+//     //                 tag,
+//     //                 aligned_vma,
+//     //             );
+//     //         }
+//     //         aligned_vma = (aligned_vma).wrapping_add((n * 0x2000));
+//     //     }
+//     //     while VMAttributeTable[(virtualaddress >> 13)] & 0o100 != 0 && pages != 0 {
+//     //         pages -= 1;
+//     //         virtualaddress = (virtualaddress).wrapping_add(0x2000);
+//     //         aligned_vma = (aligned_vma).wrapping_add(0x2000);
+//     //     }
+//     // }
+//     // return virtualaddress;
+
+//     return 0;
+// }

@@ -1,43 +1,7 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals, unused_assignments, unused_mut)]
 #![register_tool(c2rust)]
 #![feature(register_tool)]
-extern "C" {
-    fn open(__file: *const libc::c_char, __oflag: u32, _: ...) -> u32;
-    fn fstat(__fd: u32, __buf: *mut stat) -> u32;
-    fn readv(__fd: u32, __iovec: *const iovec, __count: u32) -> ssize_t;
-    fn writev(__fd: u32, __iovec: *const iovec, __count: u32) -> ssize_t;
-    fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-    fn printf(_: *const libc::c_char, _: ...) -> u32;
-    fn __errno_location() -> *mut u32;
-    fn memcpy(
-        _: *mut libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
-    fn lseek(__fd: u32, __offset: __off_t, __whence: u32) -> __off_t;
-    fn close(__fd: u32) -> u32;
-    fn ftruncate(__fd: u32, __length: __off_t) -> u32;
-    fn LispObjTag(lo: LispObj) -> ui32;
-    fn LispObjData(lo: LispObj) -> ui32;
-    fn VirtualMemoryRead(vma: isize, object: *mut LispObj) -> u32;
-    fn MapVirtualAddressTag(vma: isize) -> *mut Tag;
-    fn MapVirtualAddressData(vma: isize) -> *mut isize;
-    fn verror(section:&str, format:&str, _: ...);
-    fn InstallSignalHandler(
-        singalHandler: ProcPtrV,
-        signalArgument: PtrV,
-        inputP: Boole,
-    ) -> SignalNumber;
-    fn RemoveSignalHandler(signal: SignalNumber);
-    fn SignalLater(signal: SignalNumber);
-    static mut EmbCommAreaPtr: *mut EmbCommArea;
-    fn EmbQueueSpace(q: *mut EmbQueue) -> u32;
-    fn EmbQueueFilled(q: *mut EmbQueue) -> u32;
-    fn EmbQueuePutWord(q: *mut EmbQueue, element: EmbWord);
-    fn EmbQueueTakeWord(q: *mut EmbQueue) -> EmbWord;
-    fn ResetIncomingQueue(q: *mut EmbQueue);
-    fn ResetOutgoingQueue(q: *mut EmbQueue);
-}
+
 pub type u8 = libc::c_uchar;
 pub type i32 = u32;
 pub type u32 = libc::c_uint;
@@ -54,7 +18,7 @@ pub type __blksize_t = libc::c_long;
 pub type __blkcnt_t = libc::c_long;
 pub type __ssize_t = libc::c_long;
 pub type __syscall_slong_t = libc::c_long;
-pub type __caddr_t =&str;
+pub type __u64 =&str;
 pub type off_t = __off_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -82,7 +46,7 @@ pub struct stat {
     pub __glibc_reserved: [__syscall_slong_t; 3],
 }
 pub type ssize_t = __ssize_t;
-pub type caddr_t = __caddr_t;
+pub type u64 = __u64;
 pub type size_t = libc::c_ulong;
 pub type i32 = i32;
 #[derive(Copy, Clone)]
@@ -93,7 +57,7 @@ pub union __atomic_wide_counter {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct C2RustUnnamed {
+pub struct QData {
     pub __low: libc::c_uint,
     pub __high: libc::c_uint,
 }
@@ -127,23 +91,23 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
@@ -154,47 +118,7 @@ pub struct iovec {
     pub iov_base: *mut libc::c_void,
     pub iov_len: size_t,
 }
-pub type u8 = u8;
-pub type ui32 = u32;
-pub type u64 = u64;
-pub type EmbWord = i32;
-pub type uEmbWord = ui32;
-pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
-pub type SignalNumber = EmbWord;
-pub type PtrV = *mut libc::c_void;
-pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
-pub type isize = u64;
-pub type Boole = u8;
-pub type Tag = u8;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union LispObj {
-    pub parts: _LispObj,
-    pub whole: u64,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _LispObj {
-    pub tag: ui32,
-    pub data: C2RustUnnamed_0,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union C2RustUnnamed_0 {
-    pub u: ui32,
-    pub s: i32,
-    pub f: libc::c_float,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
-    pub signal: SignalMask,
-    pub handlerFunction: ProcPtrV,
-    pub handlerArgument: PtrV,
-}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct EmbCommArea {
@@ -246,46 +170,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_1,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 
 
@@ -334,7 +258,7 @@ pub struct EmbDiskChannel {
 pub struct DiskChannelState {
     pub command_queue_ptr: *mut EmbQueue,
     pub status_queue_ptr: *mut EmbQueue,
-    pub error_pending: Boole,
+    pub error_pending: bool,
     pub fd: u32,
     pub iovs: [iovec; 32],
 }
@@ -387,11 +311,11 @@ pub struct EmbDiskQueueElement {
     pub error_code: EmbWord,
     pub addresses: [EmbAddressPair; 1],
 }
-#[no_mangle]
+
 pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
     let mut request: *mut AttachDiskChannelRequest = pRequest;
     let mut diskChannel: *mut EmbDiskChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*request).diskChannel as isize) as *mut EmbWord as PtrV
+        .offset((*request).diskChannel ) as *mut EmbWord as PtrV
         as *mut EmbDiskChannel;
     let mut diskState: *mut DiskChannelState = 0 as *mut DiskChannelState;
     let mut fileStatus: stat = stat {
@@ -411,7 +335,7 @@ pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
         st_ctim: timespec { tv_sec: 0, tv_nsec: 0 },
         __glibc_reserved: [0; 3],
     };
-    let mut filenameHeader: LispObj = LispObj {
+    let mut filenameHeader: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_0 { u: 0 },
@@ -419,39 +343,39 @@ pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
     };
     let mut filenameSize: size_t = 0;
     let mut filename: &str =  "" ;
-    let mut openFlags: usize = 0;
+    let mut openFlags: u32 = 0;
     (*request).result = 0;
     (*request).errorMsg = -(1);
-    printf(b"AttachDiskChannel\n\0" as *const u8 as *const libc::c_char);
-    diskState = malloc(::std::mem::size_of::<DiskChannelState>() as libc::c_ulong)
+    printf(b"AttachDiskChannel\n\0"  );
+    diskState = malloc(::std::mem::size_of::<DiskChannelState>())
         as *mut DiskChannelState;
     if diskState.is_null() {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
-            b"Couldn't allocate disk channel status structure\0" as *const u8
-                as *const libc::c_char as&str,
+            b"Couldn't allocate disk channel status structure\0"
+                 as&str,
         );
         (*request).result = 12;
         return;
     }
     (*diskChannel)
         .hostState0 = (diskState as u64 >> 32
-        & 0xffffffff as libc::c_long as libc::c_ulong) as EmbWord;
+        & 0xffffffff ) as EmbWord;
     (*diskChannel)
         .hostState1 = (diskState as u64
-        & 0xffffffff as libc::c_long as libc::c_ulong) as EmbWord;
+        & 0xffffffff ) as EmbWord;
     (*diskState).fd = -(1);
     let ref mut fresh0 = (*diskState).command_queue_ptr;
     *fresh0 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*diskChannel).command_queue as isize) as *mut EmbWord as PtrV
+        .offset((*diskChannel).command_queue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
     let ref mut fresh1 = (*diskState).status_queue_ptr;
     *fresh1 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*diskChannel).status_queue as isize) as *mut EmbWord as PtrV
+        .offset((*diskChannel).status_queue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
-    (*diskState).error_pending = 0 as usize as Boole;
-    if 23 as usize as *mut Tag
+    (*diskState).error_pending = false;
+    if 23  as *mut Tag
         != (Some(
             (Some(MapVirtualAddressTag as fn(isize) -> *mut Tag))
                 .expect("non-null function pointer"),
@@ -460,92 +384,92 @@ pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
                 "non-null function pointer",
             )(
             (&mut (*request).filename as *mut EmbWord as *mut isize)
-                .offset_from(MapVirtualAddressData(0 as usize as isize))
-                as libc::c_long as isize,
+                .offset_from(MapVirtualAddressData(0 ))
+                ,
         )
     {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
-            b"Disk partition filename is not a simple string\0" as *const u8
-                as *const libc::c_char as&str,
+            b"Disk partition filename is not a simple string\0"
+                 as&str,
         );
         (*request).result = 22;
         return;
     }
-    VirtualMemoryRead((*request).filename as isize, &mut filenameHeader);
-    if 3 as usize as libc::c_uint
-        != LispObjTag(filenameHeader) & 0x3f as usize as libc::c_uint
+    VirtualMemoryRead((*request).filename , &mut filenameHeader);
+    if 3
+        != LispObjTag(filenameHeader) & 0x3f
     {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
-            b"Disk partition filename is not a simple string\0" as *const u8
-                as *const libc::c_char as&str,
+            b"Disk partition filename is not a simple string\0"
+                 as&str,
         );
         (*request).result = 22;
         return;
     }
-    if (LispObjData(filenameHeader) & !(32767) as libc::c_uint)
-        as libc::c_long != 0x50000000 as libc::c_long
+    if (LispObjData(filenameHeader) & !(32767) )
+         != 0x50000000
     {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
-            b"Disk partition filename is not a simple string\0" as *const u8
-                as *const libc::c_char as&str,
+            b"Disk partition filename is not a simple string\0"
+                 as&str,
         );
         (*request).result = 22;
         return;
     }
-    filenameSize = (LispObjData(filenameHeader) & 32767 as usize as libc::c_uint)
-        as size_t;
-    filename = malloc(filenameSize.wrapping_add(1 as usize as libc::c_ulong))
+    filenameSize = (LispObjData(filenameHeader) & 32767)
+       ;
+    filename = malloc(filenameSize.wrapping_add(1))
         as&str;
     if filename.is_null() {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
             b"Couldn't allocate space for local copy of disk partition filename\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
         );
         (*request).result = 12;
         return;
     }
     memcpy(
-        filename as *mut libc::c_void,
-        MapVirtualAddressData(((*request).filename + 1) as isize)
-            as *const libc::c_void,
+        filename ,
+        MapVirtualAddressData(((*request).filename + 1) )
+            ,
         filenameSize,
     );
-    *filename.offset(filenameSize as isize) = 0 as usize as libc::c_char;
+    *filename.offset(filenameSize ) = 0  ;
     if ((*diskChannel).flags).read_only() != 0 {
         openFlags = 0;
     } else {
         openFlags = 0o2;
     }
-    if CreateIfNotFound as usize == (*request).ifNotFoundAction {
+    if CreateIfNotFound  == (*request).ifNotFoundAction {
         openFlags |= 0o100;
     }
     printf(
-        b"AttachDiskChannel open '%s'\n\0" as *const u8 as *const libc::c_char,
+        b"AttachDiskChannel open '%s'\n\0"  ,
         filename,
     );
     (*diskState)
         .fd = open(
         filename,
         openFlags,
-        0o400 as usize | 0o200
-            | 0o400 as usize >> 3
-            | 0o200 as usize >> 3
-            | 0o400 as usize >> 3 as usize >> 3
-            | 0o200 as usize >> 3 as usize >> 3,
+        0o400  | 0o200
+            | 0o400  >> 3
+            | 0o200  >> 3
+            | 0o400  >> 3  >> 3
+            | 0o200  >> 3  >> 3,
     );
     if -(1) == (*diskState).fd {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
-            b"Unable to open disk partition %s\0" as *const u8 as *const libc::c_char
+            b"Unable to open disk partition %s\0"
                 as&str,
             filename,
         );
@@ -554,24 +478,24 @@ pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
     }
     if fstat((*diskState).fd, &mut fileStatus) != 0 {
         verror(
-            b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+            b"AttachDiskChannel\0"
                 as&str,
-            b"Unable to determine size of disk partition %s\0" as *const u8
-                as *const libc::c_char as&str,
+            b"Unable to determine size of disk partition %s\0"
+                 as&str,
             filename,
         );
         (*request).result = *__errno_location();
         close((*diskState).fd);
         return;
     }
-    if (*request).minimumLength > 0 as usize {
-        if (*request).minimumLength as libc::c_long > fileStatus.st_size {
-            if ftruncate((*diskState).fd, (*request).minimumLength as off_t) != 0 {
+    if (*request).minimumLength > 0  {
+        if (*request).minimumLength  > fileStatus.st_size {
+            if ftruncate((*diskState).fd, (*request).minimumLength ) != 0 {
                 verror(
-                    b"AttachDiskChannel\0" as *const u8 as *const libc::c_char
+                    b"AttachDiskChannel\0"
                         as&str,
-                    b"Unable to set size of disk partition %s to %d bytes\0" as *const u8
-                        as *const libc::c_char as&str,
+                    b"Unable to set size of disk partition %s to %d bytes\0"
+                         as&str,
                     filename,
                     (*request).minimumLength,
                 );
@@ -583,12 +507,12 @@ pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
         }
     }
     (*diskChannel)
-        .number_of_pages = (fileStatus.st_size / 8192 as usize as libc::c_long)
+        .number_of_pages = (fileStatus.st_size / 8192  )
         as EmbWord;
     (*diskChannel).next = (*EmbCommAreaPtr).channel_table;
     (*EmbCommAreaPtr)
         .channel_table = (diskChannel as *mut EmbWord)
-        .offset_from(EmbCommAreaPtr as *mut EmbWord) as libc::c_long as EmbPtr;
+        .offset_from(EmbCommAreaPtr as *mut EmbWord)  as EmbPtr;
     (*(*diskState).command_queue_ptr)
         .signal = InstallSignalHandler(
         ::std::mem::transmute::<
@@ -596,17 +520,17 @@ pub  fn AttachDiskChannel(mut pRequest: *mut AttachDiskChannelRequest) {
             ProcPtrV,
         >(Some(DiskLife as fn(*mut EmbDiskChannel) -> ())),
         diskChannel as PtrV,
-        0 as usize as Boole,
+        false,
     );
 }
-#[no_mangle]
+
 pub  fn GrowDiskPartition(mut pRequest: *mut GrowDiskPartitionRequest) {
     let mut request: *mut GrowDiskPartitionRequest = pRequest;
     let mut diskChannel: *mut EmbDiskChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*request).diskChannel as isize) as *mut EmbWord as PtrV
+        .offset((*request).diskChannel ) as *mut EmbWord as PtrV
         as *mut EmbDiskChannel;
     let mut diskState: *mut DiskChannelState = (((*diskChannel).hostState0 as u64)
-        << 32 as usize | (*diskChannel).hostState1 as libc::c_ulong)
+        << 32  | (*diskChannel).hostState1)
         as *mut DiskChannelState;
     let mut fileStatus: stat = stat {
         st_dev: 0,
@@ -629,10 +553,10 @@ pub  fn GrowDiskPartition(mut pRequest: *mut GrowDiskPartitionRequest) {
     (*request).errorMsg = -(1);
     if -(1) == (*diskState).fd {
         verror(
-            b"GrowDiskPartition\0" as *const u8 as *const libc::c_char
+            b"GrowDiskPartition\0"
                 as&str,
-            b"There is no disk partition attached to channel #%d\0" as *const u8
-                as *const libc::c_char as&str,
+            b"There is no disk partition attached to channel #%d\0"
+                 as&str,
             (*diskChannel).unit,
         );
         (*request).result = 22;
@@ -640,22 +564,22 @@ pub  fn GrowDiskPartition(mut pRequest: *mut GrowDiskPartitionRequest) {
     }
     if fstat((*diskState).fd, &mut fileStatus) != 0 {
         verror(
-            b"GrowDiskPartition\0" as *const u8 as *const libc::c_char
+            b"GrowDiskPartition\0"
                 as&str,
             b"Unable to determine size of disk partition attached to channel #%d\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             (*diskChannel).unit,
         );
         (*request).result = *__errno_location();
         return;
     }
-    if (*request).newLength as libc::c_long > fileStatus.st_size {
-        if ftruncate((*diskState).fd, (*request).newLength as off_t) != 0 {
+    if (*request).newLength  > fileStatus.st_size {
+        if ftruncate((*diskState).fd, (*request).newLength ) != 0 {
             verror(
-                b"GrowDiskPartition\0" as *const u8 as *const libc::c_char
+                b"GrowDiskPartition\0"
                     as&str,
                 b"Unable to set size of disk partition attached to channel #%d to %d bytes\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 (*diskChannel).unit,
                 (*request).newLength,
             );
@@ -665,15 +589,15 @@ pub  fn GrowDiskPartition(mut pRequest: *mut GrowDiskPartitionRequest) {
         fileStatus.st_size = (*request).newLength as __off_t;
     }
     (*diskChannel)
-        .number_of_pages = (fileStatus.st_size / 8192 as usize as libc::c_long)
+        .number_of_pages = (fileStatus.st_size / 8192  )
         as EmbWord;
 }
-#[no_mangle]
+
 pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
     let mut diskChannel: *mut EmbDiskChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset(diskChannelPtr as isize) as *mut EmbWord as PtrV as *mut EmbDiskChannel;
+        .offset(diskChannelPtr ) as *mut EmbWord as PtrV as *mut EmbDiskChannel;
     let mut diskState: *mut DiskChannelState = (((*diskChannel).hostState0 as u64)
-        << 32 as usize | (*diskChannel).hostState1 as libc::c_ulong)
+        << 32  | (*diskChannel).hostState1)
         as *mut DiskChannelState;
     let mut channelPtr: EmbPtr = 0;
     let mut prevChannelPtr: EmbPtr = 0;
@@ -690,7 +614,7 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
             if -(1) == prevChannelPtr {
                 (*EmbCommAreaPtr).channel_table = (*diskChannel).next;
             } else {
-                (*(&mut *(EmbCommAreaPtr as *mut EmbWord).offset(prevChannelPtr as isize)
+                (*(&mut *(EmbCommAreaPtr as *mut EmbWord).offset(prevChannelPtr )
                     as *mut EmbWord as PtrV as *mut EmbChannel))
                     .next = (*diskChannel).next;
             }
@@ -698,32 +622,32 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
         } else {
             prevChannelPtr = channelPtr;
             channelPtr = (*(&mut *(EmbCommAreaPtr as *mut EmbWord)
-                .offset(channelPtr as isize) as *mut EmbWord as PtrV as *mut EmbChannel))
+                .offset(channelPtr ) as *mut EmbWord as PtrV as *mut EmbChannel))
                 .next;
         }
     }
 }
  fn DiskLife(mut diskChannel: *mut EmbDiskChannel) {
     let mut diskState: *mut DiskChannelState = (((*diskChannel).hostState0 as u64)
-        << 32 as usize | (*diskChannel).hostState1 as libc::c_ulong)
+        << 32  | (*diskChannel).hostState1)
         as *mut DiskChannelState;
     let mut commandQueue: *mut EmbQueue = (*diskState).command_queue_ptr;
     let mut statusQueue: *mut EmbQueue = (*diskState).status_queue_ptr;
     let mut command: *mut EmbDiskQueueElement = 0 as *mut EmbDiskQueueElement;
     let mut commandPtr: EmbWord = 0;
     while EmbQueueFilled(commandQueue) != 0 {
-        if (*EmbCommAreaPtr).inhibitDisk as usize != 0
-            || 0 as usize == EmbQueueSpace(statusQueue)
+        if (*EmbCommAreaPtr).inhibitDisk  != 0
+            || 0  == EmbQueueSpace(statusQueue)
         {
             SignalLater((*commandQueue).signal);
             return;
         }
         commandPtr = EmbQueueTakeWord(commandQueue);
         if commandPtr != 0 {
-            command = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(commandPtr as isize)
+            command = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(commandPtr )
                 as *mut EmbWord as PtrV as *mut EmbDiskQueueElement;
             let mut current_block_28: u64;
-            match ((*command).op).cmd() as usize {
+            match ((*command).op).cmd()  {
                 2 => {
                     if ((*diskChannel).flags).read_only() != 0 {
                         (*command).status = LostStatus;
@@ -737,12 +661,12 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
                     current_block_28 = 12130054763581113524;
                 }
                 3 => {
-                    (*diskState).error_pending = 0 as usize as Boole;
+                    (*diskState).error_pending = false;
                     (*command).status = WonStatus;
                     current_block_28 = 17184638872671510253;
                 }
                 4 => {
-                    (*diskState).error_pending = 0 as usize as Boole;
+                    (*diskState).error_pending = false;
                     (*command).status = WonStatus;
                     current_block_28 = 17184638872671510253;
                 }
@@ -764,7 +688,7 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
                             .error_code = DoDiskIO(diskChannel, diskState, command);
                         if (*command).error_code != 0 {
                             (*command).status = LostStatus;
-                            (*diskState).error_pending = 1 as usize as Boole;
+                            (*diskState).error_pending = true;
                         } else {
                             (*command).status = WonStatus;
                         }
@@ -780,21 +704,21 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
     mut diskChannel: *mut EmbDiskChannel,
     mut diskState: *mut DiskChannelState,
     mut command: *mut EmbDiskQueueElement,
-) -> usize {
+) -> u32 {
     let mut addressPair: *mut EmbAddressPair = 0 as *mut EmbAddressPair;
     let mut nBytes: ssize_t = 0;
     let mut actualBytes: ssize_t = 0;
-    let mut startingOffset: off_t = 0;
-    let mut nAddresses: usize = 0;
-    let mut nVectors: usize = 0;
-    let mut i: usize = 0;
+    let mut startingOffset: u32 = 0;
+    let mut nAddresses: u32 = 0;
+    let mut nVectors: u32 = 0;
+    let mut i: u32 = 0;
     if (*command).page < 0
         || (*command).page + (*command).count > (*diskChannel).number_of_pages
     {
         return 22;
     }
-    startingOffset = (*command).page as off_t * 8192 as usize as libc::c_long;
-    if -(1) as libc::c_long
+    startingOffset = (*command).page  * 8192  ;
+    if -(1)
         == lseek((*diskState).fd, startingOffset, 0)
     {
         return *__errno_location();
@@ -802,32 +726,32 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
     nAddresses = (*command).n_addresses;
     addressPair = &mut *((*command).addresses)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbAddressPair;
-    while nAddresses > 0 as usize {
-        nVectors = if nAddresses > 32 as usize {
+        .offset(0 ) as *mut EmbAddressPair;
+    while nAddresses > 0  {
+        nVectors = if nAddresses > 32  {
             32
         } else {
             nAddresses
         };
-        nBytes = 0 as usize as ssize_t;
+        nBytes = 0  as ssize_t;
         i = 0;
         while i < nVectors {
-            let ref mut fresh2 = (*diskState).iovs[i as usize].iov_base;
+            let ref mut fresh2 = (*diskState).iovs[i ].iov_base;
             *fresh2 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                .offset((*addressPair).address as isize) as *mut EmbWord as PtrV
-                as caddr_t as *mut libc::c_void;
+                .offset((*addressPair).address ) as *mut EmbWord as PtrV
+                as u64 ;
             (*diskState)
-                .iovs[i as usize]
-                .iov_len = ((*addressPair).n_words as libc::c_ulong)
-                .wrapping_mul(::std::mem::size_of::<EmbWord>() as libc::c_ulong);
-            nBytes = (nBytes as libc::c_ulong)
-                .wrapping_add((*diskState).iovs[i as usize].iov_len) as ssize_t
+                .iovs[i ]
+                .iov_len = ((*addressPair).n_words)
+                .wrapping_mul(::std::mem::size_of::<EmbWord>());
+            nBytes = (nBytes)
+                .wrapping_add((*diskState).iovs[i ].iov_len) as ssize_t
                 as ssize_t;
             i += 1;
             addressPair = addressPair.offset(1);
             nAddresses -= 1;
         }
-        match ((*command).op).cmd() as usize {
+        match ((*command).op).cmd()  {
             1 => {
                 actualBytes = readv(
                     (*diskState).fd,
@@ -844,7 +768,7 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
             }
             _ => return 22,
         }
-        if -(1) as libc::c_long == actualBytes {
+        if -(1)  == actualBytes {
             return *__errno_location()
         } else {
             if actualBytes != nBytes {
@@ -854,17 +778,17 @@ pub  fn DetachDiskChannel(mut diskChannelPtr: EmbPtr) {
     }
     return 0;
 }
-#[no_mangle]
+
 pub  fn ResetDiskChannel(mut channel: *mut EmbChannel) {
     let mut diskChannel: *mut EmbDiskChannel = channel as *mut EmbDiskChannel;
     let mut diskState: *mut DiskChannelState = (((*diskChannel).hostState0 as u64)
-        << 32 as usize | (*diskChannel).hostState1 as libc::c_ulong)
+        << 32  | (*diskChannel).hostState1)
         as *mut DiskChannelState;
     ResetIncomingQueue((*diskState).command_queue_ptr);
     ResetOutgoingQueue((*diskState).status_queue_ptr);
-    (*diskState).error_pending = 0 as usize as Boole;
+    (*diskState).error_pending = false;
     if (diskChannel as *mut EmbWord).offset_from(EmbCommAreaPtr as *mut EmbWord)
-        as libc::c_long as EmbPtr
+         as EmbPtr
         > (*EmbCommAreaPtr).host_buffer_start + (*EmbCommAreaPtr).host_buffer_size
     {
         if (*diskState).fd != -(1) {
@@ -875,22 +799,22 @@ pub  fn ResetDiskChannel(mut channel: *mut EmbChannel) {
 }
  fn TerminateDiskChannel(mut diskChannel: *mut EmbDiskChannel) {
     let mut diskState: *mut DiskChannelState = (((*diskChannel).hostState0 as u64)
-        << 32 as usize | (*diskChannel).hostState1 as libc::c_ulong)
+        << 32  | (*diskChannel).hostState1)
         as *mut DiskChannelState;
     if (*diskState).fd != -(1) {
         close((*diskState).fd);
         (*diskState).fd = -(1);
     }
 }
-#[no_mangle]
+
 pub  fn TerminateDiskChannels() {
     let mut diskChannel: *mut EmbDiskChannel = 0 as *mut EmbDiskChannel;
     let mut channel: EmbPtr = 0;
     channel = (*EmbCommAreaPtr).channel_table;
     while channel != -(1) {
-        diskChannel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channel as isize)
+        diskChannel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channel )
             as *mut EmbWord as PtrV as *mut EmbDiskChannel;
-        if EmbDiskChannelType as usize == (*diskChannel).type_0 {
+        if EmbDiskChannelType  == (*diskChannel).type_0 {
             TerminateDiskChannel(diskChannel);
         }
         channel = (*diskChannel).next;

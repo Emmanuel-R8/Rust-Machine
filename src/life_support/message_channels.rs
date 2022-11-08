@@ -7,7 +7,7 @@ extern "C" {
     fn InstallSignalHandler(
         singalHandler: ProcPtrV,
         signalArgument: PtrV,
-        inputP: Boole,
+        inputP: bool,
     ) -> SignalNumber;
     fn SignalLater(signal: SignalNumber);
     static mut EmbCommAreaPtr: *mut EmbCommArea;
@@ -28,8 +28,8 @@ pub type u8 = libc::c_uchar;
 pub type i32 = u32;
 pub type u32 = libc::c_uint;
 pub type u64 = libc::c_ulong;
-pub type __caddr_t =&str;
-pub type caddr_t = __caddr_t;
+pub type __u64 =&str;
+pub type u64 = __u64;
 pub type i32 = i32;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -39,7 +39,7 @@ pub union __atomic_wide_counter {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct C2RustUnnamed {
+pub struct QData {
     pub __low: libc::c_uint,
     pub __high: libc::c_uint,
 }
@@ -73,34 +73,34 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
 }
 pub type u8 = u8;
-pub type ui32 = u32;
+pub type u32 = u32;
 pub type u64 = u64;
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -110,18 +110,17 @@ pub type Boole = u8;
 pub struct in_addr {
     pub s_addr: in_addr_t,
 }
-pub type in_addr_t = ui32;
+pub type in_addr_t = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
+    pub handlerThread: u64,
+    pub handlerThreadSetup: bool,
     pub signal: SignalMask,
     pub handlerFunction: ProcPtrV,
     pub handlerArgument: PtrV,
 }
 #[derive(Copy, Clone)]
-#[repr(C)]
 pub struct EmbCommArea {
     pub identifier: EmbWord,
     pub version: EmbWord,
@@ -171,46 +170,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_0,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -230,7 +229,7 @@ pub struct EmbChannel {
     pub unit: EmbWord,
     pub next: EmbPtr,
 }
-pub type EmbChannelType = libc::c_uint;
+pub type EmbChannelType = usize;
 pub const EmbMessageChannelType: EmbChannelType = 8;
 pub const EmbHostFileChannelType: EmbChannelType = 7;
 pub const EmbColdLoadChannelType: EmbChannelType = 6;
@@ -239,6 +238,7 @@ pub const EmbRPCChannelType: EmbChannelType = 4;
 pub const EmbNetworkChannelType: EmbChannelType = 3;
 pub const EmbConsoleChannelType: EmbChannelType = 2;
 pub const EmbDiskChannelType: EmbChannelType = 1;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct EmbMessageChannel {
@@ -252,10 +252,11 @@ pub struct EmbMessageChannel {
     pub hostToGuestQueue: EmbPtr,
     pub hostToGuestSupplyQueue: EmbPtr,
     pub hostToGuestImpulse: EmbWord,
-    pub subtypeData0: uEmbWord,
-    pub subtypeData1: uEmbWord,
+    pub subtypeData0: UEmbWord,
+    pub subtypeData1: UEmbWord,
 }
-pub type EmbMessageChannelSubtype = libc::c_uint;
+
+pub type EmbMessageChannelSubtype = usize;
 pub const EmbMessageChannelMBINSubtype: EmbMessageChannelSubtype = 3;
 pub const EmbMessageChannelCommandSubtype: EmbMessageChannelSubtype = 2;
 pub const EmbMessageChannelSerialSubtype: EmbMessageChannelSubtype = 1;
@@ -336,7 +337,7 @@ pub struct XParams {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NetworkInterface {
-    pub present: Boole,
+    pub present: bool,
     pub device: [libc::c_char; 257],
     pub myProtocol: libc::c_ushort,
     pub myAddress: in_addr,
@@ -346,8 +347,8 @@ pub struct NetworkInterface {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TraceConfig {
-    pub traceP: Boole,
-    pub tracePOST: Boole,
+    pub traceP: bool,
+    pub tracePOST: bool,
     pub bufferSize: u32,
     pub startPC: libc::c_uint,
     pub stopPC: libc::c_uint,
@@ -356,7 +357,7 @@ pub struct TraceConfig {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VLMConfig {
-    pub enableSpy: Boole,
+    pub enableSpy: bool,
     pub tracing: TraceConfig,
     pub commAreaSize: size_t,
     pub hostBufferSpace: size_t,
@@ -364,21 +365,21 @@ pub struct VLMConfig {
     pub vlmDebuggerPath: [libc::c_char; 257],
     pub worldPath: [libc::c_char; 257],
     pub worldSearchPath:&str,
-    pub enableIDS: Boole,
+    pub enableIDS: bool,
     pub virtualMemory: size_t,
     pub coldLoadXParams: XParams,
     pub generaXParams: XParams,
     pub diagnosticIPAddress: in_addr,
     pub interfaces: [NetworkInterface; 8],
-    pub testFunction: Boole,
+    pub testFunction: bool,
 }
-#[no_mangle]
+
 pub  fn InitializeMessageChannels(mut config: *mut VLMConfig) {
     let mut cp: EmbPtr = EmbCommAreaAlloc(
-        ::std::mem::size_of::<EmbMessageChannel>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbMessageChannel>(),
     );
     let mut p: *mut EmbMessageChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset(cp as isize) as *mut EmbWord as PtrV as *mut EmbMessageChannel;
+        .offset(cp ) as *mut EmbWord as PtrV as *mut EmbMessageChannel;
     let mut cc: *mut EmbCommandChannel = 0 as *mut EmbCommandChannel;
     (*p).type_0 = EmbMessageChannelType;
     (*p).unit = 0;
@@ -388,21 +389,21 @@ pub  fn InitializeMessageChannels(mut config: *mut VLMConfig) {
     (*p).subtype = EmbMessageChannelCommandSubtype;
     (*p).hostToGuestQueue = -(1);
     (*p).hostToGuestSupplyQueue = -(1);
-    cc = malloc(::std::mem::size_of::<EmbCommandChannel>() as libc::c_ulong)
+    cc = malloc(::std::mem::size_of::<EmbCommandChannel>())
         as *mut EmbCommandChannel;
     if cc.is_null() {
         vpunt(
-             "" ,
-            b"Couldn't allocate master command message channel\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Couldn't allocate master command message channel\0"
+                 as&str,
         );
     }
     (*p)
         .subtypeData0 = (cc as u64 >> 32
-        & 0xffffffff as libc::c_long as libc::c_ulong) as uEmbWord;
+        & 0xffffffff ) as UEmbWord;
     (*p)
-        .subtypeData1 = (cc as u64 & 0xffffffff as libc::c_long as libc::c_ulong)
-        as uEmbWord;
+        .subtypeData1 = (cc as u64 & 0xffffffff )
+        as UEmbWord;
     let ref mut fresh0 = (*cc).header.nextActiveChannel;
     *fresh0 = 0 as *mut EmbMessageChannel;
     let ref mut fresh1 = (*cc).header.commArea;
@@ -412,11 +413,11 @@ pub  fn InitializeMessageChannels(mut config: *mut VLMConfig) {
     (*p)
         .guestToHostQueue = CreateQueue(
         5,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh3 = (*cc).guestToHostQueue;
     *fresh3 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).guestToHostQueue as isize) as *mut EmbWord as PtrV as *mut EmbQueue;
+        .offset((*p).guestToHostQueue ) as *mut EmbWord as PtrV as *mut EmbQueue;
     (*(*cc).guestToHostQueue)
         .signal = InstallSignalHandler(
         ::std::mem::transmute::<
@@ -429,19 +430,19 @@ pub  fn InitializeMessageChannels(mut config: *mut VLMConfig) {
             ),
         ),
         cc as PtrV,
-        0 as usize as Boole,
+        false,
     );
     (*p)
         .guestToHostReturnQueue = CreateQueue(
         5,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh4 = (*cc).guestToHostReturnQueue;
     *fresh4 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).guestToHostReturnQueue as isize) as *mut EmbWord as PtrV
+        .offset((*p).guestToHostReturnQueue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
 }
-#[no_mangle]
+
 pub  fn PollMessageChannels() {
     let mut messageChannel: *mut EmbMessageChannel = 0 as *mut EmbMessageChannel;
     let mut subtypeData: *mut EmbMessageSubtypeData = 0 as *mut EmbMessageSubtypeData;
@@ -450,21 +451,21 @@ pub  fn PollMessageChannels() {
         return;
     }
     messageChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*EmbCommAreaPtr).command_channel as isize) as *mut EmbWord as PtrV
+        .offset((*EmbCommAreaPtr).command_channel ) as *mut EmbWord as PtrV
         as *mut EmbMessageChannel;
     while !messageChannel.is_null() {
         subtypeData = (((*messageChannel).subtypeData0 as u64) << 32
-            | (*messageChannel).subtypeData1 as libc::c_ulong) as PtrV
+            | (*messageChannel).subtypeData1) as PtrV
             as *mut EmbMessageSubtypeData;
         guestToHostQueue = &mut *(EmbCommAreaPtr as *mut EmbWord)
-            .offset((*messageChannel).guestToHostQueue as isize) as *mut EmbWord as PtrV
+            .offset((*messageChannel).guestToHostQueue ) as *mut EmbWord as PtrV
             as *mut EmbQueue;
         if (*messageChannel).guestToHostImpulse != 0
             && (*guestToHostQueue).signal != -(1)
         {
             let ref mut fresh5 = (*EmbCommAreaPtr).guest_to_host_signals;
             *fresh5
-                |= ((1) << (*guestToHostQueue).signal) as libc::c_uint;
+                |= ((1) << (*guestToHostQueue).signal) ;
         }
         messageChannel = (*subtypeData).header.nextActiveChannel;
     }
@@ -473,17 +474,17 @@ pub  fn PollMessageChannels() {
     let mut messageChannel: *mut EmbMessageChannel = 0 as *mut EmbMessageChannel;
     let mut subtypeData: *mut EmbMessageSubtypeData = 0 as *mut EmbMessageSubtypeData;
     let ref mut fresh6 = (*((((*theChannel).subtypeData0 as u64)
-        << 32 as usize | (*theChannel).subtypeData1 as libc::c_ulong) as PtrV
+        << 32  | (*theChannel).subtypeData1) as PtrV
         as *mut EmbMessageSubtypeData))
         .header
         .nextActiveChannel;
     *fresh6 = 0 as *mut EmbMessageChannel;
     messageChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*EmbCommAreaPtr).command_channel as isize) as *mut EmbWord as PtrV
+        .offset((*EmbCommAreaPtr).command_channel ) as *mut EmbWord as PtrV
         as *mut EmbMessageChannel;
     while !messageChannel.is_null() {
         subtypeData = (((*messageChannel).subtypeData0 as u64) << 32
-            | (*messageChannel).subtypeData1 as libc::c_ulong) as PtrV
+            | (*messageChannel).subtypeData1) as PtrV
             as *mut EmbMessageSubtypeData;
         if ((*subtypeData).header.nextActiveChannel).is_null() {
             let ref mut fresh7 = (*subtypeData).header.nextActiveChannel;
@@ -493,21 +494,21 @@ pub  fn PollMessageChannels() {
         messageChannel = (*subtypeData).header.nextActiveChannel;
     }
 }
-#[no_mangle]
+
 pub  fn UnthreadMessageChannel(mut theChannel: *mut EmbMessageChannel) {
     let mut messageChannel: *mut EmbMessageChannel = 0 as *mut EmbMessageChannel;
     let mut subtypeData: *mut EmbMessageSubtypeData = 0 as *mut EmbMessageSubtypeData;
     let mut theSubtypeData: *mut EmbMessageSubtypeData = 0 as *mut EmbMessageSubtypeData;
     messageChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*EmbCommAreaPtr).command_channel as isize) as *mut EmbWord as PtrV
+        .offset((*EmbCommAreaPtr).command_channel ) as *mut EmbWord as PtrV
         as *mut EmbMessageChannel;
     while !messageChannel.is_null() {
         subtypeData = (((*messageChannel).subtypeData0 as u64) << 32
-            | (*messageChannel).subtypeData1 as libc::c_ulong) as PtrV
+            | (*messageChannel).subtypeData1) as PtrV
             as *mut EmbMessageSubtypeData;
         if theChannel == (*subtypeData).header.nextActiveChannel {
             theSubtypeData = (((*theChannel).subtypeData0 as u64)
-                << 32 as usize | (*theChannel).subtypeData1 as libc::c_ulong)
+                << 32  | (*theChannel).subtypeData1)
                 as PtrV as *mut EmbMessageSubtypeData;
             let ref mut fresh8 = (*subtypeData).header.nextActiveChannel;
             *fresh8 = (*theSubtypeData).header.nextActiveChannel;
@@ -528,22 +529,22 @@ pub  fn UnthreadMessageChannel(mut theChannel: *mut EmbMessageChannel) {
     let mut mbinChannel: *mut EmbMessageChannel = 0 as *mut EmbMessageChannel;
     let mut mbinSubChannel: *mut EmbMBINChannel = 0 as *mut EmbMBINChannel;
     while EmbQueueFilled(commandQueue) != 0 {
-        if 0 as usize == EmbQueueSpace(resultsQueue) {
+        if 0  == EmbQueueSpace(resultsQueue) {
             SignalLater((*commandQueue).signal);
             return;
         }
         commandPtr = EmbQueueTakeWord(commandQueue);
         if commandPtr != 0 {
-            command = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(commandPtr as isize)
+            command = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(commandPtr )
                 as *mut EmbWord as PtrV as *mut EmbCommandBuffer;
             match ((*command).header).opcode() {
                 1 => {
                     startMBINCommand = command as *mut EmbCommandStartMBINBuffer;
                     mbinChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                        .offset((*startMBINCommand).mbinChannel as isize) as *mut EmbWord
+                        .offset((*startMBINCommand).mbinChannel ) as *mut EmbWord
                         as PtrV as *mut EmbMessageChannel;
                     mbinSubChannel = malloc(
-                        ::std::mem::size_of::<EmbMBINChannel>() as libc::c_ulong,
+                        ::std::mem::size_of::<EmbMBINChannel>(),
                     ) as *mut EmbMBINChannel;
                     if mbinSubChannel.is_null() {
                         (*command).resultCode = 12;
@@ -554,27 +555,27 @@ pub  fn UnthreadMessageChannel(mut theChannel: *mut EmbMessageChannel) {
                         *fresh11 = mbinChannel;
                         let ref mut fresh12 = (*mbinSubChannel).guestToHostQueue;
                         *fresh12 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                            .offset((*mbinChannel).guestToHostQueue as isize)
+                            .offset((*mbinChannel).guestToHostQueue )
                             as *mut EmbWord as PtrV as *mut EmbQueue;
                         let ref mut fresh13 = (*mbinSubChannel).guestToHostReturnQueue;
                         *fresh13 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                            .offset((*mbinChannel).guestToHostReturnQueue as isize)
+                            .offset((*mbinChannel).guestToHostReturnQueue )
                             as *mut EmbWord as PtrV as *mut EmbQueue;
                         let ref mut fresh14 = (*mbinSubChannel).hostToGuestQueue;
                         *fresh14 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                            .offset((*mbinChannel).hostToGuestQueue as isize)
+                            .offset((*mbinChannel).hostToGuestQueue )
                             as *mut EmbWord as PtrV as *mut EmbQueue;
                         let ref mut fresh15 = (*mbinSubChannel).hostToGuestSupplyQueue;
                         *fresh15 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                            .offset((*mbinChannel).hostToGuestSupplyQueue as isize)
+                            .offset((*mbinChannel).hostToGuestSupplyQueue )
                             as *mut EmbWord as PtrV as *mut EmbQueue;
                         (*mbinChannel)
                             .subtypeData0 = (mbinSubChannel as u64
                             >> 32
-                            & 0xffffffff as libc::c_long as libc::c_ulong) as uEmbWord;
+                            & 0xffffffff ) as UEmbWord;
                         (*mbinChannel)
                             .subtypeData1 = (mbinSubChannel as u64
-                            & 0xffffffff as libc::c_long as libc::c_ulong) as uEmbWord;
+                            & 0xffffffff ) as UEmbWord;
                         ThreadActiveMessageChannel(mbinChannel);
                         activeMBINChannel = mbinSubChannel;
                         (*(*mbinSubChannel).guestToHostQueue)
@@ -589,7 +590,7 @@ pub  fn UnthreadMessageChannel(mut theChannel: *mut EmbMessageChannel) {
                                 ),
                             ),
                             mbinSubChannel as PtrV,
-                            0 as usize as Boole,
+                            false,
                         );
                         (*command).resultCode = 0;
                     }
@@ -602,19 +603,19 @@ pub  fn UnthreadMessageChannel(mut theChannel: *mut EmbMessageChannel) {
         }
     }
 }
-#[no_mangle]
+
 pub  fn ResetMessageChannel(mut channel: *mut EmbChannel) {
     let mut messageChannel: *mut EmbMessageChannel = channel as *mut EmbMessageChannel;
     let mut subtypeData: *mut EmbMessageSubtypeData = 0 as *mut EmbMessageSubtypeData;
-    let mut allocatedByVLM: Boole = 0;
+    let mut allocatedByVLM: bool = 0;
     allocatedByVLM = ((channel as *mut EmbWord)
-        .offset_from(EmbCommAreaPtr as *mut EmbWord) as libc::c_long as EmbPtr
+        .offset_from(EmbCommAreaPtr as *mut EmbWord)  as EmbPtr
         > (*EmbCommAreaPtr).host_buffer_start + (*EmbCommAreaPtr).host_buffer_size)
-        as usize as Boole;
+        as bool;
     (*messageChannel).guestToHostImpulse = EmbMessageImpulseNone;
     (*messageChannel).hostToGuestImpulse = EmbMessageImpulseNone;
     subtypeData = (((*messageChannel).subtypeData0 as u64) << 32
-        | (*messageChannel).subtypeData1 as libc::c_ulong) as PtrV
+        | (*messageChannel).subtypeData1) as PtrV
         as *mut EmbMessageSubtypeData;
     let ref mut fresh16 = (*subtypeData).header.nextActiveChannel;
     *fresh16 = 0 as *mut EmbMessageChannel;
@@ -622,37 +623,37 @@ pub  fn ResetMessageChannel(mut channel: *mut EmbChannel) {
         2 => {
             ResetIncomingQueue(
                 &mut *(EmbCommAreaPtr as *mut EmbWord)
-                    .offset((*messageChannel).guestToHostQueue as isize) as *mut EmbWord
+                    .offset((*messageChannel).guestToHostQueue ) as *mut EmbWord
                     as PtrV as *mut EmbQueue,
             );
             ResetOutgoingQueue(
                 &mut *(EmbCommAreaPtr as *mut EmbWord)
-                    .offset((*messageChannel).guestToHostReturnQueue as isize)
+                    .offset((*messageChannel).guestToHostReturnQueue )
                     as *mut EmbWord as PtrV as *mut EmbQueue,
             );
         }
         3 => {
             ResetIncomingQueue(
                 &mut *(EmbCommAreaPtr as *mut EmbWord)
-                    .offset((*messageChannel).guestToHostQueue as isize) as *mut EmbWord
+                    .offset((*messageChannel).guestToHostQueue ) as *mut EmbWord
                     as PtrV as *mut EmbQueue,
             );
             ResetOutgoingQueue(
                 &mut *(EmbCommAreaPtr as *mut EmbWord)
-                    .offset((*messageChannel).guestToHostReturnQueue as isize)
+                    .offset((*messageChannel).guestToHostReturnQueue )
                     as *mut EmbWord as PtrV as *mut EmbQueue,
             );
             ResetIncomingQueue(
                 &mut *(EmbCommAreaPtr as *mut EmbWord)
-                    .offset((*messageChannel).hostToGuestSupplyQueue as isize)
+                    .offset((*messageChannel).hostToGuestSupplyQueue )
                     as *mut EmbWord as PtrV as *mut EmbQueue,
             );
             ResetOutgoingQueue(
                 &mut *(EmbCommAreaPtr as *mut EmbWord)
-                    .offset((*messageChannel).hostToGuestQueue as isize) as *mut EmbWord
+                    .offset((*messageChannel).hostToGuestQueue ) as *mut EmbWord
                     as PtrV as *mut EmbQueue,
             );
-            if allocatedByVLM as usize != 0
+            if allocatedByVLM  != 0
                 && activeMBINChannel == subtypeData as *mut EmbMBINChannel
             {
                 activeMBINChannel = 0 as *mut EmbMBINChannel;
@@ -660,15 +661,15 @@ pub  fn ResetMessageChannel(mut channel: *mut EmbChannel) {
         }
         _ => {}
     }
-    if allocatedByVLM as usize != 0 && !subtypeData.is_null() {
-        free(subtypeData as *mut libc::c_void);
+    if allocatedByVLM  != 0 && !subtypeData.is_null() {
+        free(subtypeData );
         (*messageChannel)
-            .subtypeData0 = (0 as *mut libc::c_void as u64 >> 32
-            & 0xffffffff as libc::c_long as libc::c_ulong) as uEmbWord;
+            .subtypeData0 = (0  as u64 >> 32
+            & 0xffffffff ) as UEmbWord;
         (*messageChannel)
-            .subtypeData1 = (0 as *mut libc::c_void as u64
-            & 0xffffffff as libc::c_long as libc::c_ulong) as uEmbWord;
+            .subtypeData1 = (0  as u64
+            & 0xffffffff ) as UEmbWord;
     }
 }
-#[no_mangle]
+
 pub  fn TerminateMessageChannels() {}

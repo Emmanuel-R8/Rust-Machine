@@ -2,28 +2,11 @@
 #![register_tool(c2rust)]
 #![feature(register_tool)]
 
-extern "C" {
-    fn SignalLater(signal: SignalNumber);
-    static mut EmbCommAreaPtr: *mut EmbCommArea;
-    fn EmbQueueSpace(q: *mut EmbQueue) -> u32;
-    fn EmbQueueFilled(q: *mut EmbQueue) -> u32;
-    fn EmbQueuePutWord(q: *mut EmbQueue, element: EmbWord);
-    fn EmbQueueTakeWord(q: *mut EmbQueue) -> EmbWord;
-    fn ResetIncomingQueue(q: *mut EmbQueue);
-    fn ResetOutgoingQueue(q: *mut EmbQueue);
-    fn memcpy(
-        _: *mut libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
-    fn free(_: *mut libc::c_void);
-    fn UnthreadMessageChannel(theChannel: *mut EmbMessageChannel);
-}
 
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -81,46 +64,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_0,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 
 
@@ -147,8 +130,8 @@ pub struct EmbMessageChannel {
     pub hostToGuestQueue: EmbPtr,
     pub hostToGuestSupplyQueue: EmbPtr,
     pub hostToGuestImpulse: EmbWord,
-    pub subtypeData0: uEmbWord,
-    pub subtypeData1: uEmbWord,
+    pub subtypeData0: UEmbWord,
+    pub subtypeData1: UEmbWord,
 }
 pub type EmbMessageImpulse = libc::c_uint;
 pub const EmbMessageImpulseNone: EmbMessageImpulse = 0;
@@ -174,7 +157,7 @@ pub const EmbMBINImpulseShutdown: EmbMBINImpulse = 1;
 #[repr(C)]
 pub struct C2RustUnnamed_5 {
     pub id: libc::c_uint,
-    pub acked: Boole,
+    pub acked: bool,
 }
 pub const rm_ack: C2RustUnnamed_6 = 2;
 pub type C2RustUnnamed_6 = libc::c_uint;
@@ -192,18 +175,18 @@ static mut MBINHistory: [C2RustUnnamed_5; 16] = [C2RustUnnamed_5 {
     id: 0,
     acked: 0,
 }; 16];
-static mut mbin_sinValid: Boole = 0 as usize as Boole;
-#[no_mangle]
+static mut mbin_sinValid: bool = false;
+
 pub static mut activeMBINChannel: *mut EmbMBINChannel = 0 as *const EmbMBINChannel
     as *mut EmbMBINChannel;
  fn read_long(mut bytes: *mut libc::c_uchar) -> libc::c_uint {
-    return (*bytes.offset(0 as usize as isize)
-        | (*bytes.offset(1 as usize as isize)) << 8
-        | (*bytes.offset(2 as usize as isize)) << 16
-        | (*bytes.offset(3 as usize as isize)) << 24)
-        as libc::c_uint;
+    return (*bytes.offset(0 )
+        | (*bytes.offset(1 )) << 8
+        | (*bytes.offset(2 )) << 16
+        | (*bytes.offset(3 )) << 24)
+        ;
 }
-#[no_mangle]
+
 pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
     let mut gthQ: *mut EmbQueue = (*mbinChannel).guestToHostQueue;
     let mut gthrQ: *mut EmbQueue = (*mbinChannel).guestToHostReturnQueue;
@@ -218,7 +201,7 @@ pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
     };
     let mut nBytes: libc::c_uint = 0;
     let mut id: libc::c_uint = 0;
-    let mut historyID: usize = 0;
+    let mut historyID: u32 = 0;
     if (*(*mbinChannel).header.messageChannel).guestToHostImpulse != 0 {
         match (*(*mbinChannel).header.messageChannel).guestToHostImpulse {
             1 => {
@@ -230,7 +213,7 @@ pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
                 (*(*mbinChannel).header.messageChannel)
                     .guestToHostImpulse = EmbMessageImpulseNone;
                 UnthreadMessageChannel((*mbinChannel).header.messageChannel);
-                free(mbinChannel as *mut libc::c_void);
+                free(mbinChannel );
                 return;
             }
             _ => {
@@ -240,44 +223,44 @@ pub  fn SendMBINBuffers(mut mbinChannel: *mut EmbMBINChannel) {
         }
     }
     while EmbQueueFilled(gthQ) != 0 {
-        if 0 as usize == EmbQueueSpace(gthrQ) {
+        if 0  == EmbQueueSpace(gthrQ) {
             SignalLater((*gthQ).signal);
             return;
         }
         bufferPtr = EmbQueueTakeWord(gthQ);
         if bufferPtr != 0 && bufferPtr != -(1)
-            && mbin_sinValid as usize != 0
+            && mbin_sinValid  != 0
         {
-            buffer = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(bufferPtr as isize)
+            buffer = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(bufferPtr )
                 as *mut EmbWord as PtrV as *mut rm_aligned_pkt;
             nBytes = read_long(
                 &mut *((*buffer).rm_operand)
                     .as_mut_ptr()
-                    .offset(0 as usize as isize),
-            ) & 0xffffff as usize as libc::c_uint;
+                    .offset(0 ),
+            ) & 0xffffff;
             memcpy(
-                &mut *(pkt.rm_id).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *mut libc::c_void,
-                &mut *((*buffer).rm_id).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *const libc::c_void,
-                8 as usize as libc::c_ulong,
+                &mut *(pkt.rm_id).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                &mut *((*buffer).rm_id).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                8,
             );
             memcpy(
-                &mut *(pkt.data).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *mut libc::c_void,
-                &mut *((*buffer).data).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut libc::c_uchar as *const libc::c_void,
-                nBytes as libc::c_ulong,
+                &mut *(pkt.data).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                &mut *((*buffer).data).as_mut_ptr().offset(0 )
+                    as *mut libc::c_uchar ,
+                nBytes,
             );
-            if rm_ack as usize == (*buffer).rm_opcode() {
+            if rm_ack  == (*buffer).rm_opcode() {
                 id = read_long(
                     &mut *((*buffer).rm_id)
                         .as_mut_ptr()
-                        .offset(0 as usize as isize),
+                        .offset(0 ),
                 );
-                historyID = (id & 0xf as usize as libc::c_uint);
-                MBINHistory[historyID as usize].id = id;
-                MBINHistory[historyID as usize].acked = 1 as usize as Boole;
+                historyID = (id & 0xf);
+                MBINHistory[historyID ].id = id;
+                MBINHistory[historyID ].acked = true;
             }
         }
         EmbQueuePutWord(gthrQ, bufferPtr);

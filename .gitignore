@@ -1,1 +1,8 @@
 /target
+src/gen/*
+
+# RStudio
+.Rproj.user
+
+# Backup files
+*ods#

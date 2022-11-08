@@ -49,29 +49,29 @@ extern "C" {
     fn strlen(_: *const libc::c_char) -> libc::c_ulong;
     fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
     fn free(_: *mut libc::c_void);
-    fn htonl(__hostlong: ui32) -> ui32;
+    fn htonl(__hostlong: u32) -> u32;
     fn pthread_create(
-        __newthread: *mut pthread_t,
-        __attr: *const pthread_attr_t,
+        __newthread: *mut u64,
+        __attr: *const u64,
         __start_routine: Option::<
             fn(*mut libc::c_void) -> *mut libc::c_void,
         >,
         __arg: *mut libc::c_void,
     ) -> u32;
     fn pthread_join(
-        __th: pthread_t,
+        __th: u64,
         __thread_return: *mut *mut libc::c_void,
     ) -> u32;
-    fn pthread_detach(__th: pthread_t) -> u32;
-    fn pthread_self() -> pthread_t;
-    fn pthread_cancel(__th: pthread_t) -> u32;
-    fn pthread_testcancel();
+    fn pthread_detach(__th: u64) -> u32;
+    fn pthread_self() -> u64;
+    fn pthread_cancel(__th: u64) -> u32;
+    fn u64estcancel();
     fn __pthread_register_cancel(__buf: *mut __pthread_unwind_buf_t);
     fn __pthread_unregister_cancel(__buf: *mut __pthread_unwind_buf_t);
     fn __pthread_unwind_next(__buf: *mut __pthread_unwind_buf_t) -> !;
     fn __sigsetjmp(__env: *mut __jmp_buf_tag, __savemask: u32) -> u32;
-    fn pthread_mutex_lock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_unlock(__mutex: *mut pthread_mutex_t) -> u32;
+    fn pthread_mutex_lock(__mutex: *mut u64) -> u32;
+    fn pthread_mutex_unlock(__mutex: *mut u64) -> u32;
     fn poll(__fds: *mut pollfd, __nfds: nfds_t, __timeout: u32) -> u32;
     fn read(__fd: u32, __buf: *mut libc::c_void, __nbytes: size_t) -> ssize_t;
     fn write(__fd: u32, __buf: *const libc::c_void, __n: size_t) -> ssize_t;
@@ -88,7 +88,7 @@ extern "C" {
     fn InstallSignalHandler(
         singalHandler: ProcPtrV,
         signalArgument: PtrV,
-        inputP: Boole,
+        inputP: bool,
     ) -> SignalNumber;
     fn CreateQueue(nElements: u32, elementSize: u32) -> EmbPtr;
     fn ResetIncomingQueue(q: *mut EmbQueue);
@@ -108,13 +108,13 @@ pub type u64 = libc::c_ulong;
 pub type __time_t = libc::c_long;
 pub type __ssize_t = libc::c_long;
 pub type __syscall_slong_t = libc::c_long;
-pub type __caddr_t =&str;
+pub type __u64 =&str;
 pub type i32 = i32;
 pub type u8 = u8;
-pub type ui32 = u32;
+pub type u32 = u32;
 pub type u64 = u64;
 pub type ssize_t = __ssize_t;
-pub type caddr_t = __caddr_t;
+pub type u64 = __u64;
 pub type size_t = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -135,7 +135,7 @@ pub union __atomic_wide_counter {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct C2RustUnnamed {
+pub struct QData {
     pub __low: libc::c_uint,
     pub __high: libc::c_uint,
 }
@@ -169,23 +169,23 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
@@ -2113,7 +2113,7 @@ pub struct xWindowRoot {
     pub rootDepth: CARD8,
     pub nDepths: CARD8,
 }
-pub type in_addr_t = ui32;
+pub type in_addr_t = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct in_addr {
@@ -2155,9 +2155,9 @@ pub type pthread_startroutine_t = Option::<
     fn(*mut libc::c_void) -> *mut libc::c_void,
 >;
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -2180,7 +2180,7 @@ pub struct XParams {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NetworkInterface {
-    pub present: Boole,
+    pub present: bool,
     pub device: [libc::c_char; 257],
     pub myProtocol: libc::c_ushort,
     pub myAddress: in_addr,
@@ -2190,8 +2190,8 @@ pub struct NetworkInterface {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TraceConfig {
-    pub traceP: Boole,
-    pub tracePOST: Boole,
+    pub traceP: bool,
+    pub tracePOST: bool,
     pub bufferSize: u32,
     pub startPC: libc::c_uint,
     pub stopPC: libc::c_uint,
@@ -2200,7 +2200,7 @@ pub struct TraceConfig {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VLMConfig {
-    pub enableSpy: Boole,
+    pub enableSpy: bool,
     pub tracing: TraceConfig,
     pub commAreaSize: size_t,
     pub hostBufferSpace: size_t,
@@ -2208,19 +2208,19 @@ pub struct VLMConfig {
     pub vlmDebuggerPath: [libc::c_char; 257],
     pub worldPath: [libc::c_char; 257],
     pub worldSearchPath:&str,
-    pub enableIDS: Boole,
+    pub enableIDS: bool,
     pub virtualMemory: size_t,
     pub coldLoadXParams: XParams,
     pub generaXParams: XParams,
     pub diagnosticIPAddress: in_addr,
     pub interfaces: [NetworkInterface; 8],
-    pub testFunction: Boole,
+    pub testFunction: bool,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
+    pub handlerThread: u64,
+    pub handlerThreadSetup: bool,
     pub signal: SignalMask,
     pub handlerFunction: ProcPtrV,
     pub handlerArgument: PtrV,
@@ -2276,46 +2276,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_33,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -2383,8 +2383,8 @@ pub struct EmbConsoleChannel {
     pub outputReplyQ: *mut EmbQueue,
     pub inputRequestQ: *mut EmbQueue,
     pub inputReplyQ: *mut EmbQueue,
-    pub drawRunLights: pthread_t,
-    pub drawRunLightsSetup: Boole,
+    pub drawRunLights: u64,
+    pub drawRunLightsSetup: bool,
     pub hostName:&str,
     pub display: *mut libc::c_void,
     pub fd: u32,
@@ -2442,13 +2442,13 @@ pub struct EmbConsoleInputWait {
     pub timeout: EmbWord,
     pub availableP: EmbWord,
 }
-#[no_mangle]
+
 pub  fn InitializeConsoleChannel(mut config: *mut VLMConfig) {
     let mut cp: EmbPtr = EmbCommAreaAlloc(
-        ::std::mem::size_of::<EmbConsoleChannel>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbConsoleChannel>(),
     );
     let mut p: *mut EmbConsoleChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset(cp as isize) as *mut EmbWord as PtrV as *mut EmbConsoleChannel;
+        .offset(cp ) as *mut EmbWord as PtrV as *mut EmbConsoleChannel;
     (*p).type_0 = EmbConsoleChannelType;
     (*p).unit = 0;
     (*p).next = (*EmbCommAreaPtr).channel_table;
@@ -2457,11 +2457,11 @@ pub  fn InitializeConsoleChannel(mut config: *mut VLMConfig) {
     (*p)
         .outputRequestQueue = CreateQueue(
         50,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh0 = (*p).outputRequestQ;
     *fresh0 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).outputRequestQueue as isize) as *mut EmbWord as PtrV
+        .offset((*p).outputRequestQueue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
     (*(*p).outputRequestQ)
         .signal = InstallSignalHandler(
@@ -2470,24 +2470,24 @@ pub  fn InitializeConsoleChannel(mut config: *mut VLMConfig) {
             ProcPtrV,
         >(Some(ConsoleOutput as fn(*mut EmbConsoleChannel) -> ())),
         p as PtrV,
-        0 as usize as Boole,
+        false,
     );
     (*p)
         .outputReplyQueue = CreateQueue(
         50,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh1 = (*p).outputReplyQ;
     *fresh1 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).outputReplyQueue as isize) as *mut EmbWord as PtrV as *mut EmbQueue;
+        .offset((*p).outputReplyQueue ) as *mut EmbWord as PtrV as *mut EmbQueue;
     (*p)
         .inputRequestQueue = CreateQueue(
         50,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh2 = (*p).inputRequestQ;
     *fresh2 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).inputRequestQueue as isize) as *mut EmbWord as PtrV
+        .offset((*p).inputRequestQueue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
     (*(*p).inputRequestQ)
         .signal = InstallSignalHandler(
@@ -2496,20 +2496,20 @@ pub  fn InitializeConsoleChannel(mut config: *mut VLMConfig) {
             ProcPtrV,
         >(Some(ConsoleInput as fn(*mut EmbConsoleChannel) -> ())),
         p as PtrV,
-        1 as usize as Boole,
+        true,
     );
     (*p)
         .inputReplyQueue = CreateQueue(
         50,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh3 = (*p).inputReplyQ;
     *fresh3 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).inputReplyQueue as isize) as *mut EmbWord as PtrV as *mut EmbQueue;
+        .offset((*p).inputReplyQueue ) as *mut EmbWord as PtrV as *mut EmbQueue;
     let ref mut fresh4 = (*p).hostName;
     *fresh4 = (*config).generaXParams.xpHostName;
     (*p)
-        .hostAddress = htonl((*config).generaXParams.xpHostAddress as ui32)
+        .hostAddress = htonl((*config).generaXParams.xpHostAddress )
         as EmbWord;
     (*p).displayNumber = (*config).generaXParams.xpDisplay;
     (*p).screenNumber = (*config).generaXParams.xpScreen;
@@ -2520,10 +2520,10 @@ pub  fn InitializeConsoleChannel(mut config: *mut VLMConfig) {
     (*p).borderColor = MakeEmbString((*config).generaXParams.xpBorderColor);
     (*p).borderWidth = (*config).generaXParams.xpBorderWidth;
     let ref mut fresh5 = (*p).display;
-    *fresh5 = 0 as *mut libc::c_void;
+    *fresh5 = 0 ;
     (*p).openingState = OpeningStateNone;
     let ref mut fresh6 = (*p).rlDisplay;
-    *fresh6 = 0 as *mut libc::c_void;
+    *fresh6 = 0 ;
     if pthread_create(
         &mut (*p).drawRunLights,
         &mut (*EmbCommAreaPtr).pollThreadAttrs,
@@ -2531,18 +2531,18 @@ pub  fn InitializeConsoleChannel(mut config: *mut VLMConfig) {
             Option::<fn(pthread_addr_t) -> ()>,
             pthread_startroutine_t,
         >(Some(DrawRunLights as fn(pthread_addr_t) -> ())),
-        p as *mut libc::c_void,
+        p ,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the console channel polling thread\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the console channel polling thread\0"
+                 as&str,
         );
     }
-    (*p).drawRunLightsSetup = 1 as usize as Boole;
+    (*p).drawRunLightsSetup = true;
 }
-#[no_mangle]
+
 pub  fn DoConsoleIO(
     mut consoleChannel: *mut EmbConsoleChannel,
     mut pCommand: *mut EmbConsoleBuffer,
@@ -2560,22 +2560,22 @@ pub  fn DoConsoleIO(
             (*command).result = 0;
         }
         4 => {
-            if OpeningStatePrefix as usize == (*consoleChannel).openingState {
+            if OpeningStatePrefix  == (*consoleChannel).openingState {
                 (*command).result = 0;
             } else {
                 (*command).result = ConsoleWrite(consoleChannel, command);
             }
         }
         5 => {
-            if (*consoleChannel).openingState != OpeningStateNone as usize {
+            if (*consoleChannel).openingState != OpeningStateNone  {
                 (*command).result = ProcessConnectionRequest(consoleChannel, command);
             } else {
                 (*command).result = ConsoleRead(consoleChannel, command);
             }
         }
         6 => {
-            if (*consoleChannel).openingState != OpeningStateNone as usize {
-                (*(&mut *((*command).data).as_mut_ptr().offset(0 as usize as isize)
+            if (*consoleChannel).openingState != OpeningStateNone  {
+                (*(&mut *((*command).data).as_mut_ptr().offset(0 )
                     as *mut EmbWord as *mut EmbConsoleInputWait))
                     .availableP = 1;
                 (*command).result = 0;
@@ -2604,13 +2604,13 @@ pub  fn DoConsoleIO(
     let mut command: *mut EmbConsoleBuffer = 0 as *mut EmbConsoleBuffer;
     let mut commandPtr: EmbPtr = 0;
     while EmbQueueFilled(requestQueue) != 0 {
-        if 0 as usize == EmbQueueSpace(replyQueue) {
+        if 0  == EmbQueueSpace(replyQueue) {
             SignalLater((*requestQueue).signal);
             return;
         }
         commandPtr = EmbQueueTakeWord(requestQueue);
         if commandPtr != 0 {
-            command = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(commandPtr as isize)
+            command = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(commandPtr )
                 as *mut EmbWord as PtrV as *mut EmbConsoleBuffer;
             DoConsoleIO(consoleChannel, command);
             EmbQueuePutWord(replyQueue, commandPtr);
@@ -2634,14 +2634,14 @@ pub  fn DoConsoleIO(
  fn OpenDisplay(
     mut pConsoleChannel: *mut EmbConsoleChannel,
     mut pCommand: *mut EmbConsoleBuffer,
-) -> usize {
+) -> u32 {
     let mut consoleChannel: *mut EmbConsoleChannel = pConsoleChannel;
     let mut command: *mut EmbConsoleBuffer = pCommand;
     let mut openDisplay: *mut EmbConsoleOpenDisplay = &mut *((*command).data)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbWord as *mut EmbConsoleOpenDisplay;
+        .offset(0 ) as *mut EmbWord as *mut EmbConsoleOpenDisplay;
     let mut displayName: [libc::c_char; 8192] = [0; 8192];
-    let mut result: usize = 0;
+    let mut result: u32 = 0;
     if !((*consoleChannel).display).is_null() {
         return 16;
     }
@@ -2656,39 +2656,39 @@ pub  fn DoConsoleIO(
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(*mut pthread_mutex_t) -> u32>,
+        Option::<fn(*mut u64) -> u32>,
         pthread_cleanuproutine_t,
     >(
         Some(
             pthread_mutex_unlock
-                as fn(*mut pthread_mutex_t) -> u32,
+                as fn(*mut u64) -> u32,
         ),
     );
     let mut __cancel_arg: *mut libc::c_void = &mut (*EmbCommAreaPtr).XLock
-        as *mut pthread_mutex_t as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+        as *mut u64 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).XLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support XLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support XLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     let ref mut fresh7 = (*consoleChannel).display;
-    *fresh7 = XOpenDisplay(displayName.as_mut_ptr()) as *mut libc::c_void;
+    *fresh7 = XOpenDisplay(displayName.as_mut_ptr()) ;
     if !((*consoleChannel).display).is_null() {
         (*consoleChannel)
             .fd = XConnectionNumber((*consoleChannel).display as *mut Display);
@@ -2711,9 +2711,9 @@ pub  fn DoConsoleIO(
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).XLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support XLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support XLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
@@ -2723,12 +2723,12 @@ pub  fn DoConsoleIO(
  fn ProcessConnectionRequest(
     mut pConsoleChannel: *mut EmbConsoleChannel,
     mut pCommand: *mut EmbConsoleBuffer,
-) -> usize {
+) -> u32 {
     let mut consoleChannel: *mut EmbConsoleChannel = pConsoleChannel;
     let mut command: *mut EmbConsoleBuffer = pCommand;
     let mut dataTransfer: *mut EmbConsoleDataTransfer = &mut *((*command).data)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbWord
+        .offset(0 ) as *mut EmbWord
         as *mut EmbConsoleDataTransfer;
     let mut display: *mut _XDisplay = (*consoleChannel).display as *mut _XDisplay;
     let mut data: &str =  "" ;
@@ -2801,20 +2801,20 @@ pub  fn DoConsoleIO(
         pad: 0,
     };
     let mut visual: *mut Visual = 0 as *mut Visual;
-    data = MapVirtualAddressData((*dataTransfer).address as isize)
+    data = MapVirtualAddressData((*dataTransfer).address )
         as&str;
-    data = data.offset((*dataTransfer).offset as isize);
+    data = data.offset((*dataTransfer).offset );
     match (*consoleChannel).openingState {
         1 => {
-            setupPrefix.success = 1 as usize as CARD8;
-            setupPrefix.lengthReason = 0 as usize as BYTE;
+            setupPrefix.success = 1  as CARD8;
+            setupPrefix.lengthReason = 0 as u8;
             setupPrefix.majorVersion = (*display).proto_major_version as CARD16;
             setupPrefix.minorVersion = (*display).proto_minor_version as CARD16;
-            setupPrefix.length = 0 as usize as CARD16;
+            setupPrefix.length = 0  as CARD16;
             memcpy(
-                data as *mut libc::c_void,
-                &mut setupPrefix as *mut xConnSetupPrefix as *const libc::c_void,
-                ::std::mem::size_of::<xConnSetupPrefix>() as libc::c_ulong,
+                data ,
+                &mut setupPrefix as *mut xConnSetupPrefix ,
+                ::std::mem::size_of::<xConnSetupPrefix>(),
             );
             AdvanceOpeningState(consoleChannel);
         }
@@ -2834,37 +2834,37 @@ pub  fn DoConsoleIO(
             setup.minKeyCode = (*display).min_keycode as CARD8;
             setup.maxKeyCode = (*display).max_keycode as CARD8;
             memcpy(
-                data as *mut libc::c_void,
-                &mut setup as *mut xConnSetup as *const libc::c_void,
-                ::std::mem::size_of::<xConnSetup>() as libc::c_ulong,
+                data ,
+                &mut setup as *mut xConnSetup ,
+                ::std::mem::size_of::<xConnSetup>(),
             );
             AdvanceOpeningState(consoleChannel);
         }
         3 => {
             memcpy(
-                data as *mut libc::c_void,
-                (*display).vendor as *const libc::c_void,
+                data ,
+                (*display).vendor ,
                 strlen((*display).vendor),
             );
             AdvanceOpeningState(consoleChannel);
         }
         4 => {
             screenFormat = &mut *((*display).pixmap_format)
-                .offset((*consoleChannel).nextPixmapFormat as isize)
+                .offset((*consoleChannel).nextPixmapFormat )
                 as *mut ScreenFormat;
             pixmapFormat.depth = (*screenFormat).depth as CARD8;
             pixmapFormat.bitsPerPixel = (*screenFormat).bits_per_pixel as CARD8;
             pixmapFormat.scanLinePad = (*screenFormat).scanline_pad as CARD8;
             memcpy(
-                data as *mut libc::c_void,
-                &mut pixmapFormat as *mut xPixmapFormat as *const libc::c_void,
-                ::std::mem::size_of::<xPixmapFormat>() as libc::c_ulong,
+                data ,
+                &mut pixmapFormat as *mut xPixmapFormat ,
+                ::std::mem::size_of::<xPixmapFormat>(),
             );
             AdvanceOpeningState(consoleChannel);
         }
         5 => {
             screen = &mut *((*display).screens)
-                .offset((*consoleChannel).nextRoot as isize) as *mut Screen;
+                .offset((*consoleChannel).nextRoot ) as *mut Screen;
             windowRoot.windowId = (*screen).root as CARD32;
             windowRoot.defaultColormap = (*screen).cmap as CARD32;
             windowRoot.whitePixel = (*screen).white_pixel as CARD32;
@@ -2882,33 +2882,33 @@ pub  fn DoConsoleIO(
             windowRoot.rootDepth = (*screen).root_depth as CARD8;
             windowRoot.nDepths = (*screen).ndepths as CARD8;
             memcpy(
-                data as *mut libc::c_void,
-                &mut windowRoot as *mut xWindowRoot as *const libc::c_void,
-                ::std::mem::size_of::<xWindowRoot>() as libc::c_ulong,
+                data ,
+                &mut windowRoot as *mut xWindowRoot ,
+                ::std::mem::size_of::<xWindowRoot>(),
             );
             AdvanceOpeningState(consoleChannel);
         }
         6 => {
             screen = &mut *((*display).screens)
-                .offset((*consoleChannel).nextRoot as isize) as *mut Screen;
+                .offset((*consoleChannel).nextRoot ) as *mut Screen;
             depth = &mut *((*screen).depths)
-                .offset((*consoleChannel).nextRootDepth as isize) as *mut Depth;
+                .offset((*consoleChannel).nextRootDepth ) as *mut Depth;
             pDepth.depth = (*depth).depth as CARD8;
             pDepth.nVisuals = (*depth).nvisuals as CARD16;
             memcpy(
-                data as *mut libc::c_void,
-                &mut pDepth as *mut xDepth as *const libc::c_void,
-                ::std::mem::size_of::<xDepth>() as libc::c_ulong,
+                data ,
+                &mut pDepth as *mut xDepth ,
+                ::std::mem::size_of::<xDepth>(),
             );
             AdvanceOpeningState(consoleChannel);
         }
         7 => {
             screen = &mut *((*display).screens)
-                .offset((*consoleChannel).nextRoot as isize) as *mut Screen;
+                .offset((*consoleChannel).nextRoot ) as *mut Screen;
             depth = &mut *((*screen).depths)
-                .offset((*consoleChannel).nextRootDepth as isize) as *mut Depth;
+                .offset((*consoleChannel).nextRootDepth ) as *mut Depth;
             visual = &mut *((*depth).visuals)
-                .offset((*consoleChannel).nextRootDepthVisual as isize) as *mut Visual;
+                .offset((*consoleChannel).nextRootDepthVisual ) as *mut Visual;
             visualType.visualID = (*visual).visualid as CARD32;
             visualType.class = (*visual).class as CARD8;
             visualType.bitsPerRGB = (*visual).bits_per_rgb as CARD8;
@@ -2917,9 +2917,9 @@ pub  fn DoConsoleIO(
             visualType.greenMask = (*visual).green_mask as CARD32;
             visualType.blueMask = (*visual).blue_mask as CARD32;
             memcpy(
-                data as *mut libc::c_void,
-                &mut visualType as *mut xVisualType as *const libc::c_void,
-                ::std::mem::size_of::<xVisualType>() as libc::c_ulong,
+                data ,
+                &mut visualType as *mut xVisualType ,
+                ::std::mem::size_of::<xVisualType>(),
             );
             AdvanceOpeningState(consoleChannel);
         }
@@ -2940,10 +2940,10 @@ pub  fn DoConsoleIO(
             (*consoleChannel).openingState = OpeningStateVendor;
         }
         3 => {
-            if (*display).nformats > 0 as usize {
+            if (*display).nformats > 0  {
                 (*consoleChannel).openingState = OpeningStatePixmapFormat;
                 (*consoleChannel).nextPixmapFormat = 0;
-            } else if (*display).nscreens > 0 as usize {
+            } else if (*display).nscreens > 0  {
                 (*consoleChannel).openingState = OpeningStateRoot;
                 (*consoleChannel).nextRoot = 0;
             } else {
@@ -2954,7 +2954,7 @@ pub  fn DoConsoleIO(
             let ref mut fresh8 = (*consoleChannel).nextPixmapFormat;
             *fresh8 += 1;
             if (*consoleChannel).nextPixmapFormat >= (*display).nformats {
-                if (*display).nscreens > 0 as usize {
+                if (*display).nscreens > 0  {
                     (*consoleChannel).openingState = OpeningStateRoot;
                     (*consoleChannel).nextRoot = 0;
                 } else {
@@ -2964,8 +2964,8 @@ pub  fn DoConsoleIO(
         }
         5 => {
             screen = &mut *((*display).screens)
-                .offset((*consoleChannel).nextRoot as isize) as *mut Screen;
-            if (*screen).ndepths > 0 as usize {
+                .offset((*consoleChannel).nextRoot ) as *mut Screen;
+            if (*screen).ndepths > 0  {
                 (*consoleChannel).openingState = OpeningStateRootDepth;
                 (*consoleChannel).nextRootDepth = 0;
             } else {
@@ -2978,10 +2978,10 @@ pub  fn DoConsoleIO(
         }
         6 => {
             screen = &mut *((*display).screens)
-                .offset((*consoleChannel).nextRoot as isize) as *mut Screen;
+                .offset((*consoleChannel).nextRoot ) as *mut Screen;
             depth = &mut *((*screen).depths)
-                .offset((*consoleChannel).nextRootDepth as isize) as *mut Depth;
-            if (*depth).nvisuals > 0 as usize {
+                .offset((*consoleChannel).nextRootDepth ) as *mut Depth;
+            if (*depth).nvisuals > 0  {
                 (*consoleChannel)
                     .openingState = OpeningStateRootDepthVisual;
                 (*consoleChannel).nextRootDepthVisual = 0;
@@ -2999,9 +2999,9 @@ pub  fn DoConsoleIO(
         }
         7 => {
             screen = &mut *((*display).screens)
-                .offset((*consoleChannel).nextRoot as isize) as *mut Screen;
+                .offset((*consoleChannel).nextRoot ) as *mut Screen;
             depth = &mut *((*screen).depths)
-                .offset((*consoleChannel).nextRootDepth as isize) as *mut Depth;
+                .offset((*consoleChannel).nextRootDepth ) as *mut Depth;
             let ref mut fresh12 = (*consoleChannel).nextRootDepthVisual;
             *fresh12 += 1;
             if (*consoleChannel).nextRootDepthVisual >= (*depth).nvisuals {
@@ -3027,12 +3027,12 @@ pub  fn DoConsoleIO(
  fn ConsoleWrite(
     mut pConsoleChannel: *mut EmbConsoleChannel,
     mut pCommand: *mut EmbConsoleBuffer,
-) -> usize {
+) -> u32 {
     let mut consoleChannel: *mut EmbConsoleChannel = pConsoleChannel;
     let mut command: *mut EmbConsoleBuffer = pCommand;
     let mut dataTransfer: *mut EmbConsoleDataTransfer = &mut *((*command).data)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbWord
+        .offset(0 ) as *mut EmbWord
         as *mut EmbConsoleDataTransfer;
     let mut pollDisplay: pollfd = pollfd {
         fd: 0,
@@ -3042,52 +3042,52 @@ pub  fn DoConsoleIO(
     let mut data: &str =  "" ;
     let mut nBytes: ssize_t = 0;
     let mut actualBytes: ssize_t = 0;
-    let mut result: usize = 0;
-    data = MapVirtualAddressData((*dataTransfer).address as isize)
+    let mut result: u32 = 0;
+    data = MapVirtualAddressData((*dataTransfer).address )
         as&str;
-    data = data.offset((*dataTransfer).offset as isize);
+    data = data.offset((*dataTransfer).offset );
     nBytes = (*dataTransfer).nBytes as ssize_t;
     result = 11;
     pollDisplay.fd = (*consoleChannel).fd;
-    pollDisplay.events = 0x4 as usize as libc::c_short;
-    while 11 as usize == result {
-        pthread_testcancel();
-        pollDisplay.revents = 0 as usize as libc::c_short;
-        poll(&mut pollDisplay, 1 as usize as nfds_t, 1000);
-        if pollDisplay.revents as usize & 0x4 as usize != 0 {
+    pollDisplay.events = 0x4  as libc::c_short;
+    while 11  == result {
+        u64estcancel();
+        pollDisplay.revents = 0  as libc::c_short;
+        poll(&mut pollDisplay, 1  as nfds_t, 1000);
+        if pollDisplay.revents  & 0x4  != 0 {
             actualBytes = write(
                 (*consoleChannel).fd,
-                data as *const libc::c_void,
-                nBytes as size_t,
+                data ,
+                nBytes,
             );
             if actualBytes == nBytes {
                 result = 0;
             } else {
-                result = if actualBytes < 0 as usize as libc::c_long {
+                result = if actualBytes < 0   {
                     *__errno_location()
                 } else {
                     11
                 };
                 nBytes
-                    -= if actualBytes < 0 as usize as libc::c_long {
-                        0 as usize as libc::c_long
+                    -= if actualBytes < 0   {
+                        0
                     } else {
                         actualBytes
                     };
                 data = data
                     .offset(
-                        (if actualBytes < 0 as usize as libc::c_long {
-                            0 as usize as libc::c_long
+                        (if actualBytes < 0   {
+                            0
                         } else {
                             actualBytes
-                        }) as isize,
+                        }) ,
                     );
             }
-        } else if pollDisplay.revents as usize & 0x20 as usize != 0 {
+        } else if pollDisplay.revents  & 0x20  != 0 {
             result = 9;
-        } else if pollDisplay.revents as usize & 0x10 as usize != 0 {
+        } else if pollDisplay.revents  & 0x10  != 0 {
             result = 6;
-        } else if pollDisplay.revents as usize & 0x8 as usize != 0 {
+        } else if pollDisplay.revents  & 0x8  != 0 {
             result = 5;
         }
     }
@@ -3096,12 +3096,12 @@ pub  fn DoConsoleIO(
  fn ConsoleRead(
     mut pConsoleChannel: *mut EmbConsoleChannel,
     mut pCommand: *mut EmbConsoleBuffer,
-) -> usize {
+) -> u32 {
     let mut consoleChannel: *mut EmbConsoleChannel = pConsoleChannel;
     let mut command: *mut EmbConsoleBuffer = pCommand;
     let mut dataTransfer: *mut EmbConsoleDataTransfer = &mut *((*command).data)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbWord
+        .offset(0 ) as *mut EmbWord
         as *mut EmbConsoleDataTransfer;
     let mut pollDisplay: pollfd = pollfd {
         fd: 0,
@@ -3111,66 +3111,66 @@ pub  fn DoConsoleIO(
     let mut data: &str =  "" ;
     let mut nBytes: ssize_t = 0;
     let mut actualBytes: ssize_t = 0;
-    let mut result: usize = 0;
-    data = MapVirtualAddressData((*dataTransfer).address as isize)
+    let mut result: u32 = 0;
+    data = MapVirtualAddressData((*dataTransfer).address )
         as&str;
-    data = data.offset((*dataTransfer).offset as isize);
+    data = data.offset((*dataTransfer).offset );
     nBytes = (*dataTransfer).nBytes as ssize_t;
     result = 11;
     pollDisplay.fd = (*consoleChannel).fd;
-    pollDisplay.events = 0x1 as usize as libc::c_short;
-    while 11 as usize == result {
-        pthread_testcancel();
-        pollDisplay.revents = 0 as usize as libc::c_short;
-        poll(&mut pollDisplay, 1 as usize as nfds_t, 1000);
-        if pollDisplay.revents as usize & 0x1 as usize != 0 {
+    pollDisplay.events = 0x1  as libc::c_short;
+    while 11  == result {
+        u64estcancel();
+        pollDisplay.revents = 0  as libc::c_short;
+        poll(&mut pollDisplay, 1  as nfds_t, 1000);
+        if pollDisplay.revents  & 0x1  != 0 {
             actualBytes = read(
                 (*consoleChannel).fd,
-                data as *mut libc::c_void,
-                nBytes as size_t,
+                data ,
+                nBytes,
             );
             if actualBytes == nBytes {
                 result = 0;
-            } else if 0 as usize as libc::c_long == actualBytes
-                && 11 as usize != *__errno_location()
+            } else if 0   == actualBytes
+                && 11  != *__errno_location()
             {
                 result = 28;
             } else {
-                result = if actualBytes < 0 as usize as libc::c_long {
+                result = if actualBytes < 0   {
                     *__errno_location()
                 } else {
                     11
                 };
                 nBytes
-                    -= if actualBytes < 0 as usize as libc::c_long {
-                        0 as usize as libc::c_long
+                    -= if actualBytes < 0   {
+                        0
                     } else {
                         actualBytes
                     };
                 data = data
                     .offset(
-                        (if actualBytes < 0 as usize as libc::c_long {
-                            0 as usize as libc::c_long
+                        (if actualBytes < 0   {
+                            0
                         } else {
                             actualBytes
-                        }) as isize,
+                        }) ,
                     );
             }
-        } else if pollDisplay.revents as usize & 0x20 as usize != 0 {
+        } else if pollDisplay.revents  & 0x20  != 0 {
             result = 9;
-        } else if pollDisplay.revents as usize & 0x10 as usize != 0 {
+        } else if pollDisplay.revents  & 0x10  != 0 {
             result = 6;
-        } else if pollDisplay.revents as usize & 0x8 as usize != 0 {
+        } else if pollDisplay.revents  & 0x8  != 0 {
             result = 5;
         }
     }
     return result;
 }
-#[no_mangle]
+
 pub  fn ConsoleInputAvailableP() -> Boole {
     let mut consoleChannel: *mut EmbConsoleChannel = &mut *(EmbCommAreaPtr
         as *mut EmbWord)
-        .offset((*EmbCommAreaPtr).consoleChannel as isize) as *mut EmbWord as PtrV
+        .offset((*EmbCommAreaPtr).consoleChannel ) as *mut EmbWord as PtrV
         as *mut EmbConsoleChannel;
     let mut pollDisplay: pollfd = pollfd {
         fd: 0,
@@ -3178,49 +3178,49 @@ pub  fn ConsoleInputAvailableP() -> Boole {
         revents: 0,
     };
     if ((*consoleChannel).display).is_null() {
-        return 0 as usize as Boole
+        return false
     } else {
-        if (*consoleChannel).openingState != OpeningStateNone as usize {
-            return 1 as usize as Boole;
+        if (*consoleChannel).openingState != OpeningStateNone  {
+            return true;
         }
     }
     pollDisplay.fd = (*consoleChannel).fd;
-    pollDisplay.events = 0x1 as usize as libc::c_short;
-    pollDisplay.revents = 0 as usize as libc::c_short;
-    poll(&mut pollDisplay, 1 as usize as nfds_t, 0);
-    return (pollDisplay.revents as usize & 0x1 as usize != 0)
-        as usize as Boole;
+    pollDisplay.events = 0x1  as libc::c_short;
+    pollDisplay.revents = 0  as libc::c_short;
+    poll(&mut pollDisplay, 1  as nfds_t, 0);
+    return (pollDisplay.revents  & 0x1  != 0)
+        as bool;
 }
  fn ConsoleInputWait(
     mut pConsoleChannel: *mut EmbConsoleChannel,
     mut pCommand: *mut EmbConsoleBuffer,
-) -> usize {
+) -> u32 {
     let mut consoleChannel: *mut EmbConsoleChannel = pConsoleChannel;
     let mut command: *mut EmbConsoleBuffer = pCommand;
     let mut inputWait: *mut EmbConsoleInputWait = &mut *((*command).data)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbWord as *mut EmbConsoleInputWait;
+        .offset(0 ) as *mut EmbWord as *mut EmbConsoleInputWait;
     let mut pollDisplay: pollfd = pollfd {
         fd: 0,
         events: 0,
         revents: 0,
     };
-    let mut result: usize = 0;
+    let mut result: u32 = 0;
     pollDisplay.fd = (*consoleChannel).fd;
-    pollDisplay.events = 0x1 as usize as libc::c_short;
-    pollDisplay.revents = 0 as usize as libc::c_short;
-    result = poll(&mut pollDisplay, 1 as usize as nfds_t, (*inputWait).timeout);
-    if 0 as usize == result {
+    pollDisplay.events = 0x1  as libc::c_short;
+    pollDisplay.revents = 0  as libc::c_short;
+    result = poll(&mut pollDisplay, 1  as nfds_t, (*inputWait).timeout);
+    if 0  == result {
         result = 0;
         (*inputWait).availableP = 0;
-    } else if pollDisplay.revents as usize & 0x1 as usize != 0 {
+    } else if pollDisplay.revents  & 0x1  != 0 {
         result = 0;
         (*inputWait).availableP = 1;
-    } else if pollDisplay.revents as usize & 0x20 as usize != 0 {
+    } else if pollDisplay.revents  & 0x20  != 0 {
         result = 9;
-    } else if pollDisplay.revents as usize & 0x10 as usize != 0 {
+    } else if pollDisplay.revents  & 0x10  != 0 {
         result = 6;
-    } else if pollDisplay.revents as usize & 0x8 as usize != 0 {
+    } else if pollDisplay.revents  & 0x8  != 0 {
         result = 5;
     }
     return result;
@@ -3233,51 +3233,51 @@ pub  fn ConsoleInputAvailableP() -> Boole {
                 __cancel_jmp_buf: [0; 8],
                 __mask_was_saved: 0,
             }; 1],
-            __pad: [0 as *mut libc::c_void; 4],
+            __pad: [0 ; 4],
         };
         let mut __cancel_routine: Option::<
             fn(*mut libc::c_void) -> (),
         > = ::std::mem::transmute::<
-            Option::<fn(*mut pthread_mutex_t) -> u32>,
+            Option::<fn(*mut u64) -> u32>,
             pthread_cleanuproutine_t,
         >(
             Some(
                 pthread_mutex_unlock
-                    as fn(*mut pthread_mutex_t) -> u32,
+                    as fn(*mut u64) -> u32,
             ),
         );
         let mut __cancel_arg: *mut libc::c_void = &mut (*EmbCommAreaPtr).XLock
-            as *mut pthread_mutex_t as *mut libc::c_void;
-        let mut __not_first_call: usize = __sigsetjmp(
-            (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+            as *mut u64 ;
+        let mut __not_first_call: u32 = __sigsetjmp(
+            (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
                 as *mut __jmp_buf_tag,
             0,
         );
-        if __not_first_call as libc::c_long != 0 {
+        if __not_first_call  != 0 {
             __cancel_routine.expect("non-null function pointer")(__cancel_arg);
             __pthread_unwind_next(&mut __cancel_buf);
         }
         __pthread_register_cancel(&mut __cancel_buf);
         if pthread_mutex_lock(&mut (*EmbCommAreaPtr).XLock) != 0 {
             vpunt(
-                 "" ,
-                b"Unable to lock the Life Support XLock in thread %lx\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unable to lock the Life Support XLock in thread %lx\0"
+                     as&str,
                 pthread_self(),
             );
         }
         XCloseDisplay((*consoleChannel).display as *mut Display);
         if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).XLock) != 0 {
             vpunt(
-                 "" ,
-                b"Unable to unlock the Life Support XLock in thread %lx\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unable to unlock the Life Support XLock in thread %lx\0"
+                     as&str,
                 pthread_self(),
             );
         }
         __pthread_unregister_cancel(&mut __cancel_buf);
         let ref mut fresh15 = (*consoleChannel).display;
-        *fresh15 = 0 as *mut libc::c_void;
+        *fresh15 = 0 ;
     }
 }
  fn EnableRunLights(
@@ -3288,7 +3288,7 @@ pub  fn ConsoleInputAvailableP() -> Boole {
     let mut command: *mut EmbConsoleBuffer = pCommand;
     let mut runLights: *mut EmbConsoleRunLights = &mut *((*command).data)
         .as_mut_ptr()
-        .offset(0 as usize as isize) as *mut EmbWord as *mut EmbConsoleRunLights;
+        .offset(0 ) as *mut EmbWord as *mut EmbConsoleRunLights;
     let mut displayName: [libc::c_char; 8192] = [0; 8192];
     let mut gcValues: XGCValues = XGCValues {
         function: 0,
@@ -3326,74 +3326,74 @@ pub  fn ConsoleInputAvailableP() -> Boole {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(*mut pthread_mutex_t) -> u32>,
+        Option::<fn(*mut u64) -> u32>,
         pthread_cleanuproutine_t,
     >(
         Some(
             pthread_mutex_unlock
-                as fn(*mut pthread_mutex_t) -> u32,
+                as fn(*mut u64) -> u32,
         ),
     );
     let mut __cancel_arg: *mut libc::c_void = &mut (*EmbCommAreaPtr).XLock
-        as *mut pthread_mutex_t as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+        as *mut u64 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).XLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support XLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support XLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     let ref mut fresh16 = (*consoleChannel).rlDisplay;
-    *fresh16 = XOpenDisplay(displayName.as_mut_ptr()) as *mut libc::c_void;
+    *fresh16 = XOpenDisplay(displayName.as_mut_ptr()) ;
     if !((*consoleChannel).rlDisplay).is_null() {
         let ref mut fresh17 = (*consoleChannel).rlGC;
-        *fresh17 = malloc(::std::mem::size_of::<GC>() as libc::c_ulong);
+        *fresh17 = malloc(::std::mem::size_of::<GC>());
         if !((*consoleChannel).rlGC).is_null() {
             memcpy(
                 &mut (*consoleChannel).runLights as *mut EmbConsoleRunLights
-                    as *mut libc::c_void,
-                runLights as *const libc::c_void,
-                ::std::mem::size_of::<EmbConsoleRunLights>() as libc::c_ulong,
+                    ,
+                runLights ,
+                ::std::mem::size_of::<EmbConsoleRunLights>(),
             );
             gcValues
                 .foreground = (*consoleChannel).runLights.lightForeground
-                as libc::c_ulong;
+              ;
             gcValues
                 .background = (*consoleChannel).runLights.lightBackground
-                as libc::c_ulong;
+              ;
             gcValues
                 .plane_mask = (*consoleChannel).runLights.lightPlaneMask
-                as libc::c_ulong;
+              ;
             let ref mut fresh18 = *((*consoleChannel).rlGC as *mut GC);
             *fresh18 = XCreateGC(
                 (*consoleChannel).rlDisplay as *mut Display,
                 (*consoleChannel).runLights.windowID as Drawable,
-                ((1 as libc::c_long) << 2
-                    | (1 as libc::c_long) << 3
-                    | (1 as libc::c_long) << 1) as libc::c_ulong,
+                ((1 ) << 2
+                    | (1 ) << 3
+                    | (1 ) << 1),
                 &mut gcValues,
             );
         }
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).XLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support XLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support XLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
@@ -3402,52 +3402,52 @@ pub  fn ConsoleInputAvailableP() -> Boole {
 }
  fn DrawRunLights(mut argument: pthread_addr_t) {
     let mut consoleChannel: *mut EmbConsoleChannel = argument as *mut EmbConsoleChannel;
-    let mut self_0: pthread_t = pthread_self();
+    let mut self_0: u64 = pthread_self();
     let mut drlSleep: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
-    let mut changed: usize = 0;
-    let mut i: usize = 0;
-    let mut bit: usize = 0;
-    let mut x: usize = 0;
+    let mut changed: u32 = 0;
+    let mut i: u32 = 0;
+    let mut bit: u32 = 0;
+    let mut x: u32 = 0;
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(pthread_t) -> u32>,
+        Option::<fn(u64) -> u32>,
         pthread_cleanuproutine_t,
-    >(Some(pthread_detach as fn(pthread_t) -> u32));
-    let mut __cancel_arg: *mut libc::c_void = self_0 as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+    >(Some(pthread_detach as fn(u64) -> u32));
+    let mut __cancel_arg: *mut libc::c_void = self_0 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
-    drlSleep.tv_sec = 0 as usize as __time_t;
-    drlSleep.tv_nsec = 10 as usize as libc::c_long * 10000000 as libc::c_long;
+    drlSleep.tv_sec = 0  as __time_t;
+    drlSleep.tv_nsec = 10   * 10000000 ;
     loop {
         if !((*consoleChannel).rlDisplay).is_null() {
             let mut __cancel_buf_0: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
@@ -3455,36 +3455,36 @@ pub  fn ConsoleInputAvailableP() -> Boole {
                     __cancel_jmp_buf: [0; 8],
                     __mask_was_saved: 0,
                 }; 1],
-                __pad: [0 as *mut libc::c_void; 4],
+                __pad: [0 ; 4],
             };
             let mut __cancel_routine_0: Option::<
                 fn(*mut libc::c_void) -> (),
             > = ::std::mem::transmute::<
-                Option::<fn(*mut pthread_mutex_t) -> u32>,
+                Option::<fn(*mut u64) -> u32>,
                 pthread_cleanuproutine_t,
             >(
                 Some(
                     pthread_mutex_unlock
-                        as fn(*mut pthread_mutex_t) -> u32,
+                        as fn(*mut u64) -> u32,
                 ),
             );
             let mut __cancel_arg_0: *mut libc::c_void = &mut (*EmbCommAreaPtr).XLock
-                as *mut pthread_mutex_t as *mut libc::c_void;
-            let mut __not_first_call_0: usize = __sigsetjmp(
-                (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+                as *mut u64 ;
+            let mut __not_first_call_0: u32 = __sigsetjmp(
+                (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr()
                     as *mut __jmp_buf_tag,
                 0,
             );
-            if __not_first_call_0 as libc::c_long != 0 {
+            if __not_first_call_0  != 0 {
                 __cancel_routine_0.expect("non-null function pointer")(__cancel_arg_0);
                 __pthread_unwind_next(&mut __cancel_buf_0);
             }
             __pthread_register_cancel(&mut __cancel_buf_0);
             if pthread_mutex_lock(&mut (*EmbCommAreaPtr).XLock) != 0 {
                 vpunt(
-                     "" ,
-                    b"Unable to lock the Life Support XLock in thread %lx\0" as *const u8
-                        as *const libc::c_char as&str,
+
+                    b"Unable to lock the Life Support XLock in thread %lx\0"
+                         as&str,
                     pthread_self(),
                 );
             }
@@ -3503,8 +3503,8 @@ pub  fn ConsoleInputAvailableP() -> Boole {
                             *((*consoleChannel).rlGC as *mut GC),
                             x,
                             (*consoleChannel).runLights.firstLightY,
-                            (*consoleChannel).runLights.lightWidth as libc::c_uint,
-                            (*consoleChannel).runLights.lightHeight as libc::c_uint,
+                            (*consoleChannel).runLights.lightWidth ,
+                            (*consoleChannel).runLights.lightHeight ,
                         );
                     } else {
                         XClearArea(
@@ -3512,8 +3512,8 @@ pub  fn ConsoleInputAvailableP() -> Boole {
                             (*consoleChannel).runLights.windowID as Window,
                             x,
                             (*consoleChannel).runLights.firstLightY,
-                            (*consoleChannel).runLights.lightWidth as libc::c_uint,
-                            (*consoleChannel).runLights.lightHeight as libc::c_uint,
+                            (*consoleChannel).runLights.lightWidth ,
+                            (*consoleChannel).runLights.lightHeight ,
                             0,
                         );
                     }
@@ -3525,9 +3525,9 @@ pub  fn ConsoleInputAvailableP() -> Boole {
             XFlush((*consoleChannel).rlDisplay as *mut Display);
             if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).XLock) != 0 {
                 vpunt(
-                     "" ,
+
                     b"Unable to unlock the Life Support XLock in thread %lx\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     pthread_self(),
                 );
             }
@@ -3535,8 +3535,8 @@ pub  fn ConsoleInputAvailableP() -> Boole {
         }
         if pthread_delay_np(&mut drlSleep) != 0 {
             vpunt(
-                 "" ,
-                b"Unable to sleep in thread %lx\0" as *const u8 as *const libc::c_char
+
+                b"Unable to sleep in thread %lx\0"
                     as&str,
                 self_0,
             );
@@ -3549,58 +3549,58 @@ pub  fn ConsoleInputAvailableP() -> Boole {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(*mut pthread_mutex_t) -> u32>,
+        Option::<fn(*mut u64) -> u32>,
         pthread_cleanuproutine_t,
     >(
         Some(
             pthread_mutex_unlock
-                as fn(*mut pthread_mutex_t) -> u32,
+                as fn(*mut u64) -> u32,
         ),
     );
     let mut __cancel_arg: *mut libc::c_void = &mut (*EmbCommAreaPtr).XLock
-        as *mut pthread_mutex_t as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+        as *mut u64 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).XLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support XLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support XLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     if !((*consoleChannel).rlGC).is_null() {
         free((*consoleChannel).rlGC);
         let ref mut fresh19 = (*consoleChannel).rlGC;
-        *fresh19 = 0 as *mut libc::c_void;
+        *fresh19 = 0 ;
     }
     if !((*consoleChannel).rlDisplay).is_null() {
         XCloseDisplay((*consoleChannel).rlDisplay as *mut Display);
         let ref mut fresh20 = (*consoleChannel).rlDisplay;
-        *fresh20 = 0 as *mut libc::c_void;
+        *fresh20 = 0 ;
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).XLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support XLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support XLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     __pthread_unregister_cancel(&mut __cancel_buf);
 }
-#[no_mangle]
+
 pub  fn ResetConsoleChannel(mut channel: *mut EmbChannel) {
     let mut consoleChannel: *mut EmbConsoleChannel = channel as *mut EmbConsoleChannel;
     ResetIncomingQueue((*consoleChannel).outputRequestQ);
@@ -3609,21 +3609,21 @@ pub  fn ResetConsoleChannel(mut channel: *mut EmbChannel) {
     ResetOutgoingQueue((*consoleChannel).inputReplyQ);
     CloseDisplay(consoleChannel);
 }
-#[no_mangle]
+
 pub  fn TerminateConsoleChannel() {
-    let mut exit_value: *mut libc::c_void = 0 as *mut libc::c_void;
+    let mut exit_value: *mut libc::c_void = 0 ;
     let mut consoleChannel: *mut EmbConsoleChannel = 0 as *mut EmbConsoleChannel;
     if -(1) == (*EmbCommAreaPtr).consoleChannel {
         return
     } else {
         consoleChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-            .offset((*EmbCommAreaPtr).consoleChannel as isize) as *mut EmbWord as PtrV
+            .offset((*EmbCommAreaPtr).consoleChannel ) as *mut EmbWord as PtrV
             as *mut EmbConsoleChannel;
     }
     if (*consoleChannel).drawRunLightsSetup != 0 {
         pthread_cancel((*consoleChannel).drawRunLights);
         pthread_join((*consoleChannel).drawRunLights, &mut exit_value);
-        (*consoleChannel).drawRunLightsSetup = 0 as usize as Boole;
+        (*consoleChannel).drawRunLightsSetup = false;
     }
     CloseDisplay(consoleChannel);
 }

@@ -1,152 +1,11 @@
 #![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals, unused_assignments, unused_mut)]
 #![register_tool(c2rust)]
 #![feature(register_tool)]
-extern "C" {
-    fn socket(
-        __domain: u32,
-        __type: u32,
-        __protocol: u32,
-    ) -> u32;
-    fn bind(__fd: u32, __addr: *const sockaddr, __len: socklen_t) -> u32;
-    fn sendto(
-        __fd: u32,
-        __buf: *const libc::c_void,
-        __n: size_t,
-        __flags: u32,
-        __addr: *const sockaddr,
-        __addr_len: socklen_t,
-    ) -> ssize_t;
-    fn recvfrom(
-        __fd: u32,
-        __buf: *mut libc::c_void,
-        __n: size_t,
-        __flags: u32,
-        __addr: *mut sockaddr,
-        __addr_len: *mut socklen_t,
-    ) -> ssize_t;
-    fn setsockopt(
-        __fd: u32,
-        __level: u32,
-        __optname: u32,
-        __optval: *const libc::c_void,
-        __optlen: socklen_t,
-    ) -> u32;
-    fn htonl(__hostlong: ui32) -> ui32;
-    fn htons(__hostshort: uint16_t) -> uint16_t;
-    fn if_freenameindex(__ptr: *mut if_nameindex);
-    fn if_nameindex() -> *mut if_nameindex;
-    fn inet_ntoa(__in: in_addr) ->&str;
-    fn ioctl(__fd: u32, __request: libc::c_ulong, _: ...) -> u32;
-    fn pthread_self() -> pthread_t;
-    fn pthread_cancel(__th: pthread_t) -> u32;
-    fn pthread_testcancel();
-    fn __pthread_register_cancel(__buf: *mut __pthread_unwind_buf_t);
-    fn __pthread_unregister_cancel(__buf: *mut __pthread_unwind_buf_t);
-    fn __pthread_unwind_next(__buf: *mut __pthread_unwind_buf_t) -> !;
-    fn __sigsetjmp(__env: *mut __jmp_buf_tag, __savemask: u32) -> u32;
-    fn pthread_mutex_lock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_unlock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn printf(_: *const libc::c_char, _: ...) -> u32;
-    fn sprintf(_:&str, _: *const libc::c_char, _: ...) -> u32;
-    fn pthread_detach(__th: pthread_t) -> u32;
-    fn pthread_join(
-        __th: pthread_t,
-        __thread_return: *mut *mut libc::c_void,
-    ) -> u32;
-    fn pthread_create(
-        __newthread: *mut pthread_t,
-        __attr: *const pthread_attr_t,
-        __start_routine: Option::<
-            fn(*mut libc::c_void) -> *mut libc::c_void,
-        >,
-        __arg: *mut libc::c_void,
-    ) -> u32;
-    fn InstallSignalHandler(
-        singalHandler: ProcPtrV,
-        signalArgument: PtrV,
-        inputP: Boole,
-    ) -> SignalNumber;
-    fn SignalLater(signal: SignalNumber);
-    static mut EmbCommAreaPtr: *mut EmbCommArea;
-    fn EmbQueueSpace(q: *mut EmbQueue) -> u32;
-    fn EmbQueueFilled(q: *mut EmbQueue) -> u32;
-    fn EmbQueuePutWord(q: *mut EmbQueue, element: EmbWord);
-    fn EmbQueueTakeWord(q: *mut EmbQueue) -> EmbWord;
-    fn realloc(_: *mut libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    fn poll(__fds: *mut pollfd, __nfds: nfds_t, __timeout: u32) -> u32;
-    fn memcpy(
-        _: *mut libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
-    fn memset(
-        _: *mut libc::c_void,
-        _: u32,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
-    fn memcmp(
-        _: *const libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> u32;
-    fn strncpy(
-        _:&str,
-        _: *const libc::c_char,
-        _: libc::c_ulong,
-    ) ->&str;
-    fn strncmp(
-        _: *const libc::c_char,
-        _: *const libc::c_char,
-        _: libc::c_ulong,
-    ) -> u32;
-    fn close(__fd: u32) -> u32;
-    fn ResetIncomingQueue(q: *mut EmbQueue);
-    fn ResetOutgoingQueue(q: *mut EmbQueue);
-    fn CreateQueue(nElements: u32, elementSize: u32) -> EmbPtr;
-    fn pthread_delay_np(interval: *const timespec) -> u32;
-    fn VirtualMemoryWrite(vma: isize, object: *mut LispObj) -> u32;
-    fn EmbCommAreaAlloc(nBytes: size_t) -> EmbPtr;
-    fn MakeEmbString(aString:&str) -> EmbPtr;
-    fn vpunt(section:&str, format:&str, _: ...);
-}
-pub type u8 = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type i32 = u32;
-pub type u32 = libc::c_uint;
-pub type u64 = libc::c_ulong;
-pub type __time_t = libc::c_long;
-pub type __ssize_t = libc::c_long;
-pub type __syscall_slong_t = libc::c_long;
-pub type __caddr_t =&str;
-pub type __socklen_t = libc::c_uint;
-pub type i32 = i32;
-pub type u8 = u8;
-pub type uint16_t = __uint16_t;
-pub type ui32 = u32;
-pub type u64 = u64;
-pub type size_t = libc::c_ulong;
-pub type ssize_t = __ssize_t;
-pub type caddr_t = __caddr_t;
+
+
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct __sigset_t {
-    pub __val: [libc::c_ulong; 16],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct timespec {
-    pub tv_sec: __time_t,
-    pub tv_nsec: __syscall_slong_t,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union __atomic_wide_counter {
-    pub __value64: libc::c_ulonglong,
-    pub __value32: C2RustUnnamed,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct C2RustUnnamed {
+pub struct QData {
     pub __low: libc::c_uint,
     pub __high: libc::c_uint,
 }
@@ -180,23 +39,23 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
@@ -241,7 +100,7 @@ pub const MSG_CTRUNC: C2RustUnnamed_0 = 8;
 pub const MSG_DONTROUTE: C2RustUnnamed_0 = 4;
 pub const MSG_PEEK: C2RustUnnamed_0 = 2;
 pub const MSG_OOB: C2RustUnnamed_0 = 1;
-pub type in_addr_t = ui32;
+pub type in_addr_t = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct in_addr {
@@ -309,7 +168,7 @@ pub union C2RustUnnamed_2 {
     pub ifru_map: ifmap,
     pub ifru_slave: [libc::c_char; 16],
     pub ifru_newname: [libc::c_char; 16],
-    pub ifru_data: __caddr_t,
+    pub ifru_data: __u64,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -325,7 +184,7 @@ pub struct ifconf {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_4 {
-    pub ifcu_buf: __caddr_t,
+    pub ifcu_buf: __u64,
     pub ifcu_req: *mut ifreq,
 }
 pub type __u8 = libc::c_uchar;
@@ -387,9 +246,9 @@ pub struct EmbNetFilter {
     pub filters: [sock_filter; 6],
 }
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -426,21 +285,21 @@ pub union LispObj {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _LispObj {
-    pub tag: ui32,
+    pub tag: u32,
     pub data: C2RustUnnamed_5,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_5 {
-    pub u: ui32,
+    pub u: u32,
     pub s: i32,
     pub f: libc::c_float,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
+    pub handlerThread: u64,
+    pub handlerThreadSetup: bool,
     pub signal: SignalMask,
     pub handlerFunction: ProcPtrV,
     pub handlerArgument: PtrV,
@@ -496,46 +355,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_6,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
@@ -547,12 +406,12 @@ pub struct C2RustUnnamed_6 {
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct C2RustUnnamed_7 {
-    #[bitfield(name = "status", ty = "uEmbWord", bits = "0..=7")]
-    #[bitfield(name = "cursor", ty = "uEmbWord", bits = "8..=8")]
-    #[bitfield(name = "busy", ty = "uEmbWord", bits = "9..=9")]
-    #[bitfield(name = "error", ty = "uEmbWord", bits = "10..=10")]
-    #[bitfield(name = "lisp_is_loaded", ty = "uEmbWord", bits = "11..=11")]
-    #[bitfield(name = "c2rust_unnamed", ty = "uEmbWord", bits = "12..=31")]
+    #[bitfield(name = "status", ty = "UEmbWord", bits = "0..=7")]
+    #[bitfield(name = "cursor", ty = "UEmbWord", bits = "8..=8")]
+    #[bitfield(name = "busy", ty = "UEmbWord", bits = "9..=9")]
+    #[bitfield(name = "error", ty = "UEmbWord", bits = "10..=10")]
+    #[bitfield(name = "lisp_is_loaded", ty = "UEmbWord", bits = "11..=11")]
+    #[bitfield(name = "c2rust_unnamed", ty = "UEmbWord", bits = "12..=31")]
     pub status_cursor_busy_error_lisp_is_loaded_c2rust_unnamed: [u8; 4],
 }
 #[derive(Copy, Clone, BitfieldStruct)]
@@ -637,8 +496,8 @@ pub struct EmbNetChannel {
     pub sll: sockaddr_ll,
     pub arpReq: *mut EmbNetARPReq,
     pub filter: EmbNetFilter,
-    pub receiverThread: pthread_t,
-    pub receiverThreadSetup: Boole,
+    pub receiverThread: u64,
+    pub receiverThreadSetup: bool,
     pub alignmentPad: u32,
     pub receiveBuffer: [Byte; 1516],
 }
@@ -681,7 +540,7 @@ pub struct XParams {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NetworkInterface {
-    pub present: Boole,
+    pub present: bool,
     pub device: [libc::c_char; 257],
     pub myProtocol: libc::c_ushort,
     pub myAddress: in_addr,
@@ -691,8 +550,8 @@ pub struct NetworkInterface {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TraceConfig {
-    pub traceP: Boole,
-    pub tracePOST: Boole,
+    pub traceP: bool,
+    pub tracePOST: bool,
     pub bufferSize: u32,
     pub startPC: libc::c_uint,
     pub stopPC: libc::c_uint,
@@ -701,7 +560,7 @@ pub struct TraceConfig {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VLMConfig {
-    pub enableSpy: Boole,
+    pub enableSpy: bool,
     pub tracing: TraceConfig,
     pub commAreaSize: size_t,
     pub hostBufferSpace: size_t,
@@ -709,93 +568,93 @@ pub struct VLMConfig {
     pub vlmDebuggerPath: [libc::c_char; 257],
     pub worldPath: [libc::c_char; 257],
     pub worldSearchPath:&str,
-    pub enableIDS: Boole,
+    pub enableIDS: bool,
     pub virtualMemory: size_t,
     pub coldLoadXParams: XParams,
     pub generaXParams: XParams,
     pub diagnosticIPAddress: in_addr,
     pub interfaces: [NetworkInterface; 8],
-    pub testFunction: Boole,
+    pub testFunction: bool,
 }
 pub type ifconf_t = ifconf;
 pub type ifreq_t = ifreq;
 static mut pInputChannel: *mut EmbNetChannel = 0 as *const EmbNetChannel
     as *mut EmbNetChannel;
-#[no_mangle]
+
 pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     let mut ifc: ifconf_t = ifconf_t {
         ifc_len: 0,
         ifc_ifcu: C2RustUnnamed_4 {
-            ifcu_buf:  "" ,
+            ifcu_buf:
         },
     };
-    let mut ipSocket: usize = 0;
-    let mut savedLen: usize = 0;
-    let mut i: usize = 0;
-    let mut tryAgain: Boole = 0;
-    printf(b"InitializeNetworkChannels()\n\0" as *const u8 as *const libc::c_char);
+    let mut ipSocket: u32 = 0;
+    let mut savedLen: u32 = 0;
+    let mut i: u32 = 0;
+    let mut tryAgain: bool = 0;
+    printf(b"InitializeNetworkChannels()\n\0"  );
     ipSocket = socket(2, SOCK_STREAM, 0);
     if ipSocket == -(1) {
         vpunt(
-             "" ,
+
             b"Unable to open IP socket to gather network interface information\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
         );
     }
     ifc
-        .ifc_len = (32 as usize as libc::c_ulong)
-        .wrapping_mul(::std::mem::size_of::<ifreq_t>() as libc::c_ulong);
-    ifc.ifc_ifcu.ifcu_buf = 0 as __caddr_t;
-    tryAgain = 1 as usize as Boole;
+        .ifc_len = (32)
+        .wrapping_mul(::std::mem::size_of::<ifreq_t>());
+    ifc.ifc_ifcu.ifcu_buf = 0 as __u64;
+    tryAgain = true;
     while tryAgain != 0 {
         ifc
             .ifc_ifcu
             .ifcu_buf = realloc(
-            ifc.ifc_ifcu.ifcu_buf as *mut libc::c_void,
-            ifc.ifc_len as libc::c_ulong,
-        ) as __caddr_t;
+            ifc.ifc_ifcu.ifcu_buf ,
+            ifc.ifc_len,
+        ) as __u64;
         if (ifc.ifc_ifcu.ifcu_buf).is_null() {
             vpunt(
-                 "" ,
+
                 b"Unable to obtain space to read IP addresses of network interfaces\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
             );
         }
         savedLen = ifc.ifc_len;
         if ioctl(
             ipSocket,
-            0x8912 as usize as libc::c_ulong,
+            0x8912,
             &mut ifc as *mut ifconf_t,
         ) < 0
         {
             vpunt(
-                 "" ,
+
                 b"Unable to obtain IP addresses assigned to network interfaces\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
             );
         }
         if ifc.ifc_len == savedLen {
-            ifc.ifc_len = 2 as usize * ifc.ifc_len;
+            ifc.ifc_len = 2  * ifc.ifc_len;
         } else {
-            tryAgain = 0 as usize as Boole;
+            tryAgain = false;
         }
     }
     ifc
-        .ifc_len = (ifc.ifc_len as libc::c_ulong)
-        .wrapping_div(::std::mem::size_of::<ifreq_t>() as libc::c_ulong);
+        .ifc_len = (ifc.ifc_len)
+        .wrapping_div(::std::mem::size_of::<ifreq_t>());
     printf(
-        b"MaxNetworkInterfaces %d\n\0" as *const u8 as *const libc::c_char,
+        b"MaxNetworkInterfaces %d\n\0"  ,
         8,
     );
     printf(
-        b"0 myAddress %08x\n\0" as *const u8 as *const libc::c_char,
-        (*config).interfaces[0 as usize as usize].myAddress.s_addr,
+        b"0 myAddress %08x\n\0"  ,
+        (*config).interfaces[0  ].myAddress.s_addr,
     );
     i = 0;
-    while i < 8 as usize {
-        if (*config).interfaces[i as usize].present != 0 {
+    while i < 8  {
+        if (*config).interfaces[i ].present != 0 {
             InitializeNetChannel(
-                &mut *((*config).interfaces).as_mut_ptr().offset(i as isize),
+                &mut *((*config).interfaces).as_mut_ptr().offset(i ),
                 i,
                 ipSocket,
                 &mut ifc,
@@ -804,23 +663,23 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
         i += 1;
     }
     close(ipSocket);
-    let mut lispDatum: LispObj = LispObj {
+    let mut lispDatum: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum.parts.data.u = 0  ;
+    lispDatum.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (80 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (80)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum,
     );
-    let mut lispDatum_0: LispObj = LispObj {
+    let mut lispDatum_0: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
@@ -829,109 +688,109 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     lispDatum_0
         .parts
         .data
-        .u = htonl((*config).diagnosticIPAddress.s_addr) as isize as ui32;
-    lispDatum_0.parts.tag = 8 as usize as Tag as ui32;
+        .u = htonl((*config).diagnosticIPAddress.s_addr)  ;
+    lispDatum_0.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (84 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (84)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_0,
     );
-    let mut lispDatum_1: LispObj = LispObj {
+    let mut lispDatum_1: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum_1.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum_1.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_1.parts.data.u = 0  ;
+    lispDatum_1.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (108 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (108)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_1,
     );
-    let mut lispDatum_2: LispObj = LispObj {
+    let mut lispDatum_2: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum_2.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum_2.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_2.parts.data.u = 0  ;
+    lispDatum_2.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (112 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (112)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_2,
     );
-    let mut lispDatum_3: LispObj = LispObj {
+    let mut lispDatum_3: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum_3.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum_3.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_3.parts.data.u = 0  ;
+    lispDatum_3.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (116 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (116)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_3,
     );
-    let mut lispDatum_4: LispObj = LispObj {
+    let mut lispDatum_4: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum_4.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum_4.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_4.parts.data.u = 0  ;
+    lispDatum_4.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (120 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (120)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_4,
     );
-    let mut lispDatum_5: LispObj = LispObj {
+    let mut lispDatum_5: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum_5.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum_5.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_5.parts.data.u = 0  ;
+    lispDatum_5.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (124 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (124)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_5,
     );
-    let mut lispDatum_6: LispObj = LispObj {
+    let mut lispDatum_6: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_5 { u: 0 },
         },
     };
-    lispDatum_6.parts.data.u = 0 as usize as isize as ui32;
-    lispDatum_6.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_6.parts.data.u = 0  ;
+    lispDatum_6.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xf8041000 as libc::c_long as libc::c_ulong)
+        (0xf8041000 )
             .wrapping_add(
-                (128 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (128)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_6,
     );
@@ -943,10 +802,10 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     mut ifc: *mut ifconf_t,
 ) {
     let mut cp: EmbPtr = EmbCommAreaAlloc(
-        ::std::mem::size_of::<EmbNetChannel>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbNetChannel>(),
     );
     let mut p: *mut EmbNetChannel = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset(cp as isize) as *mut EmbWord as PtrV as *mut EmbNetChannel;
+        .offset(cp ) as *mut EmbWord as PtrV as *mut EmbNetChannel;
     let mut ifr: ifreq = ifreq {
         ifr_ifrn: C2RustUnnamed_3 {
             ifrn_name: [0; 16],
@@ -963,178 +822,178 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     let mut localFilters: [sock_filter; 7] = [
         {
             let mut init = sock_filter {
-                code: (0 as usize + 0x8 as usize + 0x20)
+                code: (0  + 0x8  + 0x20)
                     as libc::c_ushort,
-                jt: 0 as usize as __u8,
-                jf: 0 as usize as __u8,
-                k: 12 as usize as __u32,
+                jt: 0  as __u8,
+                jf: 0  as __u8,
+                k: 12  as __u32,
             };
             init
         },
         {
             let mut init = sock_filter {
-                code: (0x5 as usize + 0x10 as usize + 0)
+                code: (0x5  + 0x10  + 0)
                     as libc::c_ushort,
-                jt: 3 as usize as __u8,
-                jf: 0 as usize as __u8,
-                k: 0x806 as usize as __u32,
+                jt: 3  as __u8,
+                jf: 0  as __u8,
+                k: 0x806  as __u32,
             };
             init
         },
         {
             let mut init = sock_filter {
-                code: (0x5 as usize + 0x10 as usize + 0)
+                code: (0x5  + 0x10  + 0)
                     as libc::c_ushort,
-                jt: 0 as usize as __u8,
-                jf: 3 as usize as __u8,
-                k: 0x800 as usize as __u32,
+                jt: 0  as __u8,
+                jf: 3  as __u8,
+                k: 0x800  as __u32,
             };
             init
         },
         {
             let mut init = sock_filter {
-                code: (0 as usize + 0 as usize + 0x20)
+                code: (0  + 0  + 0x20)
                     as libc::c_ushort,
-                jt: 0 as usize as __u8,
-                jf: 0 as usize as __u8,
-                k: 30 as usize as __u32,
+                jt: 0  as __u8,
+                jf: 0  as __u8,
+                k: 30  as __u32,
             };
             init
         },
         {
             let mut init = sock_filter {
-                code: (0x5 as usize + 0x10 as usize + 0)
+                code: (0x5  + 0x10  + 0)
                     as libc::c_ushort,
-                jt: 0 as usize as __u8,
-                jf: 1 as usize as __u8,
-                k: 0 as usize as __u32,
+                jt: 0  as __u8,
+                jf: 1  as __u8,
+                k: 0  as __u32,
             };
             init
         },
         {
             let mut init = sock_filter {
-                code: (0x6 as usize + 0) as libc::c_ushort,
-                jt: 0 as usize as __u8,
-                jf: 0 as usize as __u8,
-                k: -(1) as libc::c_uint,
+                code: (0x6  + 0) as libc::c_ushort,
+                jt: 0  as __u8,
+                jf: 0  as __u8,
+                k: -(1) ,
             };
             init
         },
         {
             let mut init = sock_filter {
-                code: (0x6 as usize + 0) as libc::c_ushort,
-                jt: 0 as usize as __u8,
-                jf: 0 as usize as __u8,
-                k: 0 as usize as __u32,
+                code: (0x6  + 0) as libc::c_ushort,
+                jt: 0  as __u8,
+                jf: 0  as __u8,
+                k: 0  as __u32,
             };
             init
         },
     ];
-    let mut etherTypeOffset: libc::c_ushort = (12 as libc::c_ulong)
-        .wrapping_div(::std::mem::size_of::<libc::c_ushort>() as libc::c_ulong)
+    let mut etherTypeOffset: libc::c_ushort = (12)
+        .wrapping_div(::std::mem::size_of::<libc::c_ushort>())
         as libc::c_ushort;
-    let mut ipAddressOffset: libc::c_ushort = (16 as libc::c_ulong)
-        .wrapping_add(::std::mem::size_of::<ether_header>() as libc::c_ulong)
-        .wrapping_div(::std::mem::size_of::<libc::c_ushort>() as libc::c_ulong)
+    let mut ipAddressOffset: libc::c_ushort = (16)
+        .wrapping_add(::std::mem::size_of::<ether_header>())
+        .wrapping_div(::std::mem::size_of::<libc::c_ushort>())
         as libc::c_ushort;
-    let mut interfaceIndex: usize = 0;
-    let mut i: usize = 0;
+    let mut interfaceIndex: u32 = 0;
+    let mut i: u32 = 0;
     let mut pInterface: *mut NetworkInterface = 0 as *mut NetworkInterface;
     let mut guestAddress: in_addr = in_addr { s_addr: 0 };
     let mut addressAsString: [libc::c_char; 4096] = [0; 4096];
-    let mut firstInterface: Boole = 0;
+    let mut firstInterface: bool = 0;
     pInputChannel = p;
     (*p).type_0 = EmbNetworkChannelType;
     (*p).unit = unitNumber;
     (*p).fd = -(1);
-    (*p).receiverThreadSetup = 0 as usize as Boole;
+    (*p).receiverThreadSetup = false;
     (*p).next = (*EmbCommAreaPtr).channel_table;
     (*EmbCommAreaPtr).channel_table = cp;
-    if (*interface).device[0 as usize as usize] != 0 {
+    if (*interface).device[0  ] != 0 {
         let ref mut fresh0 = (*p).name1;
         *fresh0 = 0;
         (*p).name0 = *fresh0;
         memcpy(
-            &mut (*p).name0 as *mut EmbWord as &str as *mut libc::c_void,
-            ((*interface).device).as_mut_ptr() as *const libc::c_void,
-            (2 as usize as libc::c_ulong)
-                .wrapping_mul(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+            &mut (*p).name0 as *mut EmbWord as &str ,
+            ((*interface).device).as_mut_ptr() ,
+            (2)
+                .wrapping_mul(::std::mem::size_of::<EmbWord>()),
         );
         printf(
-            b"device %s\n\0" as *const u8 as *const libc::c_char,
+            b"device %s\n\0"  ,
             ((*interface).device).as_mut_ptr(),
         );
         strncpy(
             (ifr.ifr_ifrn.ifrn_name).as_mut_ptr(),
             ((*interface).device).as_mut_ptr(),
-            16 as usize as libc::c_ulong,
+            16,
         );
         if ioctl(
             ipSocket,
-            0x8933 as usize as libc::c_ulong,
+            0x8933,
             &mut ifr as *mut ifreq,
         ) < 0
         {
             vpunt(
-                 "" ,
+
                 b"Unable to determine interface index of network device %s\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 ((*interface).device).as_mut_ptr(),
             );
         }
         interfaceIndex = ifr.ifr_ifru.ifru_ivalue;
         if ioctl(
             ipSocket,
-            0x8913 as usize as libc::c_ulong,
+            0x8913,
             &mut ifr as *mut ifreq,
         ) < 0
         {
             vpunt(
-                 "" ,
-                b"Unable to determine attributes of network device %s\0" as *const u8
-                    as *const libc::c_char as&str,
+
+                b"Unable to determine attributes of network device %s\0"
+                     as&str,
                 ((*interface).device).as_mut_ptr(),
             );
         }
-        if ifr.ifr_ifru.ifru_flags as usize & IFF_LOOPBACK as usize != 0 {
+        if ifr.ifr_ifru.ifru_flags  & IFF_LOOPBACK  != 0 {
             vpunt(
-                 "" ,
+
                 b"Unable to attach VLM network interface #%d to device %s as it is a loopback device\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 unitNumber,
                 ((*interface).device).as_mut_ptr(),
             );
         }
         if ifr.ifr_ifru.ifru_flags
-            & (IFF_UP as usize | IFF_RUNNING)
-            != IFF_UP as usize | IFF_RUNNING
+            & (IFF_UP  | IFF_RUNNING)
+            != IFF_UP  | IFF_RUNNING
         {
             vpunt(
-                 "" ,
+
                 b"Unable to attach VLM network interface #%d to device %s as it is not up and running\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 unitNumber,
                 ((*interface).device).as_mut_ptr(),
             );
         }
         if ioctl(
             ipSocket,
-            0x8927 as usize as libc::c_ulong,
+            0x8927,
             &mut ifr as *mut ifreq,
         ) < 0
         {
             vpunt(
-                 "" ,
+
                 b"Unable to determine hardware interface address for network device %s\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 ((*interface).device).as_mut_ptr(),
             );
         }
-        if ifr.ifr_ifru.ifru_hwaddr.sa_family as usize != 1 as usize {
+        if ifr.ifr_ifru.ifru_hwaddr.sa_family  != 1  {
             vpunt(
-                 "" ,
+
                 b"Unable to attach VLM network interface #%d to device %s as it does not use Ethernet packet formats\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 unitNumber,
                 ((*interface).device).as_mut_ptr(),
             );
@@ -1144,13 +1003,13 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
         (*p).hardwareAddressHigh = *fresh1;
         memcpy(
             &mut (*p).hardwareAddressHigh as *mut EmbWord as&str
-                as *mut libc::c_void,
-            (ifr.ifr_ifru.ifru_hwaddr.sa_data).as_mut_ptr() as *const libc::c_void,
-            (2 as usize as libc::c_ulong)
-                .wrapping_mul(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                ,
+            (ifr.ifr_ifru.ifru_hwaddr.sa_data).as_mut_ptr() ,
+            (2)
+                .wrapping_mul(::std::mem::size_of::<EmbWord>()),
         );
         printf(
-            b"hw address %d %d\n\0" as *const u8 as *const libc::c_char,
+            b"hw address %d %d\n\0"  ,
             (*p).hardwareAddressHigh,
             (*p).hardwareAddressLow,
         );
@@ -1158,63 +1017,63 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
         interfaceIndex = -(1);
         saved_ifs = if_nameindex();
         ifs = saved_ifs;
-        while (*ifs).if_index != 0 as usize as libc::c_uint
+        while (*ifs).if_index != 0
             && !((*ifs).if_name).is_null()
         {
             strncpy(
                 (ifr.ifr_ifrn.ifrn_name).as_mut_ptr(),
                 (*ifs).if_name,
-                16 as usize as libc::c_ulong,
+                16,
             );
             if ioctl(
                 ipSocket,
-                0x8913 as usize as libc::c_ulong,
+                0x8913,
                 &mut ifr as *mut ifreq,
             ) < 0
             {
                 vpunt(
-                     "" ,
-                    b"Unable to determine attributes of network device %s\0" as *const u8
-                        as *const libc::c_char as&str,
+
+                    b"Unable to determine attributes of network device %s\0"
+                         as&str,
                     (ifr.ifr_ifrn.ifrn_name).as_mut_ptr(),
                 );
             }
             if ifr.ifr_ifru.ifru_flags
-                & (IFF_UP as usize | IFF_RUNNING
+                & (IFF_UP  | IFF_RUNNING
                     | IFF_LOOPBACK)
-                == IFF_UP as usize | IFF_RUNNING
+                == IFF_UP  | IFF_RUNNING
             {
                 if ioctl(
                     ipSocket,
-                    0x8927 as usize as libc::c_ulong,
+                    0x8927,
                     &mut ifr as *mut ifreq,
                 ) < 0
                 {
                     vpunt(
-                         "" ,
+
                         b"Unable to determine hardware address for network device %s\0"
-                            as *const u8 as *const libc::c_char as&str,
+                              as&str,
                         (ifr.ifr_ifrn.ifrn_name).as_mut_ptr(),
                     );
                 }
-                if ifr.ifr_ifru.ifru_hwaddr.sa_family as usize == 1
+                if ifr.ifr_ifru.ifru_hwaddr.sa_family  == 1
                 {
                     interfaceIndex = (*ifs).if_index;
                     strncpy(
                         ((*interface).device).as_mut_ptr(),
                         (*ifs).if_name,
-                        16 as usize as libc::c_ulong,
+                        16,
                     );
                     let ref mut fresh2 = (*p).name1;
                     *fresh2 = 0;
                     (*p).name0 = *fresh2;
                     memcpy(
                         &mut (*p).name0 as *mut EmbWord as&str
-                            as *mut libc::c_void,
-                        (*ifs).if_name as *const libc::c_void,
-                        (2 as usize as libc::c_ulong)
+                            ,
+                        (*ifs).if_name ,
+                        (2)
                             .wrapping_mul(
-                                ::std::mem::size_of::<EmbWord>() as libc::c_ulong,
+                                ::std::mem::size_of::<EmbWord>(),
                             ),
                     );
                     let ref mut fresh3 = (*p).hardwareAddressLow;
@@ -1222,12 +1081,12 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
                     (*p).hardwareAddressHigh = *fresh3;
                     memcpy(
                         &mut (*p).hardwareAddressHigh as *mut EmbWord
-                            as &str as *mut libc::c_void,
+                            as &str ,
                         (ifr.ifr_ifru.ifru_hwaddr.sa_data).as_mut_ptr()
-                            as *const libc::c_void,
-                        (2 as usize as libc::c_ulong)
+                            ,
+                        (2)
                             .wrapping_mul(
-                                ::std::mem::size_of::<EmbWord>() as libc::c_ulong,
+                                ::std::mem::size_of::<EmbWord>(),
                             ),
                     );
                     break;
@@ -1236,11 +1095,11 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
             ifs = ifs.offset(1);
         }
         if_freenameindex(saved_ifs);
-        if interfaceIndex < 0 as usize {
+        if interfaceIndex < 0  {
             vpunt(
-                 "" ,
+
                 b"Unable to find an Ethernet interface to attach to VLM network interface #%d\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 unitNumber,
             );
         }
@@ -1250,15 +1109,15 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     while i < (*ifc).ifc_len {
         if strncmp(
             ((*interface).device).as_mut_ptr(),
-            ((*((*ifc).ifc_ifcu.ifcu_req).offset(i as isize)).ifr_ifrn.ifrn_name)
+            ((*((*ifc).ifc_ifcu.ifcu_req).offset(i )).ifr_ifrn.ifrn_name)
                 .as_mut_ptr(),
-            16 as usize as libc::c_ulong,
+            16,
         ) == 0
         {
             (*p).hostPrimaryProtocol = 0x800;
             (*p)
                 .hostPrimaryAddress = (*(&mut (*((*ifc).ifc_ifcu.ifcu_req)
-                .offset(i as isize))
+                .offset(i ))
                 .ifr_ifru
                 .ifru_addr as *mut sockaddr as *mut sockaddr_in))
                 .sin_addr
@@ -1270,84 +1129,84 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     }
     if (*p).hostPrimaryProtocol == -(1) {
         vpunt(
-             "" ,
+
             b"Unable to determine IP address assigned to network device %s\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             ((*interface).device).as_mut_ptr(),
         );
     }
     printf(
-        b"hostPrimaryAddress %d\n\0" as *const u8 as *const libc::c_char,
+        b"hostPrimaryAddress %d\n\0"  ,
         (*p).hostPrimaryAddress,
     );
     printf(
-        b"guestPrimaryAddress %d\n\0" as *const u8 as *const libc::c_char,
+        b"guestPrimaryAddress %d\n\0"  ,
         (*p).guestPrimaryAddress,
     );
     (*p)
         .fd = socket(
         17,
         SOCK_RAW,
-        htons(0x3 as usize as uint16_t),
+        htons(0x3  as uint16_t),
     );
-    if (*p).fd < 0 as usize {
+    if (*p).fd < 0  {
         vpunt(
-             "" ,
-            b"Unable to open packet socket for VLM network interface #%d\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to open packet socket for VLM network interface #%d\0"
+                 as&str,
             unitNumber,
         );
     }
     memset(
-        &mut (*p).sll as *mut sockaddr_ll as *mut libc::c_void,
+        &mut (*p).sll as *mut sockaddr_ll ,
         0,
-        ::std::mem::size_of::<sockaddr_ll>() as libc::c_ulong,
+        ::std::mem::size_of::<sockaddr_ll>(),
     );
-    (*p).sll.sll_family = 17 as usize as libc::c_ushort;
+    (*p).sll.sll_family = 17  as libc::c_ushort;
     (*p).sll.sll_ifindex = interfaceIndex;
-    (*p).sll.sll_protocol = htons(0x3 as usize as uint16_t);
+    (*p).sll.sll_protocol = htons(0x3  as uint16_t);
     if bind(
         (*p).fd,
         &mut (*p).sll as *mut sockaddr_ll as *mut sockaddr,
-        ::std::mem::size_of::<sockaddr_ll>() as libc::c_ulong as socklen_t,
+        ::std::mem::size_of::<sockaddr_ll>() as socklen_t,
     ) < 0
     {
         vpunt(
-             "" ,
-            b"Unable to attach VLM network interface #%d to device %s\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to attach VLM network interface #%d to device %s\0"
+                 as&str,
             unitNumber,
             ((*interface).device).as_mut_ptr(),
         );
     }
-    (*p).sll.sll_protocol = 0 as usize as libc::c_ushort;
-    (*p).sll.sll_halen = 6 as usize as libc::c_uchar;
+    (*p).sll.sll_protocol = 0  as libc::c_ushort;
+    (*p).sll.sll_halen = 6  as libc::c_uchar;
     printf(
-        b"filter myAddress %08x\n\0" as *const u8 as *const libc::c_char,
+        b"filter myAddress %08x\n\0"  ,
         (*interface).myAddress.s_addr,
     );
-    localFilters[4 as usize as usize].k = (*interface).myAddress.s_addr;
+    localFilters[4  ].k = (*interface).myAddress.s_addr;
     memcpy(
-        ((*p).filter.filters).as_mut_ptr() as *mut libc::c_void,
-        localFilters.as_mut_ptr() as *const libc::c_void,
-        ::std::mem::size_of::<[sock_filter; 7]>() as libc::c_ulong,
+        ((*p).filter.filters).as_mut_ptr() ,
+        localFilters.as_mut_ptr() ,
+        ::std::mem::size_of::<[sock_filter; 7]>(),
     );
-    (*p).filter.fprog.len = 7 as usize as libc::c_ushort;
+    (*p).filter.fprog.len = 7  as libc::c_ushort;
     let ref mut fresh4 = (*p).filter.fprog.filter;
     *fresh4 = &mut (*p).filter.filters as *mut [sock_filter; 6] as *mut sock_filter;
-    printf(b"attach filter\n\0" as *const u8 as *const libc::c_char);
+    printf(b"attach filter\n\0"  );
     if setsockopt(
         (*p).fd,
         1,
         26,
-        &mut (*p).filter.fprog as *mut sock_fprog as *const libc::c_void,
-        ::std::mem::size_of::<sock_fprog>() as libc::c_ulong as socklen_t,
+        &mut (*p).filter.fprog as *mut sock_fprog ,
+        ::std::mem::size_of::<sock_fprog>() as socklen_t,
     ) != 0
     {
         vpunt(
-             "" ,
+
             b"Unable to set packet filter program for VLM network interface #%d\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             unitNumber,
         );
     }
@@ -1355,43 +1214,43 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     *fresh5 = 0 as *mut EmbNetARPReq;
     pInterface = interface;
     while !pInterface.is_null() {
-        if (*pInterface).myProtocol as usize == 0x800 as usize {
+        if (*pInterface).myProtocol  == 0x800  {
             let mut arpReqPtr: EmbPtr = EmbCommAreaAlloc(
-                ::std::mem::size_of::<EmbNetARPReq>() as libc::c_ulong,
+                ::std::mem::size_of::<EmbNetARPReq>(),
             );
             let mut pARP: *mut EmbNetARPReq = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                .offset(arpReqPtr as isize) as *mut EmbWord as PtrV as *mut EmbNetARPReq;
+                .offset(arpReqPtr ) as *mut EmbWord as PtrV as *mut EmbNetARPReq;
             let ref mut fresh6 = (*pARP).next;
             *fresh6 = (*p).arpReq;
             let ref mut fresh7 = (*p).arpReq;
             *fresh7 = pARP;
-            (*pARP).arp.arp_pa.sa_family = 2 as usize as sa_family_t;
+            (*pARP).arp.arp_pa.sa_family = 2  as sa_family_t;
             (*(&mut (*pARP).arp.arp_pa as *mut sockaddr as *mut sockaddr_in))
                 .sin_addr
                 .s_addr = htonl((*pInterface).myAddress.s_addr);
-            (*pARP).arp.arp_ha.sa_family = 1 as usize as sa_family_t;
+            (*pARP).arp.arp_ha.sa_family = 1  as sa_family_t;
             memcpy(
-                ((*pARP).arp.arp_ha.sa_data).as_mut_ptr() as *mut libc::c_void,
-                &mut (*p).hardwareAddressHigh as *mut EmbWord as *const libc::c_void,
-                (2 as usize as libc::c_ulong)
-                    .wrapping_mul(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                ((*pARP).arp.arp_ha.sa_data).as_mut_ptr() ,
+                &mut (*p).hardwareAddressHigh as *mut EmbWord ,
+                (2)
+                    .wrapping_mul(::std::mem::size_of::<EmbWord>()),
             );
-            (*pARP).arp.arp_flags = 0x2 as usize | 0x4;
+            (*pARP).arp.arp_flags = 0x2  | 0x4;
             memcpy(
-                ((*pARP).arp.arp_dev).as_mut_ptr() as *mut libc::c_void,
-                ((*interface).device).as_mut_ptr() as *const libc::c_void,
-                ::std::mem::size_of::<[libc::c_char; 16]>() as libc::c_ulong,
+                ((*pARP).arp.arp_dev).as_mut_ptr() ,
+                ((*interface).device).as_mut_ptr() ,
+                ::std::mem::size_of::<[libc::c_char; 16]>(),
             );
             if ioctl(
                 ipSocket,
-                0x8955 as usize as libc::c_ulong,
+                0x8955,
                 &mut (*pARP).arp as *mut arpreq,
             ) < 0
             {
                 vpunt(
-                     "" ,
+
                     b"Unable to establish ARP mappings for VLM network interface #%d\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     unitNumber,
                 );
             }
@@ -1407,11 +1266,11 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     (*p)
         .guestToHostQueue = CreateQueue(
         20,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh9 = (*p).guestToHostQ;
     *fresh9 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).guestToHostQueue as isize) as *mut EmbWord as PtrV as *mut EmbQueue;
+        .offset((*p).guestToHostQueue ) as *mut EmbWord as PtrV as *mut EmbQueue;
     (*(*p).guestToHostQ)
         .signal = InstallSignalHandler(
         ::std::mem::transmute::<
@@ -1424,61 +1283,61 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
             ),
         ),
         p as PtrV,
-        0 as usize as Boole,
+        false,
     );
     (*p)
         .guestToHostReturnQueue = CreateQueue(
         20,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh10 = (*p).guestToHostReturnQ;
     *fresh10 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).guestToHostReturnQueue as isize) as *mut EmbWord as PtrV
+        .offset((*p).guestToHostReturnQueue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
     (*p)
         .hostToGuestSupplyQueue = CreateQueue(
         100,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh11 = (*p).hostToGuestSupplyQ;
     *fresh11 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).hostToGuestSupplyQueue as isize) as *mut EmbWord as PtrV
+        .offset((*p).hostToGuestSupplyQueue ) as *mut EmbWord as PtrV
         as *mut EmbQueue;
     (*p)
         .hostToGuestQueue = CreateQueue(
         100,
-        ::std::mem::size_of::<EmbPtr>() as libc::c_ulong,
+        ::std::mem::size_of::<EmbPtr>(),
     );
     let ref mut fresh12 = (*p).hostToGuestQ;
     *fresh12 = &mut *(EmbCommAreaPtr as *mut EmbWord)
-        .offset((*p).hostToGuestQueue as isize) as *mut EmbWord as PtrV as *mut EmbQueue;
+        .offset((*p).hostToGuestQueue ) as *mut EmbWord as PtrV as *mut EmbQueue;
     pInterface = interface;
-    firstInterface = 1 as usize as Boole;
+    firstInterface = true;
     while !pInterface.is_null() {
         if firstInterface != 0 {
             addressAsString[0
-                as usize] = 0 as usize as libc::c_char;
+                ] = 0  ;
         } else {
             sprintf(
                 addressAsString.as_mut_ptr(),
-                b"%s,\0" as *const u8 as *const libc::c_char,
+                b"%s,\0"  ,
                 addressAsString.as_mut_ptr(),
             );
         }
-        if (*pInterface).device[0 as usize as usize] != 0 {
+        if (*pInterface).device[0  ] != 0 {
             sprintf(
                 addressAsString.as_mut_ptr(),
-                b"%s%s:\0" as *const u8 as *const libc::c_char,
+                b"%s%s:\0"  ,
                 addressAsString.as_mut_ptr(),
                 ((*pInterface).device).as_mut_ptr(),
             );
         }
-        match (*pInterface).myProtocol as usize {
+        match (*pInterface).myProtocol  {
             2048 => {
                 guestAddress.s_addr = htonl((*pInterface).myAddress.s_addr);
                 sprintf(
                     addressAsString.as_mut_ptr(),
-                    b"%sINTERNET|%s\0" as *const u8 as *const libc::c_char,
+                    b"%sINTERNET|%s\0"  ,
                     addressAsString.as_mut_ptr(),
                     inet_ntoa(guestAddress),
                 );
@@ -1486,23 +1345,23 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
             2052 => {
                 sprintf(
                     addressAsString.as_mut_ptr(),
-                    b"%sCHAOS|%o\0" as *const u8 as *const libc::c_char,
+                    b"%sCHAOS|%o\0"  ,
                     addressAsString.as_mut_ptr(),
                     htonl((*pInterface).myAddress.s_addr),
                 );
             }
             _ => {}
         }
-        if (*pInterface).myOptions[0 as usize as usize] != 0 {
+        if (*pInterface).myOptions[0  ] != 0 {
             sprintf(
                 addressAsString.as_mut_ptr(),
-                b"%s;%s\0" as *const u8 as *const libc::c_char,
+                b"%s;%s\0"  ,
                 addressAsString.as_mut_ptr(),
                 ((*pInterface).myOptions).as_mut_ptr(),
             );
         }
         pInterface = (*pInterface).anotherAddress;
-        firstInterface = 0 as usize as Boole;
+        firstInterface = false;
     }
     (*p).addressString = MakeEmbString(addressAsString.as_mut_ptr());
     if pthread_create(
@@ -1516,17 +1375,17 @@ pub  fn InitializeNetworkChannels(mut config: *mut VLMConfig) {
     ) != 0
     {
         vpunt(
-             "" ,
+
             b"Unable to create thread to receive packets for VLM network interface #%d\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             unitNumber,
         );
     }
-    (*p).receiverThreadSetup = 1 as usize as Boole;
+    (*p).receiverThreadSetup = true;
     let ref mut fresh13 = (*p).status;
     *fresh13 |= 1;
 }
-#[no_mangle]
+
 pub  fn ResetNetworkChannel(mut channel: *mut EmbChannel) {
     let mut netChannel: *mut EmbNetChannel = channel as *mut EmbNetChannel;
     ResetIncomingQueue((*netChannel).guestToHostQ);
@@ -1538,19 +1397,19 @@ static mut last_packet: [libc::c_char; 1560] = [0; 1560];
  fn new_packet(
     mut packet:&str,
     mut size: u32,
-) -> usize {
+) -> u32 {
     if memcmp(
-        last_packet.as_mut_ptr() as *const libc::c_void,
-        packet as *const libc::c_void,
-        size as libc::c_ulong,
+        last_packet.as_mut_ptr() ,
+        packet ,
+        size,
     ) == 0
     {
         return 0;
     }
     memcpy(
-        last_packet.as_mut_ptr() as *mut libc::c_void,
-        packet as *const libc::c_void,
-        size as libc::c_ulong,
+        last_packet.as_mut_ptr() ,
+        packet ,
+        size,
     );
     return 1;
 }
@@ -1561,121 +1420,121 @@ static mut last_packet: [libc::c_char; 1560] = [0; 1560];
     let mut netPacketPtr: EmbPtr = 0;
     let mut netPacket: *mut EmbNetPacket = 0 as *mut EmbNetPacket;
     netPacketPtr = EmbQueueTakeWord(supplyQueue);
-    netPacket = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(netPacketPtr as isize)
+    netPacket = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(netPacketPtr )
         as *mut EmbWord as PtrV as *mut EmbNetPacket;
     (*netPacket).nBytes = size;
     memcpy(
-        &mut *((*netPacket).data).as_mut_ptr().offset(0 as usize as isize)
-            as *mut EmbWord as *mut libc::c_void,
-        packet as *const libc::c_void,
-        size as libc::c_ulong,
+        &mut *((*netPacket).data).as_mut_ptr().offset(0 )
+            as *mut EmbWord ,
+        packet ,
+        size,
     );
     EmbQueuePutWord(receiveQueue, netPacketPtr);
 }
-#[no_mangle]
+
 pub  fn answer_arp(mut pkt:&str, mut size: u32) {
     let mut tmp: [libc::c_char; 10] = [0; 10];
-    let mut i: usize = 0;
-    *pkt.offset(21 as usize as isize) = 2 as usize as libc::c_char;
+    let mut i: u32 = 0;
+    *pkt.offset(21 ) = 2  ;
     memcpy(
-        tmp.as_mut_ptr() as *mut libc::c_void,
-        &mut *pkt.offset(22 as usize as isize) as&str
-            as *const libc::c_void,
-        10 as usize as libc::c_ulong,
+        tmp.as_mut_ptr() ,
+        &mut *pkt.offset(22 ) as&str
+            ,
+        10,
     );
     memcpy(
-        &mut *pkt.offset(22 as usize as isize) as&str
-            as *mut libc::c_void,
-        &mut *pkt.offset(32 as usize as isize) as&str
-            as *const libc::c_void,
-        10 as usize as libc::c_ulong,
+        &mut *pkt.offset(22 ) as&str
+            ,
+        &mut *pkt.offset(32 ) as&str
+            ,
+        10,
     );
     i = 0;
-    while i < 6 as usize {
-        tmp[i as usize] = i as libc::c_char;
+    while i < 6  {
+        tmp[i ] = i ;
         i += 1;
     }
     memcpy(
-        &mut *pkt.offset(32 as usize as isize) as&str
-            as *mut libc::c_void,
-        tmp.as_mut_ptr() as *const libc::c_void,
-        10 as usize as libc::c_ulong,
+        &mut *pkt.offset(32 ) as&str
+            ,
+        tmp.as_mut_ptr() ,
+        10,
     );
-    printf(b"answering arp\n\0" as *const u8 as *const libc::c_char);
+    printf(b"answering arp\n\0"  );
     recv_packet(pkt, size);
 }
-#[no_mangle]
+
 pub  fn dump_packet(
     mut who:&str,
     mut pkt: *mut libc::c_uchar,
     mut size: u32,
 ) {
-    let mut i: usize = 0;
-    let mut offset: usize = 0;
+    let mut i: u32 = 0;
+    let mut offset: u32 = 0;
     let mut p: *mut libc::c_uchar = 0 as *mut libc::c_uchar;
     let mut pp: *mut libc::c_uchar = 0 as *mut libc::c_uchar;
     let mut ptype: libc::c_ushort = 0;
-    let mut op: usize = 0;
-    let mut prot: usize = 0;
+    let mut op: u32 = 0;
+    let mut prot: u32 = 0;
     p = pkt;
-    ptype = ((*p.offset(12 as usize as isize)) << 8
-        | *p.offset(13 as usize as isize)) as libc::c_ushort;
-    match ptype as usize {
+    ptype = ((*p.offset(12 )) << 8
+        | *p.offset(13 )) as libc::c_ushort;
+    match ptype  {
         2054 => {}
         2048 => {
-            printf(b"%s ip: \0" as *const u8 as *const libc::c_char, who);
-            p = p.offset(14 as usize as isize);
-            prot = *p.offset(9 as usize as isize);
+            printf(b"%s ip: \0"  , who);
+            p = p.offset(14 );
+            prot = *p.offset(9 );
             printf(
-                b"%u.%u.%u.%u \0" as *const u8 as *const libc::c_char,
-                *p.offset(12 as usize as isize),
-                *p.offset(13 as usize as isize),
-                *p.offset(14 as usize as isize),
-                *p.offset(15 as usize as isize),
+                b"%u.%u.%u.%u \0"  ,
+                *p.offset(12 ),
+                *p.offset(13 ),
+                *p.offset(14 ),
+                *p.offset(15 ),
             );
             printf(
-                b"%u.%u.%u.%u \0" as *const u8 as *const libc::c_char,
-                *p.offset(16 as usize as isize),
-                *p.offset(17 as usize as isize),
-                *p.offset(18 as usize as isize),
-                *p.offset(19 as usize as isize),
+                b"%u.%u.%u.%u \0"  ,
+                *p.offset(16 ),
+                *p.offset(17 ),
+                *p.offset(18 ),
+                *p.offset(19 ),
             );
-            p = p.offset(20 as usize as isize);
+            p = p.offset(20 );
             match prot {
                 17 => {
                     printf(
-                        b"udp; %u %u\0" as *const u8 as *const libc::c_char,
-                        (*p.offset(0 as usize as isize))
+                        b"udp; %u %u\0"  ,
+                        (*p.offset(0 ))
                             << 8
-                            | *p.offset(1 as usize as isize),
-                        (*p.offset(2 as usize as isize))
+                            | *p.offset(1 ),
+                        (*p.offset(2 ))
                             << 8
-                            | *p.offset(3 as usize as isize),
+                            | *p.offset(3 ),
                     );
                 }
                 _ => {}
             }
-            printf(b"\n\0" as *const u8 as *const libc::c_char);
+            printf(b"\n\0"  );
         }
         _ => {
-            printf(b"%s \0" as *const u8 as *const libc::c_char, who);
+            printf(b"%s \0"  , who);
             i = 0;
-            while i < 8 as usize {
+            while i < 8  {
                 printf(
-                    b"%04x: %02x %02x %02x %02x %02x %02x %02x %02x\n\0" as *const u8
-                        as *const libc::c_char,
+                    b"%04x: %02x %02x %02x %02x %02x %02x %02x %02x\n\0"
+                        ,
                     offset,
-                    *p.offset(0 as usize as isize),
-                    *p.offset(1 as usize as isize),
-                    *p.offset(2 as usize as isize),
-                    *p.offset(3 as usize as isize),
-                    *p.offset(4 as usize as isize),
-                    *p.offset(5 as usize as isize),
-                    *p.offset(6 as usize as isize),
-                    *p.offset(7 as usize as isize),
+                    *p.offset(0 ),
+                    *p.offset(1 ),
+                    *p.offset(2 ),
+                    *p.offset(3 ),
+                    *p.offset(4 ),
+                    *p.offset(5 ),
+                    *p.offset(6 ),
+                    *p.offset(7 ),
                 );
                 offset += 8;
-                p = p.offset(8 as usize as isize);
+                p = p.offset(8 );
                 i += 1;
             }
         }
@@ -1690,36 +1549,36 @@ pub  fn dump_packet(
     let mut nBytes: ssize_t = 0;
     let mut actualBytes: ssize_t = 0;
     while EmbQueueFilled(transmitQueue) != 0 {
-        if 0 as usize == EmbQueueSpace(returnQueue) {
+        if 0  == EmbQueueSpace(returnQueue) {
             SignalLater((*transmitQueue).signal);
             return;
         }
         netPacketPtr = EmbQueueTakeWord(transmitQueue);
-        if (netPacketPtr as u64 as *mut libc::c_void).is_null() {
+        if (netPacketPtr as u64 ).is_null() {
             netPacketPtr = -(1);
         }
         if netPacketPtr != -(1) {
             netPacket = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                .offset(netPacketPtr as isize) as *mut EmbWord as PtrV
+                .offset(netPacketPtr ) as *mut EmbWord as PtrV
                 as *mut EmbNetPacket;
             nBytes = (*netPacket).nBytes as ssize_t;
             memcpy(
-                ((*netChannel).sll.sll_addr).as_mut_ptr() as *mut libc::c_void,
+                ((*netChannel).sll.sll_addr).as_mut_ptr() ,
                 ((*(((*netPacket).data).as_mut_ptr() as *mut ethhdr)).h_dest)
-                    .as_mut_ptr() as *const libc::c_void,
-                6 as usize as libc::c_ulong,
+                    .as_mut_ptr() ,
+                6,
             );
             actualBytes = sendto(
                 (*netChannel).fd,
-                &mut *((*netPacket).data).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut EmbWord as *const libc::c_void,
-                nBytes as size_t,
+                &mut *((*netPacket).data).as_mut_ptr().offset(0 )
+                    as *mut EmbWord ,
+                nBytes,
                 0,
                 0 as *const sockaddr,
-                ::std::mem::size_of::<sockaddr_ll>() as libc::c_ulong as socklen_t,
+                ::std::mem::size_of::<sockaddr_ll>() as socklen_t,
             );
             if actualBytes != nBytes {
-                printf(b"tx error\n\0" as *const u8 as *const libc::c_char);
+                printf(b"tx error\n\0"  );
                 let ref mut fresh14 = (*netChannel).nTransmitFailures;
                 *fresh14 += 1;
             }
@@ -1742,13 +1601,13 @@ pub  fn dump_packet(
                     ),
                 ),
                 nBytes,
-            ) != 0 || 1 as usize != 0
+            ) != 0 || 1  != 0
             {
                 dump_packet(
-                    b"tx\0" as *const u8 as *const libc::c_char as&str,
+                    b"tx\0"   as&str,
                     &mut *((*netPacket).data)
                         .as_mut_ptr()
-                        .offset(0 as usize as isize) as *mut EmbWord
+                        .offset(0 ) as *mut EmbWord
                         as *mut libc::c_uchar,
                     nBytes,
                 );
@@ -1758,7 +1617,7 @@ pub  fn dump_packet(
     }
 }
  fn NetworkChannelReceiver(mut argument: pthread_addr_t) {
-    let mut self_0: pthread_t = pthread_self();
+    let mut self_0: u64 = pthread_self();
     let mut netChannel: *mut EmbNetChannel = argument as *mut EmbNetChannel;
     let mut supplyQueue: *mut EmbQueue = (*netChannel).hostToGuestSupplyQ;
     let mut receiveQueue: *mut EmbQueue = (*netChannel).hostToGuestQ;
@@ -1786,102 +1645,102 @@ pub  fn dump_packet(
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(pthread_t) -> u32>,
+        Option::<fn(u64) -> u32>,
         pthread_cleanuproutine_t,
-    >(Some(pthread_detach as fn(pthread_t) -> u32));
-    let mut __cancel_arg: *mut libc::c_void = self_0 as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+    >(Some(pthread_detach as fn(u64) -> u32));
+    let mut __cancel_arg: *mut libc::c_void = self_0 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     pollReceiver.fd = (*netChannel).fd;
-    pollReceiver.events = 0x1 as usize as libc::c_short;
+    pollReceiver.events = 0x1  as libc::c_short;
     loop {
-        pthread_testcancel();
-        pollReceiver.revents = 0 as usize as libc::c_short;
-        poll(&mut pollReceiver, 1 as usize as nfds_t, 1000);
-        if 0 as usize == pollReceiver.revents as usize & 0x1 as usize {
+        u64estcancel();
+        pollReceiver.revents = 0  as libc::c_short;
+        poll(&mut pollReceiver, 1  as nfds_t, 1000);
+        if 0  == pollReceiver.revents  & 0x1  {
             continue;
         }
-        sllLen = ::std::mem::size_of::<sockaddr_ll>() as libc::c_ulong as socklen_t;
+        sllLen = ::std::mem::size_of::<sockaddr_ll>() as socklen_t;
         actualBytes = recvfrom(
             (*netChannel).fd,
-            &mut (*netChannel).receiveBuffer as *mut [Byte; 1516] as *mut libc::c_void,
-            1516 as usize as size_t,
+            &mut (*netChannel).receiveBuffer as *mut [Byte; 1516] ,
+            1516,
             MSG_TRUNC,
             &mut sll as *mut sockaddr_ll as *mut sockaddr,
             &mut sllLen,
         );
         dump_packet(
-            b"rx\0" as *const u8 as *const libc::c_char as&str,
+            b"rx\0"   as&str,
             &mut (*netChannel).receiveBuffer as *mut [Byte; 1516] as *mut libc::c_uchar,
             actualBytes,
         );
-        if actualBytes < 0 as usize as libc::c_long {
+        if actualBytes < 0   {
             let ref mut fresh15 = (*netChannel).nReceiveFailures;
             *fresh15 += 1;
-        } else if 0 as usize as libc::c_long == actualBytes {
+        } else if 0   == actualBytes {
             let ref mut fresh16 = (*netChannel).nFalseReceiverWakeups;
             *fresh16 += 1;
-        } else if 0 as usize == EmbQueueSpace(supplyQueue)
-            || 0 as usize == EmbQueueSpace(receiveQueue)
+        } else if 0  == EmbQueueSpace(supplyQueue)
+            || 0  == EmbQueueSpace(receiveQueue)
         {
             let ref mut fresh17 = (*netChannel).nReceivedPacketsLost;
             *fresh17 += 1;
         } else {
             loop {
                 netPacketPtr = EmbQueueTakeWord(supplyQueue);
-                if !(0 as usize == netPacketPtr) {
+                if !(0  == netPacketPtr) {
                     break;
                 }
-                receiverPause.tv_sec = 0 as usize as __time_t;
-                receiverPause.tv_nsec = 1000000 as libc::c_long;
+                receiverPause.tv_sec = 0  as __time_t;
+                receiverPause.tv_nsec = 1000000 ;
                 if pthread_delay_np(&mut receiverPause) != 0 {
                     vpunt(
-                         "" ,
-                        b"Unable to sleep in thread %lx\0" as *const u8
-                            as *const libc::c_char as&str,
+
+                        b"Unable to sleep in thread %lx\0"
+                             as&str,
                         self_0,
                     );
                 }
             }
             netPacket = &mut *(EmbCommAreaPtr as *mut EmbWord)
-                .offset(netPacketPtr as isize) as *mut EmbWord as PtrV
+                .offset(netPacketPtr ) as *mut EmbWord as PtrV
                 as *mut EmbNetPacket;
             (*netPacket).nBytes = actualBytes as EmbWord;
             memcpy(
-                &mut *((*netPacket).data).as_mut_ptr().offset(0 as usize as isize)
-                    as *mut EmbWord as *mut libc::c_void,
+                &mut *((*netPacket).data).as_mut_ptr().offset(0 )
+                    as *mut EmbWord ,
                 &mut *((*netChannel).receiveBuffer)
                     .as_mut_ptr()
-                    .offset(0 as usize as isize) as *mut Byte
-                    as *const libc::c_void,
-                actualBytes as libc::c_ulong,
+                    .offset(0 ) as *mut Byte
+                    ,
+                actualBytes,
             );
             EmbQueuePutWord(receiveQueue, netPacketPtr);
         }
@@ -1892,17 +1751,17 @@ pub  fn dump_packet(
     mut ipSocket: u32,
 ) {
     let mut embARPReq: *mut EmbNetARPReq = 0 as *mut EmbNetARPReq;
-    let mut exit_value: *mut libc::c_void = 0 as *mut libc::c_void;
+    let mut exit_value: *mut libc::c_void = 0 ;
     if (*netChannel).receiverThreadSetup != 0 {
         pthread_cancel((*netChannel).receiverThread);
         pthread_join((*netChannel).receiverThread, &mut exit_value);
-        (*netChannel).receiverThreadSetup = 0 as usize as Boole;
+        (*netChannel).receiverThreadSetup = false;
     }
     embARPReq = (*netChannel).arpReq;
     while !embARPReq.is_null() {
         ioctl(
             ipSocket,
-            0x8953 as usize as libc::c_ulong,
+            0x8953,
             &mut (*embARPReq).arp as *mut arpreq,
         );
     }
@@ -1911,17 +1770,17 @@ pub  fn dump_packet(
         (*netChannel).fd = -(1);
     }
 }
-#[no_mangle]
+
 pub  fn TerminateNetworkChannels() {
     let mut netChannel: *mut EmbNetChannel = 0 as *mut EmbNetChannel;
     let mut channel: EmbPtr = 0;
-    let mut ipSocket: usize = 0;
+    let mut ipSocket: u32 = 0;
     ipSocket = socket(2, SOCK_STREAM, 0);
     channel = (*EmbCommAreaPtr).channel_table;
     while channel != -(1) {
-        netChannel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channel as isize)
+        netChannel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channel )
             as *mut EmbWord as PtrV as *mut EmbNetChannel;
-        if EmbNetworkChannelType as usize == (*netChannel).type_0 {
+        if EmbNetworkChannelType  == (*netChannel).type_0 {
             TerminateNetChannel(netChannel, ipSocket);
         }
         channel = (*netChannel).next;

@@ -4,22 +4,22 @@
 extern "C" {
     fn printf(_: *const libc::c_char, _: ...) -> u32;
     fn sched_yield() -> u32;
-    fn pthread_detach(__th: pthread_t) -> u32;
-    fn pthread_self() -> pthread_t;
+    fn pthread_detach(__th: u64) -> u32;
+    fn pthread_self() -> u64;
     fn __pthread_register_cancel(__buf: *mut __pthread_unwind_buf_t);
     fn __pthread_unregister_cancel(__buf: *mut __pthread_unwind_buf_t);
     fn __pthread_unwind_next(__buf: *mut __pthread_unwind_buf_t) -> !;
     fn __sigsetjmp(__env: *mut __jmp_buf_tag, __savemask: u32) -> u32;
-    fn pthread_mutex_lock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_unlock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_cond_broadcast(__cond: *mut pthread_cond_t) -> u32;
+    fn pthread_mutex_lock(__mutex: *mut u64) -> u32;
+    fn pthread_mutex_unlock(__mutex: *mut u64) -> u32;
+    fn pthread_cond_broadcast(__cond: *mut u64) -> u32;
     fn pthread_cond_wait(
-        __cond: *mut pthread_cond_t,
-        __mutex: *mut pthread_mutex_t,
+        __cond: *mut u64,
+        __mutex: *mut u64,
     ) -> u32;
-    fn pthread_cond_timedwait(
-        __cond: *mut pthread_cond_t,
-        __mutex: *mut pthread_mutex_t,
+    fn u64imedwait(
+        __cond: *mut u64,
+        __mutex: *mut u64,
         __abstime: *const timespec,
     ) -> u32;
     fn pthread_delay_np(interval: *const timespec) -> u32;
@@ -44,8 +44,8 @@ pub type u32 = libc::c_uint;
 pub type u64 = libc::c_ulong;
 pub type __time_t = libc::c_long;
 pub type __syscall_slong_t = libc::c_long;
-pub type __caddr_t =&str;
-pub type caddr_t = __caddr_t;
+pub type __u64 =&str;
+pub type u64 = __u64;
 pub type i32 = i32;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -66,7 +66,7 @@ pub union __atomic_wide_counter {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct C2RustUnnamed {
+pub struct QData {
     pub __low: libc::c_uint,
     pub __high: libc::c_uint,
 }
@@ -100,29 +100,29 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
 }
 pub type u8 = u8;
-pub type ui32 = u32;
+pub type u32 = u32;
 pub type u64 = u64;
 pub type __jmp_buf = [libc::c_long; 8];
 #[derive(Copy, Clone)]
@@ -149,9 +149,9 @@ pub type pthread_cleanuproutine_t = Option::<
     fn(*mut libc::c_void) -> (),
 >;
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -160,8 +160,8 @@ pub type Boole = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
+    pub handlerThread: u64,
+    pub handlerThreadSetup: bool,
     pub signal: SignalMask,
     pub handlerFunction: ProcPtrV,
     pub handlerArgument: PtrV,
@@ -217,46 +217,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_0,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
@@ -268,12 +268,12 @@ pub struct C2RustUnnamed_0 {
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct C2RustUnnamed_1 {
-    #[bitfield(name = "status", ty = "uEmbWord", bits = "0..=7")]
-    #[bitfield(name = "cursor", ty = "uEmbWord", bits = "8..=8")]
-    #[bitfield(name = "busy", ty = "uEmbWord", bits = "9..=9")]
-    #[bitfield(name = "error", ty = "uEmbWord", bits = "10..=10")]
-    #[bitfield(name = "lisp_is_loaded", ty = "uEmbWord", bits = "11..=11")]
-    #[bitfield(name = "c2rust_unnamed", ty = "uEmbWord", bits = "12..=31")]
+    #[bitfield(name = "status", ty = "UEmbWord", bits = "0..=7")]
+    #[bitfield(name = "cursor", ty = "UEmbWord", bits = "8..=8")]
+    #[bitfield(name = "busy", ty = "UEmbWord", bits = "9..=9")]
+    #[bitfield(name = "error", ty = "UEmbWord", bits = "10..=10")]
+    #[bitfield(name = "lisp_is_loaded", ty = "UEmbWord", bits = "11..=11")]
+    #[bitfield(name = "c2rust_unnamed", ty = "UEmbWord", bits = "12..=31")]
     pub status_cursor_busy_error_lisp_is_loaded_c2rust_unnamed: [u8; 4],
 }
 #[derive(Copy, Clone, BitfieldStruct)]
@@ -333,22 +333,22 @@ pub const EmbConsoleChannelType: EmbChannelType = 2;
 pub const EmbDiskChannelType: EmbChannelType = 1;
  fn VLMIsRunning(mut ep: *mut EmbCommArea) -> Boole {
     return ((*ep).spy_status == 0
-        && ((*ep).fep).status() as usize != HaltedFEPStatus)
-        as usize as Boole;
+        && ((*ep).fep).status()  != HaltedFEPStatus)
+        as bool;
 }
  fn VLMIsRunningLisp(mut ep: *mut EmbCommArea) -> Boole {
-    return (VLMIsRunning(ep) as usize != 0
-        && ((*ep).fep).status() as usize == IdleFEPStatus)
-        as usize as Boole;
+    return (VLMIsRunning(ep)  != 0
+        && ((*ep).fep).status()  == IdleFEPStatus)
+        as bool;
 }
  fn UpdateVLMStatus() {
     let mut ep: *mut EmbCommArea = EmbCommAreaPtr;
     match (*ep).guestStatus {
         0 | 1 => {
             (*ep)
-                .guestStatus = if VLMIsRunningLisp(ep) as usize != 0 {
+                .guestStatus = if VLMIsRunningLisp(ep)  != 0 {
                 RunningGuestStatus
-            } else if VLMIsRunning(ep) as usize != 0 {
+            } else if VLMIsRunning(ep)  != 0 {
                 InitializedGuestStatus
             } else {
                 (*ep).guestStatus
@@ -356,9 +356,9 @@ pub const EmbDiskChannelType: EmbChannelType = 1;
         }
         2 | 3 => {
             (*ep)
-                .guestStatus = if VLMIsRunningLisp(ep) as usize != 0 {
+                .guestStatus = if VLMIsRunningLisp(ep)  != 0 {
                 RunningGuestStatus
-            } else if VLMIsRunning(ep) as usize != 0 {
+            } else if VLMIsRunning(ep)  != 0 {
                 (*ep).guestStatus
             } else {
                 InitializingGuestStatus
@@ -366,9 +366,9 @@ pub const EmbDiskChannelType: EmbChannelType = 1;
         }
         4 | 5 => {
             (*ep)
-                .guestStatus = if VLMIsRunningLisp(ep) as usize != 0 {
+                .guestStatus = if VLMIsRunningLisp(ep)  != 0 {
                 RunningGuestStatus
-            } else if VLMIsRunning(ep) as usize != 0 {
+            } else if VLMIsRunning(ep)  != 0 {
                 CrashedGuestStatus
             } else {
                 InitializingGuestStatus
@@ -378,12 +378,12 @@ pub const EmbDiskChannelType: EmbChannelType = 1;
     }
     UpdateColdLoadNames();
 }
- fn ResetCommArea(mut fullReset: Boole) {
+ fn ResetCommArea(mut fullReset: bool) {
     let mut channel: *mut EmbChannel = 0 as *mut EmbChannel;
     let mut channelP: EmbPtr = 0;
     channelP = (*EmbCommAreaPtr).channel_table;
     while channelP != -(1) {
-        channel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channelP as isize)
+        channel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channelP )
             as *mut EmbWord as PtrV as *mut EmbChannel;
         match (*channel).type_0 {
             1 => {
@@ -421,10 +421,10 @@ pub const EmbDiskChannelType: EmbChannelType = 1;
         -5 => {}
         -4 => {}
         -1 => {
-            ResetCommArea(0 as usize as Boole);
+            ResetCommArea(false);
         }
         1 => {
-            ResetCommArea(1 as usize as Boole);
+            ResetCommArea(true);
             let ref mut fresh0 = (*EmbCommAreaPtr).resetRequestCount;
             *fresh0 += 1;
             (*EmbCommAreaPtr).restart_applications = 1;
@@ -433,30 +433,30 @@ pub const EmbDiskChannelType: EmbChannelType = 1;
     }
     (*EmbCommAreaPtr).reset_request = NoResetRequest;
 }
-#[no_mangle]
+
 pub  fn IvoryLifePolling(mut argument: pthread_addr_t) {
-    let mut self_0: pthread_t = pthread_self();
+    let mut self_0: u64 = pthread_self();
     let mut pollingSleep: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
-    pollingSleep.tv_sec = 0 as usize as __time_t;
-    pollingSleep.tv_nsec = 0 as usize as __syscall_slong_t;
+    pollingSleep.tv_sec = 0  as __time_t;
+    pollingSleep.tv_nsec = 0  as __syscall_slong_t;
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(pthread_t) -> u32>,
+        Option::<fn(u64) -> u32>,
         pthread_cleanuproutine_t,
-    >(Some(pthread_detach as fn(pthread_t) -> u32));
-    let mut __cancel_arg: *mut libc::c_void = self_0 as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+    >(Some(pthread_detach as fn(u64) -> u32));
+    let mut __cancel_arg: *mut libc::c_void = self_0 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
@@ -467,209 +467,209 @@ pub  fn IvoryLifePolling(mut argument: pthread_addr_t) {
                 __cancel_jmp_buf: [0; 8],
                 __mask_was_saved: 0,
             }; 1],
-            __pad: [0 as *mut libc::c_void; 4],
+            __pad: [0 ; 4],
         };
         let mut __cancel_routine_0: Option::<
             fn(*mut libc::c_void) -> (),
         > = ::std::mem::transmute::<
-            Option::<fn(*mut pthread_mutex_t) -> u32>,
+            Option::<fn(*mut u64) -> u32>,
             pthread_cleanuproutine_t,
         >(
             Some(
                 pthread_mutex_unlock
-                    as fn(*mut pthread_mutex_t) -> u32,
+                    as fn(*mut u64) -> u32,
             ),
         );
         let mut __cancel_arg_0: *mut libc::c_void = &mut (*EmbCommAreaPtr).signalLock
-            as *mut pthread_mutex_t as *mut libc::c_void;
-        let mut __not_first_call_0: usize = __sigsetjmp(
-            (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+            as *mut u64 ;
+        let mut __not_first_call_0: u32 = __sigsetjmp(
+            (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr()
                 as *mut __jmp_buf_tag,
             0,
         );
-        if __not_first_call_0 as libc::c_long != 0 {
+        if __not_first_call_0  != 0 {
             __cancel_routine_0.expect("non-null function pointer")(__cancel_arg_0);
             __pthread_unwind_next(&mut __cancel_buf_0);
         }
         __pthread_register_cancel(&mut __cancel_buf_0);
         if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
             vpunt(
-                 "" ,
+
                 b"Unable to lock the Life Support signalLock in thread %lx\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 pthread_self(),
             );
         }
         (*EmbCommAreaPtr).pollTime += pollingSleep.tv_nsec;
         PollMessageChannels();
-        if (*EmbCommAreaPtr).reset_request != NoResetRequest as usize {
+        if (*EmbCommAreaPtr).reset_request != NoResetRequest  {
             ProcessResetRequest();
-        } else if (*EmbCommAreaPtr).pollTime > 250000000 as libc::c_long {
-            (*EmbCommAreaPtr).pollTime = 0 as usize as libc::c_long;
+        } else if (*EmbCommAreaPtr).pollTime > 250000000  {
+            (*EmbCommAreaPtr).pollTime = 0  ;
             let ref mut fresh1 = (*EmbCommAreaPtr).guest_to_host_signals;
             *fresh1 |= (*EmbCommAreaPtr).live_guest_to_host_signals;
             if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).signalSignal) != 0 {
                 vpunt(
-                     "" ,
+
                     b"Unable to send Life Support signal signal in thread %lx\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     self_0,
                 );
             }
         } else if (*EmbCommAreaPtr).reawaken != 0 {
             let ref mut fresh2 = (*EmbCommAreaPtr).guest_to_host_signals;
             *fresh2 |= (*EmbCommAreaPtr).reawaken;
-            (*EmbCommAreaPtr).reawaken = 0 as usize as SignalMask;
+            (*EmbCommAreaPtr).reawaken = 0  as SignalMask;
             if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).signalSignal) != 0 {
                 vpunt(
-                     "" ,
+
                     b"Unable to send Life Support signal signal in thread %lx\0"
-                        as *const u8 as *const libc::c_char as&str,
+                          as&str,
                     self_0,
                 );
             }
         }
         if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
             vpunt(
-                 "" ,
+
                 b"Unable to unlock the Life Support signalLock in thread %lx\0"
-                    as *const u8 as *const libc::c_char as&str,
+                      as&str,
                 pthread_self(),
             );
         }
         __pthread_unregister_cancel(&mut __cancel_buf_0);
-        if (*EmbCommAreaPtr).clock_interval > 0 as usize {
+        if (*EmbCommAreaPtr).clock_interval > 0  {
             (*EmbCommAreaPtr).pollClockTime -= pollingSleep.tv_nsec;
-            if (*EmbCommAreaPtr).pollClockTime <= 0 as usize as libc::c_long {
+            if (*EmbCommAreaPtr).pollClockTime <= 0   {
                 EmbSendSignal((*EmbCommAreaPtr).clock_signal);
                 (*EmbCommAreaPtr)
                     .pollClockTime = (1000
-                    * (*EmbCommAreaPtr).clock_interval) as libc::c_long;
+                    * (*EmbCommAreaPtr).clock_interval) ;
             }
-            if (*EmbCommAreaPtr).pollClockTime > 250000000 as libc::c_long {
-                pollingSleep.tv_nsec = 250000000 as libc::c_long;
+            if (*EmbCommAreaPtr).pollClockTime > 250000000  {
+                pollingSleep.tv_nsec = 250000000 ;
             } else {
                 pollingSleep.tv_nsec = (*EmbCommAreaPtr).pollClockTime;
             }
         } else {
-            pollingSleep.tv_nsec = 7500000 as libc::c_long;
+            pollingSleep.tv_nsec = 7500000 ;
         }
         UpdateVLMStatus();
-        pollingSleep.tv_sec = 1 as usize as __time_t;
-        pollingSleep.tv_nsec = 0 as usize as __syscall_slong_t;
+        pollingSleep.tv_sec = 1  as __time_t;
+        pollingSleep.tv_nsec = 0  as __syscall_slong_t;
         if pthread_delay_np(&mut pollingSleep) != 0 {
             vpunt(
-                 "" ,
-                b"Unable to sleep in thread %lx\0" as *const u8 as *const libc::c_char
+
+                b"Unable to sleep in thread %lx\0"
                     as&str,
                 self_0,
             );
         }
     };
 }
-#[no_mangle]
+
 pub  fn IntervalTimerDriver(mut argument: pthread_addr_t) {
-    let mut self_0: pthread_t = pthread_self();
+    let mut self_0: u64 = pthread_self();
     let mut expirationTime: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
     let mut expirationInterval: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
-    let mut result: usize = 0;
+    let mut result: u32 = 0;
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(pthread_t) -> u32>,
+        Option::<fn(u64) -> u32>,
         pthread_cleanuproutine_t,
-    >(Some(pthread_detach as fn(pthread_t) -> u32));
-    let mut __cancel_arg: *mut libc::c_void = self_0 as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+    >(Some(pthread_detach as fn(u64) -> u32));
+    let mut __cancel_arg: *mut libc::c_void = self_0 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
-    (*EmbCommAreaPtr).clockTime = -(1) as libc::c_long;
+    (*EmbCommAreaPtr).clockTime = -(1) ;
     let mut __cancel_buf_0: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine_0: Option::<
         fn(*mut libc::c_void) -> (),
     > = ::std::mem::transmute::<
-        Option::<fn(*mut pthread_mutex_t) -> u32>,
+        Option::<fn(*mut u64) -> u32>,
         pthread_cleanuproutine_t,
     >(
         Some(
             pthread_mutex_unlock
-                as fn(*mut pthread_mutex_t) -> u32,
+                as fn(*mut u64) -> u32,
         ),
     );
     let mut __cancel_arg_0: *mut libc::c_void = &mut (*EmbCommAreaPtr).clockLock
-        as *mut pthread_mutex_t as *mut libc::c_void;
-    let mut __not_first_call_0: usize = __sigsetjmp(
-        (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+        as *mut u64 ;
+    let mut __not_first_call_0: u32 = __sigsetjmp(
+        (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call_0 as libc::c_long != 0 {
+    if __not_first_call_0  != 0 {
         __cancel_routine_0.expect("non-null function pointer")(__cancel_arg_0);
         __pthread_unwind_next(&mut __cancel_buf_0);
     }
     __pthread_register_cancel(&mut __cancel_buf_0);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).clockLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support clockLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support clockLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     loop {
-        if (*EmbCommAreaPtr).clockTime >= 0 as usize as libc::c_long {
-            expirationInterval.tv_sec = 0 as usize as __time_t;
+        if (*EmbCommAreaPtr).clockTime >= 0   {
+            expirationInterval.tv_sec = 0  as __time_t;
             expirationInterval
-                .tv_nsec = 1000 as usize as libc::c_long
+                .tv_nsec = 1000
                 * (*EmbCommAreaPtr).clockTime;
-            while expirationInterval.tv_nsec >= 1000000000 as libc::c_long {
+            while expirationInterval.tv_nsec >= 1000000000  {
                 expirationInterval.tv_sec += 1;
-                expirationInterval.tv_nsec -= 1000000000 as libc::c_long;
+                expirationInterval.tv_nsec -= 1000000000 ;
             }
             if pthread_get_expiration_np(&mut expirationInterval, &mut expirationTime)
                 < 0
             {
                 vpunt(
-                     "" ,
-                    b"Unable to compute interval timer expiration time\0" as *const u8
-                        as *const libc::c_char as&str,
+
+                    b"Unable to compute interval timer expiration time\0"
+                         as&str,
                 );
             }
-            result = pthread_cond_timedwait(
+            result = u64imedwait(
                 &mut (*EmbCommAreaPtr).clockSignal,
                 &mut (*EmbCommAreaPtr).clockLock,
                 &mut expirationTime,
@@ -680,64 +680,64 @@ pub  fn IntervalTimerDriver(mut argument: pthread_addr_t) {
                 &mut (*EmbCommAreaPtr).clockLock,
             );
         }
-        if result == 110 as usize {
+        if result == 110  {
             EmbSendSignal((*EmbCommAreaPtr).clock_signal);
-            (*EmbCommAreaPtr).clockTime = -(1) as libc::c_long;
+            (*EmbCommAreaPtr).clockTime = -(1) ;
         }
     };
 }
-#[no_mangle]
+
 pub  fn SetIntervalTimer(mut relativeTimeout: isize) {
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
         __cancel_jmp_buf: [__cancel_jmp_buf_tag {
             __cancel_jmp_buf: [0; 8],
             __mask_was_saved: 0,
         }; 1],
-        __pad: [0 as *mut libc::c_void; 4],
+        __pad: [0 ; 4],
     };
     let mut __cancel_routine: Option::<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
-        Option::<fn(*mut pthread_mutex_t) -> u32>,
+        Option::<fn(*mut u64) -> u32>,
         pthread_cleanuproutine_t,
     >(
         Some(
             pthread_mutex_unlock
-                as fn(*mut pthread_mutex_t) -> u32,
+                as fn(*mut u64) -> u32,
         ),
     );
     let mut __cancel_arg: *mut libc::c_void = &mut (*EmbCommAreaPtr).clockLock
-        as *mut pthread_mutex_t as *mut libc::c_void;
-    let mut __not_first_call: usize = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut libc::c_void
+        as *mut u64 ;
+    let mut __not_first_call: u32 = __sigsetjmp(
+        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr()
             as *mut __jmp_buf_tag,
         0,
     );
-    if __not_first_call as libc::c_long != 0 {
+    if __not_first_call  != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
         __pthread_unwind_next(&mut __cancel_buf);
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).clockLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support clockLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support clockLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
-    (*EmbCommAreaPtr).clockTime = relativeTimeout as libc::c_long;
-    if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).clockSignal) < 0 as usize {
+    (*EmbCommAreaPtr).clockTime = relativeTimeout ;
+    if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).clockSignal) < 0  {
         vpunt(
-             "" ,
-            b"Unable to send Life Support clock signal in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to send Life Support clock signal in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).clockLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support clockLock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support clockLock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }

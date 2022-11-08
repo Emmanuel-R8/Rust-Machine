@@ -5,43 +5,43 @@ extern "C" {
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
     fn uname(__name: *mut utsname) -> u32;
     fn sprintf(_:&str, _: *const libc::c_char, _: ...) -> u32;
-    fn MakeLispObj(tag: ui32, data: ui32) -> *mut LispObj;
+    fn MakeLispObj(tag: u32, data: u32) -> *mut LispObj;
     fn pthread_create(
-        __newthread: *mut pthread_t,
-        __attr: *const pthread_attr_t,
+        __newthread: *mut u64,
+        __attr: *const u64,
         __start_routine: Option::<
             fn(*mut libc::c_void) -> *mut libc::c_void,
         >,
         __arg: *mut libc::c_void,
     ) -> u32;
     fn pthread_join(
-        __th: pthread_t,
+        __th: u64,
         __thread_return: *mut *mut libc::c_void,
     ) -> u32;
-    fn pthread_self() -> pthread_t;
-    fn pthread_attr_init(__attr: *mut pthread_attr_t) -> u32;
-    fn pthread_attr_destroy(__attr: *mut pthread_attr_t) -> u32;
+    fn pthread_self() -> u64;
+    fn pthread_attr_init(__attr: *mut u64) -> u32;
+    fn pthread_attr_destroy(__attr: *mut u64) -> u32;
     fn pthread_attr_getstacksize(
-        __attr: *const pthread_attr_t,
+        __attr: *const u64,
         __stacksize: *mut size_t,
     ) -> u32;
     fn pthread_attr_setstacksize(
-        __attr: *mut pthread_attr_t,
+        __attr: *mut u64,
         __stacksize: size_t,
     ) -> u32;
-    fn pthread_cancel(__th: pthread_t) -> u32;
+    fn pthread_cancel(__th: u64) -> u32;
     fn pthread_mutex_init(
-        __mutex: *mut pthread_mutex_t,
+        __mutex: *mut u64,
         __mutexattr: *const pthread_mutexattr_t,
     ) -> u32;
-    fn pthread_mutex_destroy(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_lock(__mutex: *mut pthread_mutex_t) -> u32;
-    fn pthread_mutex_unlock(__mutex: *mut pthread_mutex_t) -> u32;
+    fn pthread_mutex_destroy(__mutex: *mut u64) -> u32;
+    fn pthread_mutex_lock(__mutex: *mut u64) -> u32;
+    fn pthread_mutex_unlock(__mutex: *mut u64) -> u32;
     fn pthread_cond_init(
-        __cond: *mut pthread_cond_t,
+        __cond: *mut u64,
         __cond_attr: *const pthread_condattr_t,
     ) -> u32;
-    fn pthread_cond_destroy(__cond: *mut pthread_cond_t) -> u32;
+    fn pthread_cond_destroy(__cond: *mut u64) -> u32;
     fn pthread_key_create(
         __key: *mut pthread_key_t,
         __destr_function: Option::<fn(*mut libc::c_void) -> ()>,
@@ -77,7 +77,7 @@ extern "C" {
     fn EnsureVirtualAddressRange(
         virtualaddress: isize,
         count: u32,
-        faultp: Boole,
+        faultp: bool,
     ) -> isize;
     fn getgid() -> __gid_t;
     fn getlogin() ->&str;
@@ -104,20 +104,20 @@ pub type __uid_t = libc::c_uint;
 pub type __gid_t = libc::c_uint;
 pub type __time_t = libc::c_long;
 pub type __syscall_slong_t = libc::c_long;
-pub type __caddr_t =&str;
-pub type C2RustUnnamed = libc::c_uint;
-pub const _ISalnum: C2RustUnnamed = 8;
-pub const _ISpunct: C2RustUnnamed = 4;
-pub const _IScntrl: C2RustUnnamed = 2;
-pub const _ISblank: C2RustUnnamed = 1;
-pub const _ISgraph: C2RustUnnamed = 32768;
-pub const _ISprint: C2RustUnnamed = 16384;
-pub const _ISspace: C2RustUnnamed = 8192;
-pub const _ISxdigit: C2RustUnnamed = 4096;
-pub const _ISdigit: C2RustUnnamed = 2048;
-pub const _ISalpha: C2RustUnnamed = 1024;
-pub const _ISlower: C2RustUnnamed = 512;
-pub const _ISupper: C2RustUnnamed = 256;
+pub type __u64 =&str;
+pub type QData = libc::c_uint;
+pub const _ISalnum: QData = 8;
+pub const _ISpunct: QData = 4;
+pub const _IScntrl: QData = 2;
+pub const _ISblank: QData = 1;
+pub const _ISgraph: QData = 32768;
+pub const _ISprint: QData = 16384;
+pub const _ISspace: QData = 8192;
+pub const _ISxdigit: QData = 4096;
+pub const _ISdigit: QData = 2048;
+pub const _ISalpha: QData = 1024;
+pub const _ISlower: QData = 512;
+pub const _ISupper: QData = 256;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct utsname {
@@ -132,12 +132,12 @@ pub type ptrdiff_t = libc::c_long;
 pub type size_t = libc::c_ulong;
 pub type i32 = i32;
 pub type u8 = u8;
-pub type ui32 = u32;
+pub type u32 = u32;
 pub type u64 = u64;
 pub type EmbWord = i32;
-pub type uEmbWord = ui32;
+pub type UEmbWord = u32;
 pub type EmbPtr = EmbWord;
-pub type SignalMask = uEmbWord;
+pub type SignalMask = UEmbWord;
 pub type SignalNumber = EmbWord;
 pub type PtrV = *mut libc::c_void;
 pub type ProcPtrV = Option::<fn(PtrV) -> ()>;
@@ -242,18 +242,18 @@ pub union LispObj {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _LispObj {
-    pub tag: ui32,
+    pub tag: u32,
     pub data: C2RustUnnamed_3,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_3 {
-    pub u: ui32,
+    pub u: u32,
     pub s: i32,
     pub f: libc::c_float,
 }
 pub type SystemCommArea = [EmbWord; 60];
-pub type caddr_t = __caddr_t;
+pub type u64 = __u64;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct timespec {
@@ -302,7 +302,7 @@ pub struct __pthread_cond_s {
     pub __wrefs: libc::c_uint,
     pub __g_signals: [libc::c_uint; 2],
 }
-pub type pthread_t = libc::c_ulong;
+pub type u64 = libc::c_ulong;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union pthread_mutexattr_t {
@@ -318,20 +318,20 @@ pub union pthread_condattr_t {
 pub type pthread_key_t = libc::c_uint;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_attr_t {
+pub union u64 {
     pub __size: [libc::c_char; 56],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_mutex_t {
+pub union u64 {
     pub __data: __pthread_mutex_s,
     pub __size: [libc::c_char; 40],
     pub __align: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union pthread_cond_t {
+pub union u64 {
     pub __data: __pthread_cond_s,
     pub __size: [libc::c_char; 48],
     pub __align: libc::c_longlong,
@@ -340,7 +340,7 @@ pub type pthread_addr_t = *mut libc::c_void;
 pub type pthread_startroutine_t = Option::<
     fn(*mut libc::c_void) -> *mut libc::c_void,
 >;
-pub type in_addr_t = ui32;
+pub type in_addr_t = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct in_addr {
@@ -363,7 +363,7 @@ pub struct XParams {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NetworkInterface {
-    pub present: Boole,
+    pub present: bool,
     pub device: [libc::c_char; 257],
     pub myProtocol: libc::c_ushort,
     pub myAddress: in_addr,
@@ -373,8 +373,8 @@ pub struct NetworkInterface {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TraceConfig {
-    pub traceP: Boole,
-    pub tracePOST: Boole,
+    pub traceP: bool,
+    pub tracePOST: bool,
     pub bufferSize: u32,
     pub startPC: libc::c_uint,
     pub stopPC: libc::c_uint,
@@ -383,7 +383,7 @@ pub struct TraceConfig {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VLMConfig {
-    pub enableSpy: Boole,
+    pub enableSpy: bool,
     pub tracing: TraceConfig,
     pub commAreaSize: size_t,
     pub hostBufferSpace: size_t,
@@ -391,19 +391,19 @@ pub struct VLMConfig {
     pub vlmDebuggerPath: [libc::c_char; 257],
     pub worldPath: [libc::c_char; 257],
     pub worldSearchPath:&str,
-    pub enableIDS: Boole,
+    pub enableIDS: bool,
     pub virtualMemory: size_t,
     pub coldLoadXParams: XParams,
     pub generaXParams: XParams,
     pub diagnosticIPAddress: in_addr,
     pub interfaces: [NetworkInterface; 8],
-    pub testFunction: Boole,
+    pub testFunction: bool,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: pthread_t,
-    pub handlerThreadSetup: Boole,
+    pub handlerThread: u64,
+    pub handlerThreadSetup: bool,
     pub signal: SignalMask,
     pub handlerFunction: ProcPtrV,
     pub handlerArgument: PtrV,
@@ -459,46 +459,46 @@ pub struct EmbCommArea {
     pub MacIvory_NVRAM_settings: C2RustUnnamed_5,
     pub worldPathname: EmbPtr,
     pub unixLoginName: EmbPtr,
-    pub unixUID: uEmbWord,
-    pub unixGID: uEmbWord,
+    pub unixUID: UEmbWord,
+    pub unixGID: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
     pub guestStatus: EmbWord,
-    pub pollThreadAttrs: pthread_attr_t,
-    pub pollThreadAttrsSetup: Boole,
-    pub outputThreadAttrs: pthread_attr_t,
-    pub outputThreadAttrsSetup: Boole,
-    pub inputThreadAttrs: pthread_attr_t,
-    pub inputThreadAttrsSetup: Boole,
-    pub useSignalLocks: Boole,
+    pub pollThreadAttrs: u64,
+    pub pollThreadAttrsSetup: bool,
+    pub outputThreadAttrs: u64,
+    pub outputThreadAttrsSetup: bool,
+    pub inputThreadAttrs: u64,
+    pub inputThreadAttrsSetup: bool,
+    pub useSignalLocks: bool,
     pub signalHandler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: pthread_mutex_t,
-    pub signalLockSetup: Boole,
-    pub signalSignal: pthread_cond_t,
-    pub signalSignalSetup: Boole,
-    pub pollingThread: pthread_t,
+    pub signalLock: u64,
+    pub signalLockSetup: bool,
+    pub signalSignal: u64,
+    pub signalSignalSetup: bool,
+    pub pollingThread: u64,
     pub pollTime: libc::c_long,
     pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: Boole,
-    pub clockThread: pthread_t,
+    pub pollingThreadSetup: bool,
+    pub clockThread: u64,
     pub clockTime: libc::c_long,
-    pub clockLock: pthread_mutex_t,
-    pub clockLockSetup: Boole,
-    pub clockSignal: pthread_cond_t,
-    pub clockSignalSetup: Boole,
-    pub clockThreadSetup: Boole,
+    pub clockLock: u64,
+    pub clockLockSetup: bool,
+    pub clockSignal: u64,
+    pub clockSignalSetup: bool,
+    pub clockThreadSetup: bool,
     pub resetRequestCount: EmbWord,
     pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: Boole,
+    pub inhibitDisk: bool,
     pub debugLevel: EmbWord,
-    pub slaveTrigger: caddr_t,
-    pub XLock: pthread_mutex_t,
-    pub XLockSetup: Boole,
-    pub wakeupLock: pthread_mutex_t,
-    pub wakeupLockSetup: Boole,
-    pub wakeupSignal: pthread_cond_t,
-    pub wakeupSignalSetup: Boole,
+    pub slaveTrigger: u64,
+    pub XLock: u64,
+    pub XLockSetup: bool,
+    pub wakeupLock: u64,
+    pub wakeupLockSetup: bool,
+    pub wakeupSignal: u64,
+    pub wakeupSignalSetup: bool,
 }
 
 pub type system_type = libc::c_uint;
@@ -519,79 +519,79 @@ pub struct EmbString {
     pub length: EmbWord,
     pub string: EmbWord,
 }
-#[no_mangle]
+
 pub static mut BootCommAreaPtr: *mut BootCommArea = 0 as *const BootCommArea
     as *mut BootCommArea;
-#[no_mangle]
+
 pub static mut BootDataAreaPtr: *mut BootDataArea = 0 as *const BootDataArea
     as *mut BootDataArea;
-#[no_mangle]
+
 pub static mut FEPCommAreaPtr: *mut FEPCommArea = 0 as *const FEPCommArea
     as *mut FEPCommArea;
-#[no_mangle]
+
 pub static mut SystemCommAreaPtr: *mut SystemCommArea = 0 as *const SystemCommArea
     as *mut SystemCommArea;
-#[no_mangle]
+
 pub static mut EmbCommAreaPtr: *mut EmbCommArea = 0 as *const EmbCommArea
     as *mut EmbCommArea;
-#[no_mangle]
+
 pub static mut EmbCommAreaAllocPtr: EmbPtr = -(1);
-#[no_mangle]
-pub static mut EmbCommAreaAllocSize: size_t = 0 as usize as size_t;
-#[no_mangle]
-pub static mut dataAddress: caddr_t = 0 as *const libc::c_char as caddr_t;
-#[no_mangle]
-pub static mut tagsAddress: caddr_t = 0 as *const libc::c_char as caddr_t;
-#[no_mangle]
-pub static mut areasSize: size_t = 0 as usize as size_t;
+
+pub static mut EmbCommAreaAllocSize: size_t = 0;
+
+pub static mut dataAddress: u64 = 0  as u64;
+
+pub static mut tagsAddress: u64 = 0  as u64;
+
+pub static mut areasSize: size_t = 0;
 static mut mainThread: pthread_key_t = 0;
-#[no_mangle]
+
 pub  fn EmbCommAreaAlloc(mut nBytes: size_t) -> EmbPtr {
     let mut nWords: size_t = nBytes
-        .wrapping_add(::std::mem::size_of::<EmbWord>() as libc::c_ulong)
-        .wrapping_sub(1 as usize as libc::c_ulong)
-        .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong);
+        .wrapping_add(::std::mem::size_of::<EmbWord>())
+        .wrapping_sub(1)
+        .wrapping_div(::std::mem::size_of::<EmbWord>());
     let mut thePtr: EmbPtr = EmbCommAreaAllocPtr;
-    if nWords & 1 as usize as libc::c_ulong != 0 {
+    if nWords & 1 != 0 {
         nWords = nWords.wrapping_add(1);
     }
-    if nWords > EmbCommAreaAllocSize || nBytes <= 0 as usize as libc::c_ulong {
+    if nWords > EmbCommAreaAllocSize || nBytes <= 0 {
         vpunt(
-             "" ,
+
             b"Couldn't allocate %d words in the embedded communications area\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             nWords,
         );
     }
-    EmbCommAreaAllocSize = (EmbCommAreaAllocSize as libc::c_ulong).wrapping_sub(nWords)
-        as size_t as size_t;
-    EmbCommAreaAllocPtr = (EmbCommAreaAllocPtr as libc::c_ulong).wrapping_add(nWords)
+    EmbCommAreaAllocSize = (EmbCommAreaAllocSize).wrapping_sub(nWords)
+       ;
+    EmbCommAreaAllocPtr = (EmbCommAreaAllocPtr).wrapping_add(nWords)
         as EmbPtr as EmbPtr;
     return thePtr;
 }
-#[no_mangle]
+
 pub  fn MakeEmbString(mut aString:&str) -> EmbPtr {
     let mut theStringPtr: EmbPtr = 0;
     let mut theString: *mut EmbString = 0 as *mut EmbString;
     let mut nBytes: size_t = if aString.is_null() {
-        0 as usize as libc::c_ulong
+        0
     } else {
         strlen(aString)
     };
-    let mut datum: ui32 = 0;
-    if 0 as usize as libc::c_ulong == nBytes {
+    let mut datum: u32 = 0;
+    if 0 == nBytes {
         return -(1);
     }
     theStringPtr = EmbCommAreaAlloc(
-        (::std::mem::size_of::<EmbString>() as libc::c_ulong).wrapping_add(nBytes),
+        (::std::mem::size_of::<EmbString>()).wrapping_add(nBytes),
     );
-    theString = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(theStringPtr as isize)
+    theString = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(theStringPtr )
         as *mut EmbWord as PtrV as *mut EmbString;
     (*theString).length = nBytes as EmbWord;
     memcpy(
         &mut (*theString).string as *mut EmbWord as&str
-            as *mut libc::c_void,
-        aString as *const libc::c_void,
+            ,
+        aString ,
         nBytes,
     );
     return theStringPtr;
@@ -603,8 +603,8 @@ pub  fn MakeEmbString(mut aString:&str) -> EmbPtr {
 ) {
     let mut start: &str =  "" ;
     let mut end: &str =  "" ;
-    let mut major: usize = 0;
-    let mut minor: usize = -(1);
+    let mut major: u32 = 0;
+    let mut minor: u32 = -(1);
     *minorVersion = -(1);
     *majorVersion = *minorVersion;
     start = versionString;
@@ -613,10 +613,10 @@ pub  fn MakeEmbString(mut aString:&str) -> EmbPtr {
         return;
     }
     if *end != 0 {
-        if *end as usize == '.' as i32 {
-            start = end.offset(1 as usize as isize);
+        if *end  == '.' as i32 {
+            start = end.offset(1 );
             minor = strtoul(start, &mut end, 0);
-            if start == end || *end as usize != 0 {
+            if start == end || *end  != 0 {
                 return;
             }
         } else {
@@ -626,7 +626,7 @@ pub  fn MakeEmbString(mut aString:&str) -> EmbPtr {
     *majorVersion = major;
     *minorVersion = minor;
 }
-#[no_mangle]
+
 pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
     let mut osfName: utsname = utsname {
         sysname: [0; 65],
@@ -639,110 +639,110 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
     let mut worldPathname: [libc::c_char; 262] = [0; 262];
     let mut loginName: &str =  "" ;
     let mut identifier: &str =  "" ;
-    let mut major: usize = 0;
-    let mut minor: usize = 0;
+    let mut major: u32 = 0;
+    let mut minor: u32 = 0;
     EnsureVirtualAddressRange(
-        0xfffe0000 as libc::c_long as isize,
-        ((64 as usize + 64) as libc::c_ulong)
+        0xfffe0000 ,
+        ((64  + 64))
             .wrapping_add((*config).commAreaSize),
-        0 as usize as Boole,
+        false,
     );
-    BootCommAreaPtr = MapVirtualAddressData(0xfffe0000 as libc::c_long as isize)
+    BootCommAreaPtr = MapVirtualAddressData(0xfffe0000 )
         as *mut BootCommArea;
-    BootDataAreaPtr = MapVirtualAddressData(0xfffe0040 as libc::c_long as isize)
+    BootDataAreaPtr = MapVirtualAddressData(0xfffe0040 )
         as *mut BootDataArea;
-    EmbCommAreaPtr = MapVirtualAddressData(0xfffe0080 as libc::c_long as isize)
+    EmbCommAreaPtr = MapVirtualAddressData(0xfffe0080 )
         as *mut EmbCommArea;
     VirtualMemoryWriteBlockConstant(
-        0xfffe0000 as libc::c_long as isize,
+        0xfffe0000 ,
         MakeLispObj(
-            0 as usize as ui32,
-            0xfffe0000 as libc::c_long as ui32,
+            0 ,
+            0xfffe0000  ,
         ),
-        64 as usize + 64,
+        64  + 64,
         1,
     );
-    let mut lispDatum: LispObj = LispObj {
+    let mut lispDatum: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
         },
     };
-    lispDatum.parts.data.u = 0xfffe0080 as libc::c_long as isize as ui32;
-    lispDatum.parts.tag = 25 as usize as Tag as ui32;
+    lispDatum.parts.data.u = 0xfffe0080  ;
+    lispDatum.parts.tag = 25  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (0 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (0)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum,
     );
-    let mut lispDatum_0: LispObj = LispObj {
+    let mut lispDatum_0: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
         },
     };
-    lispDatum_0.parts.data.u = SystemTypeVLM as usize as isize as ui32;
-    lispDatum_0.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_0.parts.data.u = SystemTypeVLM  ;
+    lispDatum_0.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (4 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (4)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_0,
     );
-    let mut lispDatum_1: LispObj = LispObj {
+    let mut lispDatum_1: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
         },
     };
-    lispDatum_1.parts.data.u = 0xf8000100 as libc::c_long as isize as ui32;
-    lispDatum_1.parts.tag = 25 as usize as Tag as ui32;
+    lispDatum_1.parts.data.u = 0xf8000100  ;
+    lispDatum_1.parts.tag = 25  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (8 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (8)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_1,
     );
-    let mut lispDatum_2: LispObj = LispObj {
+    let mut lispDatum_2: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
         },
     };
-    lispDatum_2.parts.data.u = 0xf00 as libc::c_long as isize as ui32;
-    lispDatum_2.parts.tag = 8 as usize as Tag as ui32;
+    lispDatum_2.parts.data.u = 0xf00  ;
+    lispDatum_2.parts.tag = 8  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (12 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (12)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_2,
     );
-    let mut lispDatum_3: LispObj = LispObj {
+    let mut lispDatum_3: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
         },
     };
-    lispDatum_3.parts.data.u = 0xfffe0040 as libc::c_long as isize as ui32;
-    lispDatum_3.parts.tag = 25 as usize as Tag as ui32;
+    lispDatum_3.parts.data.u = 0xfffe0040  ;
+    lispDatum_3.parts.tag = 25  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (28 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (28)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_3,
     );
-    let mut lispDatum_4: LispObj = LispObj {
+    let mut lispDatum_4: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
@@ -751,22 +751,22 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
     lispDatum_4
         .parts
         .data
-        .u = (0xfffe0040 as libc::c_long as libc::c_ulong)
+        .u = (0xfffe0040 )
         .wrapping_add(
-            (0 as libc::c_ulong)
-                .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+            (0)
+                .wrapping_div(::std::mem::size_of::<EmbWord>()),
         )
-        .wrapping_add(46 as usize as libc::c_ulong) as ui32;
-    lispDatum_4.parts.tag = 25 as usize as Tag as ui32;
+        .wrapping_add(46) ;
+    lispDatum_4.parts.tag = 25  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (20 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (20)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_4,
     );
-    let mut lispDatum_5: LispObj = LispObj {
+    let mut lispDatum_5: QWord = LispObj {
         parts: _LispObj {
             tag: 0,
             data: C2RustUnnamed_3 { u: 0 },
@@ -775,81 +775,81 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
     lispDatum_5
         .parts
         .data
-        .u = (0xfffe0040 as libc::c_long as libc::c_ulong)
+        .u = (0xfffe0040 )
         .wrapping_add(
-            (4 as libc::c_ulong)
-                .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+            (4)
+                .wrapping_div(::std::mem::size_of::<EmbWord>()),
         )
-        .wrapping_add(46 as usize as libc::c_ulong) as ui32;
-    lispDatum_5.parts.tag = 25 as usize as Tag as ui32;
+        .wrapping_add(46) ;
+    lispDatum_5.parts.tag = 25  as Tag ;
     VirtualMemoryWrite(
-        (0xfffe0000 as libc::c_long as libc::c_ulong)
+        (0xfffe0000 )
             .wrapping_add(
-                (24 as libc::c_ulong)
-                    .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong),
+                (24)
+                    .wrapping_div(::std::mem::size_of::<EmbWord>()),
             ),
         &mut lispDatum_5,
     );
     EnsureVirtualAddressRange(
-        0xf8041000 as libc::c_long as isize,
+        0xf8041000 ,
         256,
-        0 as usize as Boole,
+        false,
     );
     VirtualMemoryWriteBlockConstant(
-        0xf8041000 as libc::c_long as isize,
+        0xf8041000 ,
         MakeLispObj(
-            0 as usize as ui32,
-            0xf8041000 as libc::c_long as ui32,
+            0 ,
+            0xf8041000  ,
         ),
         256,
         1,
     );
-    FEPCommAreaPtr = MapVirtualAddressData(0xf8041000 as libc::c_long as isize)
+    FEPCommAreaPtr = MapVirtualAddressData(0xf8041000 )
         as *mut FEPCommArea;
     EnsureVirtualAddressRange(
-        0xf8041100 as libc::c_long as isize,
+        0xf8041100 ,
         256,
-        0 as usize as Boole,
+        false,
     );
     VirtualMemoryWriteBlockConstant(
-        0xf8041100 as libc::c_long as isize,
+        0xf8041100 ,
         MakeLispObj(
-            0 as usize as ui32,
-            0xf8041100 as libc::c_long as ui32,
+            0 ,
+            0xf8041100  ,
         ),
         256,
         1,
     );
-    SystemCommAreaPtr = MapVirtualAddressData(0xf8041100 as libc::c_long as isize)
+    SystemCommAreaPtr = MapVirtualAddressData(0xf8041100 )
         as *mut SystemCommArea;
     VirtualMemoryWriteBlockConstant(
-        0xfffe0080 as libc::c_long as isize,
-        MakeLispObj(8 as usize as ui32, 0 as usize as ui32),
+        0xfffe0080 ,
+        MakeLispObj(8 , 0 ),
         (*config).commAreaSize,
         0,
     );
-    identifier = b"EMBD\0" as *const u8 as *const libc::c_char as&str;
+    identifier = b"EMBD\0"   as&str;
     (*EmbCommAreaPtr).identifier = *(identifier as *mut EmbWord);
     (*EmbCommAreaPtr).version = 1;
     (*EmbCommAreaPtr).system_type = SystemTypeVLM;
     (*EmbCommAreaPtr)
-        .number_of_slots = ((&mut (*EmbCommAreaPtr).pad0 as *mut EmbWord as ptrdiff_t
-        - EmbCommAreaPtr as ptrdiff_t) as libc::c_ulong)
-        .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong) as EmbWord;
+        .number_of_slots = ((&mut (*EmbCommAreaPtr).pad0 as *mut EmbWord
+        - EmbCommAreaPtr ))
+        .wrapping_div(::std::mem::size_of::<EmbWord>()) as EmbWord;
     (*EmbCommAreaPtr).comm_memory_size = (*config).commAreaSize as EmbWord;
     let ref mut fresh0 = (*EmbCommAreaPtr).generaVersion;
     (*fresh0).set_major(9);
     let ref mut fresh1 = (*EmbCommAreaPtr).generaVersion;
     (*fresh1).set_minor(0);
-    if uname(&mut osfName) < 0 as usize {
+    if uname(&mut osfName) < 0  {
         let ref mut fresh2 = (*EmbCommAreaPtr).osfVersion;
         (*fresh2).set_majorRelease(0);
     } else {
         let ref mut fresh3 = (*EmbCommAreaPtr).osfVersion;
         (*fresh3).set_testReleaseP(0);
         if *(*__ctype_b_loc())
-            .offset(osfName.release[0 as usize as usize] as usize as isize)
-            as usize & _ISdigit as usize as libc::c_ushort
+            .offset(osfName.release[0  ] )
+             & _ISdigit  as libc::c_ushort
             != 0
         {
             ParseVersionNumber((osfName.release).as_mut_ptr(), &mut major, &mut minor);
@@ -857,11 +857,11 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
             let ref mut fresh4 = (*EmbCommAreaPtr).osfVersion;
             (*fresh4)
                 .set_testReleaseP(
-                    (osfName.release[0 as usize as usize]
+                    (osfName.release[0  ]
                         != 'V' as i32),
                 );
             ParseVersionNumber(
-                &mut *(osfName.release).as_mut_ptr().offset(1 as usize as isize),
+                &mut *(osfName.release).as_mut_ptr().offset(1 ),
                 &mut major,
                 &mut minor,
             );
@@ -882,37 +882,37 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
     (*EmbCommAreaPtr).command_channel = -(1);
     (*EmbCommAreaPtr).clock_signal = -(1);
     let ref mut fresh9 = (*EmbCommAreaPtr).slaveTrigger;
-    *fresh9 = 0 as caddr_t;
+    *fresh9 = 0 as u64;
     InitializeSignalHandlers();
     if pthread_key_create(&mut mainThread, None) != 0 {
         vpunt(
-             "" ,
-            b"Unable to establish per-thread data.\0" as *const u8 as *const libc::c_char
+
+            b"Unable to establish per-thread data.\0"
                 as&str,
         );
     }
-    pthread_setspecific(mainThread, 1 as usize as *mut libc::c_void);
+    pthread_setspecific(mainThread, 1  );
     if atexit(Some(TerminateLifeSupport as fn() -> ())) != 0 {
         vpunt(
-             "" ,
-            b"Unable to establish cleanup handler for Life Support\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to establish cleanup handler for Life Support\0"
+                 as&str,
         );
     }
     SetupThreadAttrs(
-        b"polling\0" as *const u8 as *const libc::c_char as&str,
+        b"polling\0"   as&str,
         0,
         &mut (*EmbCommAreaPtr).pollThreadAttrs,
         &mut (*EmbCommAreaPtr).pollThreadAttrsSetup,
     );
     SetupThreadAttrs(
-        b"output\0" as *const u8 as *const libc::c_char as&str,
+        b"output\0"   as&str,
         2,
         &mut (*EmbCommAreaPtr).outputThreadAttrs,
         &mut (*EmbCommAreaPtr).outputThreadAttrsSetup,
     );
     SetupThreadAttrs(
-        b"input\0" as *const u8 as *const libc::c_char as&str,
+        b"input\0"   as&str,
         3,
         &mut (*EmbCommAreaPtr).inputThreadAttrs,
         &mut (*EmbCommAreaPtr).inputThreadAttrsSetup,
@@ -923,29 +923,29 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support signal lock\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support signal lock\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).signalLockSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).signalLockSetup = true;
     if pthread_cond_init(
         &mut (*EmbCommAreaPtr).signalSignal,
         0 as *const pthread_condattr_t,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support signal signal\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support signal signal\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).signalSignalSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).signalSignalSetup = true;
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to lock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to lock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
@@ -956,40 +956,40 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
             Option::<fn(pthread_addr_t) -> ()>,
             pthread_startroutine_t,
         >(Some(IvoryLifePolling as fn(pthread_addr_t) -> ())),
-        0 as *mut libc::c_void,
+        0 ,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support polling thread\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support polling thread\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).pollingThreadSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).pollingThreadSetup = true;
     if pthread_mutex_init(
         &mut (*EmbCommAreaPtr).clockLock,
         0 as *const pthread_mutexattr_t,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support clock lock\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support clock lock\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).clockLockSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).clockLockSetup = true;
     if pthread_cond_init(
         &mut (*EmbCommAreaPtr).clockSignal,
         0 as *const pthread_condattr_t,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support clock signal\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support clock signal\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).clockSignalSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).clockSignalSetup = true;
     if pthread_create(
         &mut (*EmbCommAreaPtr).clockThread,
         &mut (*EmbCommAreaPtr).pollThreadAttrs,
@@ -997,62 +997,62 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
             Option::<fn(pthread_addr_t) -> ()>,
             pthread_startroutine_t,
         >(Some(IntervalTimerDriver as fn(pthread_addr_t) -> ())),
-        0 as *mut libc::c_void,
+        0 ,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support interval timer thread\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support interval timer thread\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).clockThreadSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).clockThreadSetup = true;
     if pthread_mutex_init(&mut (*EmbCommAreaPtr).XLock, 0 as *const pthread_mutexattr_t)
         != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the Life Support X library lock\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the Life Support X library lock\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).XLockSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).XLockSetup = true;
     if pthread_mutex_init(
         &mut (*EmbCommAreaPtr).wakeupLock,
         0 as *const pthread_mutexattr_t,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the VLM wakeup lock\0" as *const u8 as *const libc::c_char
+
+            b"Unable to create the VLM wakeup lock\0"
                 as&str,
         );
     }
-    (*EmbCommAreaPtr).wakeupLockSetup = 1 as usize as Boole;
+    (*EmbCommAreaPtr).wakeupLockSetup = true;
     if pthread_cond_init(
         &mut (*EmbCommAreaPtr).wakeupSignal,
         0 as *const pthread_condattr_t,
     ) != 0
     {
         vpunt(
-             "" ,
-            b"Unable to create the VLM wakeup signal\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create the VLM wakeup signal\0"
+                 as&str,
         );
     }
-    (*EmbCommAreaPtr).wakeupSignalSetup = 1 as usize as Boole;
-    EmbCommAreaAllocPtr = (::std::mem::size_of::<EmbCommArea>() as libc::c_ulong)
-        .wrapping_div(::std::mem::size_of::<EmbWord>() as libc::c_ulong) as EmbPtr;
+    (*EmbCommAreaPtr).wakeupSignalSetup = true;
+    EmbCommAreaAllocPtr = (::std::mem::size_of::<EmbCommArea>())
+        .wrapping_div(::std::mem::size_of::<EmbWord>()) as EmbPtr;
     EmbCommAreaAllocSize = ((*EmbCommAreaPtr).comm_memory_size - EmbCommAreaAllocPtr)
-        as size_t;
-    if (*config).worldPath[0 as usize as usize] != 0 {
+       ;
+    if (*config).worldPath[0  ] != 0 {
         sprintf(
             worldPathname.as_mut_ptr(),
-            b"HOST:%s\0" as *const u8 as *const libc::c_char,
+            b"HOST:%s\0"  ,
             ((*config).worldPath).as_mut_ptr(),
         );
     } else {
-        worldPathname[0 as usize as usize] = 0 as usize as libc::c_char;
+        worldPathname[0  ] = 0  ;
     }
     (*EmbCommAreaPtr).worldPathname = MakeEmbString(worldPathname.as_mut_ptr());
     loginName = getlogin();
@@ -1077,33 +1077,33 @@ pub  fn InitializeLifeSupport(mut config: *mut VLMConfig) {
         + (*EmbCommAreaPtr).fep_buffer_size;
     (*EmbCommAreaPtr)
         .guest_buffer_size = EmbCommAreaAllocSize
-        .wrapping_sub((*EmbCommAreaPtr).host_buffer_size as libc::c_ulong)
-        .wrapping_sub((*EmbCommAreaPtr).fep_buffer_size as libc::c_ulong) as EmbWord;
-    if ((*EmbCommAreaPtr).guest_buffer_size as libc::c_ulong)
+        .wrapping_sub((*EmbCommAreaPtr).host_buffer_size)
+        .wrapping_sub((*EmbCommAreaPtr).fep_buffer_size) as EmbWord;
+    if ((*EmbCommAreaPtr).guest_buffer_size)
         < (*config).guestBufferSpace
     {
         vpunt(
-             "" ,
+
             b"Couldn't allocate %d words for guest buffers in the communcations area; only %d words are available.\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             (*config).guestBufferSpace,
             (*EmbCommAreaPtr).guest_buffer_size,
         );
     }
-    (*EmbCommAreaPtr).useSignalLocks = 1 as usize as Boole;
+    (*EmbCommAreaPtr).useSignalLocks = true;
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
-             "" ,
-            b"Unable to unlock the Life Support signal lock in thread %lx\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to unlock the Life Support signal lock in thread %lx\0"
+                 as&str,
             pthread_self(),
         );
     }
 }
-#[no_mangle]
+
 pub  fn TerminateLifeSupport() {
     let mut killSleep: timespec = timespec { tv_sec: 0, tv_nsec: 0 };
-    let mut exit_code: *mut libc::c_void = 0 as *mut libc::c_void;
+    let mut exit_code: *mut libc::c_void = 0 ;
     if (pthread_getspecific(mainThread)).is_null() {
         return;
     }
@@ -1117,32 +1117,32 @@ pub  fn TerminateLifeSupport() {
  fn SetupThreadAttrs(
     mut thread_class:&str,
     mut priorityBoost: u32,
-    mut threadAttrs: *mut pthread_attr_t,
+    mut threadAttrs: *mut u64,
     mut threadAttrsSetup: *mut Boole,
 ) {
     let mut stackSize: size_t = 0;
-    let mut priority: usize = 0;
+    let mut priority: u32 = 0;
     if pthread_attr_init(threadAttrs) != 0 {
         vpunt(
-             "" ,
-            b"Unable to create attributes for Life Support %s threads\0" as *const u8
-                as *const libc::c_char as&str,
+
+            b"Unable to create attributes for Life Support %s threads\0"
+                 as&str,
             thread_class,
         );
     }
-    *threadAttrsSetup = 1 as usize as Boole;
+    *threadAttrsSetup = true;
     pthread_attr_getstacksize(threadAttrs, &mut stackSize);
     if pthread_attr_setstacksize(
         threadAttrs,
-        (4 as usize as libc::c_ulong).wrapping_mul(stackSize),
+        (4).wrapping_mul(stackSize),
     ) != 0
     {
         vpunt(
-             "" ,
+
             b"Unable to set stack size attribute for Life Support %s threads to %d bytes\0"
-                as *const u8 as *const libc::c_char as&str,
+                  as&str,
             thread_class,
-            (4 as usize as libc::c_ulong).wrapping_mul(stackSize),
+            (4).wrapping_mul(stackSize),
         );
     }
 }

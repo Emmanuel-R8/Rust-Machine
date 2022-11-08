@@ -1,9 +1,13 @@
+use crate::common::constants::VMAttribute;
+use crate::hardware::cpu::{CPU};
+use crate::hardware::memory::{VMMemory};
+
 // Structure of a virtual machine
-pub struct VLM {
-    cpu: None,
-    tag_space: [TagType; 2 ^ 32],
-    data_space: [LispObj; 2 ^ 32],
-    vm_attribute_table: [VMAttribute; ox8_00_00],
+pub struct VirtualMachine {
+    cpu: CPU,
+    mem : VMMemory,
+
+    vm_attribute_table: [VMAttribute; 0x8_00_00],
 
     unmapped_world_words: u32,
     mapped_world_words: u32,
