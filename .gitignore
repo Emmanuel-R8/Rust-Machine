@@ -1,7 +1,10 @@
+# Rust
+Cargo.lock
+
+# Project
 /target
 /data/*
 /docs/*
-
 /src/generated/*
 
 # RStudio
