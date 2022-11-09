@@ -1,7 +1,7 @@
 // #![allow(non_camel)]
 // #![allow(dead_code)]
-// #![allow(unused_assignments)]
-//#![allow(unused_variables)]
+#![allow(unused_assignments)]
+#![allow(unused_variables)]
 
 #[macro_use()]
 extern crate num;
@@ -12,8 +12,8 @@ extern crate num_derive;
 //
 mod common {
     pub mod constants;
-    pub mod types;
     pub mod instruction_format;
+    pub mod types;
 }
 
 mod world {
@@ -26,7 +26,7 @@ mod hardware {
     pub mod network;
 }
 
-mod life_support{
+mod life_support {
     pub mod system_comm;
 }
 
@@ -42,15 +42,50 @@ mod utils;
 //
 use simplelog::{Config, LevelFilter, WriteLogger};
 use std::fs::File;
+use std::path::PathBuf;
 
 //
 // LOCAL IMPORTS
 //
+use common::constants::{MEMORY_ADDRESS_PAGE_SHIFT, VMATTRIBUTE_EMPTY};
+use common::types::QWord;
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
+use hardware::cpu::CPU;
+use world::world::World;
 
+pub fn main() {
+    let mut args: Vec<String> = Vec::new();
+    for arg in ::std::env::args() {
+        args.push(arg);
+    }
 
-fn main_old() {
+    let world_image_size: usize = 0;
+    let world_image_MB: usize = 0;
+    let message: &str = "";
+    let reason: u32 = 0;
+
+    let config = VLMConfig::default();
+    let enable_IDS_p = config.enableIDS;
+    let trace_p = config.tracing.tracePOST;
+
+    let global_context = &mut GlobalContext {
+        cpu: CPU::default(),
+        mem: [QWord::default(); 1 << 31],
+        attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
+
+        world: &mut World::default(),
+        worlds: vec![],
+        total_worlds: 0,
+        scanning_dir: PathBuf::from(""),
+
+        unmapped_world_words: 0,
+        mapped_world_words: 0,
+        file_map_entries: 0,
+        swap_map_entries: 0,
+    };
+    global_context.cpu.initialise();
+
     // Set up log files
     let ivory_page_log = WriteLogger::new(
         LevelFilter::Info,
@@ -62,29 +97,6 @@ fn main_old() {
         Config::default(),
         File::create("run.log").unwrap(),
     );
-
-    println!("Hello, world!");
-}
-
-pub fn main() {
-    let mut args: Vec<String> = Vec::new();
-    for arg in ::std::env::args() {
-        args.push(arg);
-    }
-
-    let mut worldImageSize: usize = 0;
-    let mut worldImageMB: usize = 0;
-    let mut message: &str = "";
-    let mut reason: u32 = 0;
-
-
-
-    let mut config= VLMConfig::default();
-    let EnableIDS = config.enableIDS;
-    let Trace = config.tracing.tracePOST;
-
-    let mut global_context = &GlobalContext::default();
-    global_context.cpu.initialise();
 
     // let TestFunction = config.testFunction;
 

@@ -3,10 +3,12 @@ use log::warn;
 use num::Integer;
 
 use memmap::Mmap;
+use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::cmp::min;
-use std::fs::{read_dir, DirEntry, File};
+use std::fs::{DirEntry, File};
 use std::io::Read;
+use std::marker::Destruct;
 use std::mem::size_of;
 use std::ops::Div;
 use std::path::{Path, PathBuf};
@@ -88,15 +90,11 @@ pub enum MapEntrySelector {
     MergedUnwired,
 }
 
-pub fn clone_map_entries(
-    map_entries: &Vec<Rc<RefCell<LoadMapEntry>>>,
-) -> Vec<Rc<RefCell<LoadMapEntry>>> {
-    let mut res: Vec<Rc<RefCell<LoadMapEntry>>> = vec![];
-
-    let n = map_entries.len();
+pub fn clone_map_entries(map_entries: &Vec<LoadMapEntry>) -> Vec<LoadMapEntry> {
+    let mut res: Vec<LoadMapEntry> = vec![];
 
     for m in map_entries {
-        res.push(Rc::new(RefCell::new(m.borrow_mut().copy())));
+        res.push(m.clone());
     }
 
     return res;
@@ -105,12 +103,12 @@ pub fn clone_map_entries(
 // Description of an open world file
 #[derive(Debug)]
 pub struct World<'a> {
-    pub pathname: Option<PathBuf>, // -> Pathname of the world file
-    pub fd: Option<File>,          // Unix filedes # if the world file is open
-    pub format: LoadFileFormat,    // A LoadFileFormat indicating the type of file
-    pub byte_swapped: bool,        // World is byte swapped on this machine (VLM only)
-    pub vlm_data_page_base: u32,   // Block number of first page of data (VLM only)
-    pub vlm_tags_page_base: u32,   // Block number of first page of tags (VLM only)
+    pub pathname: PathBuf,       // -> Pathname of the world file
+    pub fd: Option<File>,        // Unix filedes # if the world file is open
+    pub format: LoadFileFormat,  // A LoadFileFormat indicating the type of file
+    pub byte_swapped: bool,      // World is byte swapped on this machine (VLM only)
+    pub vlm_data_page_base: u32, // Block number of first page of data (VLM only)
+    pub vlm_tags_page_base: u32, // Block number of first page of tags (VLM only)
     pub vlm_page_base: u32,
     pub vlm_data_page: Vec<u32>, // -> The data of the current VLM format page
     pub vlm_tags_page: Vec<QTag>, // -> The tags of the current VLM format page
@@ -118,22 +116,22 @@ pub struct World<'a> {
     pub ivory_data_page: Vec<QWord>, // [QWord; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page. TODO: rename to current_data-page
     pub current_page_number: u32, // Page number of the page in the buffer, if any. -1 means not pointing yet
     pub current_Q_number: u32,    // Q number within the page to be read
-    pub parent_world: Option<&'a mut World<'a>>, // -> Parent of this world if it's an IDS
+    pub parent_world: Option<Rc<RefCell<&'a World<'a>>>>, // -> Parent of this world if it's an IDS
     pub generation: u32,          // Generation number of this world (> 0 if IDS)
     pub timestamp_1: u32,         // Unique ID of this world, part 1 ...
     pub timestamp_2: u32,         // ... part 2
     pub parent_timestamp_1: u32,  // Unique ID of this world's parent, part 1 ...
     pub parent_timestamp_2: u32,  // ... part 2
-    pub wired_map_entries: Vec<Rc<RefCell<LoadMapEntry>>>, // -> The wired load map entries
-    pub merged_wired_map_entries: Vec<Rc<RefCell<LoadMapEntry>>>, // ..
-    pub unwired_map_entries: Vec<Rc<RefCell<LoadMapEntry>>>, // -> The unwired load map entries (Ivory only)
-    pub merged_unwired_map_entries: Vec<Rc<RefCell<LoadMapEntry>>>, // ..
+    pub wired_map_entries: Vec<LoadMapEntry>, // -> The wired load map entries
+    pub merged_wired_map_entries: Vec<LoadMapEntry>, // ..
+    pub unwired_map_entries: Vec<LoadMapEntry>, // -> The unwired load map entries (Ivory only)
+    pub merged_unwired_map_entries: Vec<LoadMapEntry>, // ..
 }
 
 impl<'a> World<'a> {
     pub fn new() -> Self {
         return Self {
-            pathname: None,
+            pathname: PathBuf::default(),
             fd: None,
             format: LoadFileFormat::IvoryWorldFormat,
             byte_swapped: false,
@@ -160,12 +158,12 @@ impl<'a> World<'a> {
     }
 
     // Select the specified MapEntries
-    fn select_entries(&mut self, selector: MapEntrySelector) -> &Vec<Rc<RefCell<LoadMapEntry>>> {
+    fn select_entries(&mut self, selector: MapEntrySelector) -> &Vec<LoadMapEntry> {
         return match selector {
-            Wired => &(self.wired_map_entries),
-            MergedWired => &(self.merged_wired_map_entries),
-            Unwired => &(self.unwired_map_entries),
-            MergedUnwired => &(self.merged_unwired_map_entries),
+            MapEntrySelector::Wired => &(self.wired_map_entries),
+            MapEntrySelector::MergedWired => &(self.merged_wired_map_entries),
+            MapEntrySelector::Unwired => &(self.unwired_map_entries),
+            MapEntrySelector::MergedUnwired => &(self.merged_unwired_map_entries),
         };
     }
 
@@ -182,10 +180,41 @@ impl<'a> World<'a> {
     }
 }
 
+// impl <'a> World<'a> {
+//     fn new() -> &'a mut Self {
+//         let  gc: &Self =  & Self {
+//             pathname: PathBuf::default(),
+//             fd: None,
+//             format: LoadFileFormat::IvoryWorldFormat,
+//             byte_swapped: false,
+//             vlm_data_page_base: 0,
+//             vlm_tags_page_base: 0,
+//             vlm_page_base: 0,
+//             vlm_data_page: vec![],
+//             vlm_tags_page: vec![],
+//             vlm_page: vec![],
+//             ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
+//             current_page_number: 0,
+//             current_Q_number: 0,
+//             parent_world: None,
+//             generation: 0,
+//             timestamp_1: 0,
+//             timestamp_2: 0,
+//             parent_timestamp_1: 0,
+//             parent_timestamp_2: 0,
+//             wired_map_entries: vec![],
+//             merged_wired_map_entries: vec![],
+//             unwired_map_entries: vec![],
+//             merged_unwired_map_entries: vec![],
+//         };
+//         return gc.borrow_mut();
+//     }
+// }
+
 impl<'a> Default for World<'a> {
     fn default() -> Self {
         Self {
-            pathname: None,
+            pathname: PathBuf::default(),
             fd: None,
             format: LoadFileFormat::IvoryWorldFormat,
             byte_swapped: false,
@@ -211,6 +240,23 @@ impl<'a> Default for World<'a> {
         }
     }
 }
+
+impl<'a> Default for &mut World<'a> {
+    fn default() -> Self {
+        let mut gc = World::default();
+        return gc.borrow_mut();
+    }
+}
+
+// impl Clone for World<'_> {
+//     fn clone_from(&mut self, source: & Self) {
+//         *self = source.clone()
+//     }
+
+//     fn clone(&self<'_>) -> Self<'_> {
+//         let mut w= &Self::default();
+//     }
+// }
 
 // impl<'a> Default for (&mut World<'a>) {
 //     fn default(self)  {
@@ -272,10 +318,15 @@ pub fn read_ivory_world_file_page(w: &mut World, page_number: u32) {
 // background are the entries in the parent world
 // foreground are the child world shadowing the parent (foreground)
 pub fn merge_a_map(
-    world: Rc<RefCell<World>>,
-    fore: Vec<Rc<RefCell<LoadMapEntry>>>,
-    back: Vec<Rc<RefCell<LoadMapEntry>>>,
-) -> Option<Vec<Rc<RefCell<LoadMapEntry>>>> {
+    world: &World,
+    map: MapEntrySelector,
+    back: &mut Vec<LoadMapEntry>,
+) -> Option<Vec<LoadMapEntry>> {
+    let fore = match map {
+        MapEntrySelector::Wired | MapEntrySelector::MergedWired => &world.wired_map_entries,
+        MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => &world.unwired_map_entries,
+    };
+
     let n_fore = fore.len() as u32;
     let n_back = back.len() as u32;
 
@@ -285,7 +336,7 @@ pub fn merge_a_map(
         return None;
     }
 
-    let mut page_size_Qs = match world.get_mut().format {
+    let page_size_Qs = match world.format {
         LoadFileFormat::VLMWorldFormat => VLMPAGE_SIZE_QS,
         _ => 0xFF,
     };
@@ -293,88 +344,79 @@ pub fn merge_a_map(
     let mut old_address: u32 = 0;
     let mut slop: u32 = 0;
 
-    let mut new_map_entries: Vec<Rc<RefCell<LoadMapEntry>>> = vec![];
+    let mut new_map_entries: Vec<LoadMapEntry> = vec![];
 
     let mut idx_fore: u32 = 0;
     let mut idx_back: u32 = 0;
     let mut fore_copied_p: bool = false;
 
     while idx_fore < n_fore {
-        // Use shorthands to keep code readable
-        let f = fore[idx_fore as usize];
-        let mut f_b = fore[idx_fore as usize].get_mut();
-
-        let mut b = back[idx_back as usize];
-        let mut b_b = back[idx_back as usize].get_mut();
-
         // Fill all the background entries that will not be shadowed by the current foreground entry.
         // Here iff the current background entry is either a special operation or falls entirely below the current foreground entry
-        while idx_back < n_back && b_b.map_code != LoadMapEntryOpcode::DataPages
-            || b_b.address < f_b.address && b_b.address + b_b.count < f_b.address
+        while idx_back < n_back && back[idx_back as usize].map_code != LoadMapEntryOpcode::DataPages
+            || back[idx_back as usize].address < fore[idx_fore as usize].address
+                && back[idx_back as usize].address + back[idx_back as usize].count
+                    < fore[idx_fore as usize].address
         {
-            new_map_entries.push(b);
-
+            new_map_entries.push(back[idx_back as usize]);
             idx_back += 1;
-            b = back[idx_back as usize];
-            b_b = back[idx_back as usize].get_mut();
         }
 
         // Here iff there are no more background entries or the current background entry either overlaps the current foreground entry or
         // lies entirely above it
-        if f_b.map_code != LoadMapEntryOpcode::DataPages && !fore_copied_p {
+        if fore[idx_fore as usize].map_code != LoadMapEntryOpcode::DataPages && !fore_copied_p {
             // If the foreground entry is special, copy it now
-            new_map_entries.push(f);
+            new_map_entries.push(fore[idx_fore as usize]);
             fore_copied_p = true;
         } else {
-            if b_b.address < f_b.address {
+            if back[idx_back as usize].address < fore[idx_fore as usize].address {
                 // Here iff the current background entry overlaps the current foreground entry and part of it lies below the current
                 // foreground entry.  Create an entry in the merged map for the portion of the background entry that falls below the
                 // foreground entry.  We don't have to check the extent of the background entry as the earlier loop above guaranteed that
                 // this entry must overlap the foreground entry
-                new_map_entries.push(b);
-                match new_map_entries.last() {
-                    Some(e) => {
-                        e.get_mut().count = f_b.address - b_b.address;
-                    }
-                    None => {}
-                };
+                new_map_entries.push(back[idx_back as usize]);
+                let l = new_map_entries.len();
+                new_map_entries[l - 1].count =
+                    fore[idx_fore as usize].address - back[idx_back as usize].address;
             }
 
             if !fore_copied_p {
-                new_map_entries.push(f);
+                new_map_entries.push(fore[idx_fore as usize]);
                 fore_copied_p = true;
             }
 
-            if b_b.address < f_b.address + f_b.count {
-                if b_b.address + b_b.count > f_b.address + f_b.count {
+            if back[idx_back as usize].address
+                < fore[idx_fore as usize].address + fore[idx_fore as usize].count
+            {
+                if back[idx_back as usize].address + back[idx_back as usize].count
+                    > fore[idx_fore as usize].address + fore[idx_fore as usize].count
+                {
                     // Here iff the current background entry overlaps the current foreground entry but also extends past the end
                     // of the foreground entry.  Adjust the background entry to cover just the region above the end of the current
                     // foreground entry
-                    old_address = b_b.address;
-                    back[idx_back as usize].get_mut().address = f_b.address + f_b.count;
-                    back[idx_back as usize].get_mut().count - f_b.address + f_b.count - old_address;
+                    old_address = back[idx_back as usize].address;
+                    back[idx_back as usize].address =
+                        fore[idx_fore as usize].address + fore[idx_fore as usize].count;
+                    back[idx_back as usize].count - fore[idx_fore as usize].address
+                        + fore[idx_fore as usize].count
+                        - old_address;
 
-                    slop = back[idx_back as usize].get_mut().address & page_size_Qs - 1;
+                    slop = back[idx_back as usize].address & page_size_Qs - 1;
                     if slop != 0 {
                         // Adjust the new background entry to start on a page boundary. If the resulting entry is empty or zero
                         // length, both the background and foreground end on the same page but the background includes more of
                         // that page which shouldn't happen
-                        back[idx_back as usize].get_mut().address += page_size_Qs - slop;
-                        back[idx_back as usize].get_mut().count -= slop;
-                        if back[idx_back as usize].get_mut().count <= 0 {
+                        back[idx_back as usize].address += page_size_Qs - slop;
+                        back[idx_back as usize].count -= slop;
+                        if back[idx_back as usize].count <= 0 {
                             vpunt(format!("A merged load map entry wouldn't start on a page boundary for world file {}",
-                                world
-                                .get_mut()
-                                .pathname
-                                .unwrap_or(PathBuf::from("NO FILE PATH PROVIDED"))
-                                .display()
-                                .to_string()));
+                                world.pathname.display().to_string()));
                         }
                     }
 
-                    write_lisp_obj_data_u(&mut back[idx_back as usize].get_mut().data, unsafe {
-                        (lisp_obj_data(back[idx_back as usize].get_mut().data).u
-                            + back[idx_back as usize].get_mut().address
+                    write_lisp_obj_data_u(&mut back[idx_back as usize].data, unsafe {
+                        (lisp_obj_data(back[idx_back as usize].data).u
+                            + back[idx_back as usize].address
                             - old_address)
                             / page_size_Qs
                     });
@@ -382,8 +424,6 @@ pub fn merge_a_map(
                     // Here iff the current background entry overlaps the current foreground entry but doesn't extend past the
                     // end of the foreground entry.  We're done with this background entry
                     idx_back += 1;
-                    b = back[idx_back as usize];
-                    b_b = back[idx_back as usize].get_mut();
                 }
             }
         }
@@ -391,7 +431,8 @@ pub fn merge_a_map(
         // Here iff there are no more background entries or the next background entry does not overlap the current foreground entry.
         // We're done with this foreground entry
         if idx_back >= n_back
-            || back[idx_back as usize].get_mut().address >= f_b.address + f_b.count
+            || back[idx_back as usize].address
+                >= fore[idx_fore as usize].address + fore[idx_fore as usize].count
         {
             idx_fore += 1;
             fore_copied_p = false;
@@ -429,32 +470,30 @@ pub fn merge_a_map(
 //     world.current_page_number = page_number;
 // }
 
-pub fn read_load_map(w: Rc<RefCell<World>>, map_selector: MapEntrySelector) {
-    let wgm = w.get_mut();
-
-    let map = match map_selector {
-        MapEntrySelector::Wired => wgm.wired_map_entries,
-        MapEntrySelector::MergedWired => wgm.merged_wired_map_entries,
-        MapEntrySelector::Unwired => wgm.unwired_map_entries,
-        MapEntrySelector::MergedUnwired => wgm.merged_unwired_map_entries,
+pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) {
+    let map: &mut Vec<LoadMapEntry> = match map_selector {
+        MapEntrySelector::Wired => w.wired_map_entries.borrow_mut(),
+        MapEntrySelector::MergedWired => w.merged_wired_map_entries.borrow_mut(),
+        MapEntrySelector::Unwired => w.unwired_map_entries.borrow_mut(),
+        MapEntrySelector::MergedUnwired => w.merged_unwired_map_entries.borrow_mut(),
     };
 
     for e in map {
-        let mut q = read_ivory_world_file_next_Q(wgm);
-        e.get_mut().address = lisp_obj_data(q).a;
+        let q = read_ivory_world_file_next_Q(w);
+        e.address = q.a();
 
-        q = read_ivory_world_file_next_Q(wgm);
-        let op = lisp_obj_data(q).u;
-        e.get_mut().count = op & 0x00FF_FFFF;
-        e.get_mut().map_code = match op & 0xFF00_0000 >> 24 {
+        let q = read_ivory_world_file_next_Q(w);
+        let op = q.u();
+        e.count = op & 0x00FF_FFFF;
+        e.map_code = match (op & 0xFF00_0000) >> 24 {
             0 => LoadMapEntryOpcode::DataPages,
             1 => LoadMapEntryOpcode::Constant,
             2 => LoadMapEntryOpcode::ConstantIncremented,
             3 => LoadMapEntryOpcode::Copy,
+            _ => LoadMapEntryOpcode::default(),
         };
 
-        q = read_ivory_world_file_next_Q(wgm);
-        e.get_mut().data = q;
+        e.data = read_ivory_world_file_next_Q(w);
     }
 }
 
@@ -486,125 +525,114 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
     let mut first_sysout_Q: u32 = 0;
     let mut first_map_Q: u32 = 0;
 
-    let w = ctx.world.get_mut();
+    ctx.world.vlm_data_page = vec![];
+    ctx.world.vlm_tags_page = vec![];
+    ctx.world.ivory_data_page = vec![];
+    ctx.world.wired_map_entries = vec![];
+    ctx.world.unwired_map_entries = vec![];
+    ctx.world.merged_wired_map_entries = vec![];
+    ctx.world.merged_unwired_map_entries = vec![];
+    ctx.world.parent_world = None;
 
-    w.vlm_data_page = vec![];
-    w.vlm_tags_page = vec![];
-    w.ivory_data_page = vec![];
-    w.wired_map_entries = vec![];
-    w.unwired_map_entries = vec![];
-    w.merged_wired_map_entries = vec![];
-    w.merged_unwired_map_entries = vec![];
-    w.parent_world = None;
+    let path = ctx.world.pathname;
+    let f = File::open(path).expect("Could not open file");
+    ctx.world.fd = Some(f);
 
-    if w.pathname.is_none() {
+    let mut cookie = [0 as u8; size_of::<u32>()];
+    if f.read_exact(&mut cookie).is_err() && puntOnErrors {
+        ctx.close(true);
+        vpunt(format!("Reading world file {} cookie.", path.display()));
+    } else {
         return false;
     }
 
-    let path = w.pathname.as_ref().unwrap();
-    let file_handle = File::open(path);
-
-    match file_handle {
-        Ok(f) => {
-            w.fd = Some(f);
-
-            let cookie = [0 as u8; size_of::<u32>()];
-            if f.read_exact(&mut cookie).is_err() && puntOnErrors {
-                ctx.close(true);
-                vpunt(format!("Reading world file {} cookie.", path.display()));
-            } else {
-                return false;
-            }
-
-            match pack_8_to_32(cookie) {
-                VLMWORLD_FILE_COOKIE => {
-                    w.format = LoadFileFormat::VLMWorldFormat;
-                    w.byte_swapped = false;
-                }
-
-                VLMWORLD_FILE_COOKIE_SWAPPED => {
-                    w.format = LoadFileFormat::VLMWorldFormat;
-                    w.byte_swapped = true;
-                }
-                IVORY_WORLD_FILE_COOKIE => {
-                    w.format = LoadFileFormat::IvoryWorldFormat;
-                    wired_count_Q = 1;
-                    unwired_count_Q = 2;
-                    first_sysout_Q = 0;
-                    first_map_Q = 8;
-                }
-
-                _ => {
-                    if puntOnErrors {
-                        ctx.close(true);
-                        vpunt(format!(
-                            "Format of world file {} is unrecognized",
-                            path.display()
-                        ));
-                    }
-                }
-            }
-
-            w.ivory_data_page = vec![QWord::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
-
-            w.current_page_number = 0;
-
-            // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
-            if w.format == LoadFileFormat::VLMWorldFormat {
-                match unsafe { lisp_obj_data(read_ivory_world_file_Q(w, 0)).u } {
-                    VLMVERSION1_AND_ARCHITECTURE => {
-                        wired_count_Q = 1;
-                        unwired_count_Q = 0;
-                        pages_base_Q = 3;
-                        first_sysout_Q = 0;
-                        first_map_Q = 8;
-                    }
-                    VLMVERSION2_AND_ARCHITECTURE => {
-                        wired_count_Q = 1;
-                        unwired_count_Q = 0;
-                        pages_base_Q = 2;
-                        first_sysout_Q = 3;
-                        first_map_Q = 8;
-                    }
-                    _ => {
-                        vpunt(format!(
-                            "Format magic code of world file {} is unrecognized",
-                            path.display()
-                        ));
-                    }
-                }
-            }
-
-            if w.format == LoadFileFormat::VLMWorldFormat {
-                page_bases = read_ivory_world_file_Q(w, pages_base_Q);
-                w.vlm_data_page_base = unsafe { page_bases.parts.data.u };
-                w.vlm_tags_page_base = unsafe { page_bases.parts.tag as u32 };
-            }
-
-            if first_sysout_Q != 0 {
-                w.current_Q_number = first_sysout_Q;
-
-                w.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
-                w.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
-                w.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
-                w.parent_timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
-                w.parent_timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
-            } else {
-                w.generation = 0;
-                w.timestamp_2 = 0;
-                w.timestamp_1 = 0;
-                w.parent_timestamp_2 = 0;
-                w.parent_timestamp_1 = 0;
-            }
-            w.current_Q_number = first_map_Q;
-            read_load_map(ctx.world, MapEntrySelector::Wired);
-            read_load_map(ctx.world, MapEntrySelector::Unwired);
-
-            return true;
+    match pack_8_to_32(cookie) {
+        VLMWORLD_FILE_COOKIE => {
+            ctx.world.format = LoadFileFormat::VLMWorldFormat;
+            ctx.world.byte_swapped = false;
         }
 
-        _ => return false,
+        VLMWORLD_FILE_COOKIE_SWAPPED => {
+            ctx.world.format = LoadFileFormat::VLMWorldFormat;
+            ctx.world.byte_swapped = true;
+        }
+        IVORY_WORLD_FILE_COOKIE => {
+            ctx.world.format = LoadFileFormat::IvoryWorldFormat;
+            wired_count_Q = 1;
+            unwired_count_Q = 2;
+            first_sysout_Q = 0;
+            first_map_Q = 8;
+        }
+
+        _ => {
+            if puntOnErrors {
+                ctx.close(true);
+                vpunt(format!(
+                    "Format of world file {} is unrecognized",
+                    path.display()
+                ));
+            }
+        }
     }
+
+    ctx.world.ivory_data_page = vec![QWord::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
+
+    ctx.world.current_page_number = 0;
+
+    // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
+    if ctx.world.format == LoadFileFormat::VLMWorldFormat {
+        match unsafe { lisp_obj_data(read_ivory_world_file_Q(ctx.world, 0)).u } {
+            VLMVERSION1_AND_ARCHITECTURE => {
+                wired_count_Q = 1;
+                unwired_count_Q = 0;
+                pages_base_Q = 3;
+                first_sysout_Q = 0;
+                first_map_Q = 8;
+            }
+            VLMVERSION2_AND_ARCHITECTURE => {
+                wired_count_Q = 1;
+                unwired_count_Q = 0;
+                pages_base_Q = 2;
+                first_sysout_Q = 3;
+                first_map_Q = 8;
+            }
+            _ => {
+                vpunt(format!(
+                    "Format magic code of world file {} is unrecognized",
+                    path.display()
+                ));
+            }
+        }
+    }
+
+    if ctx.world.format == LoadFileFormat::VLMWorldFormat {
+        page_bases = read_ivory_world_file_Q(ctx.world, pages_base_Q);
+        ctx.world.vlm_data_page_base = unsafe { page_bases.parts.data.u };
+        ctx.world.vlm_tags_page_base = unsafe { page_bases.parts.tag as u32 };
+    }
+
+    if first_sysout_Q != 0 {
+        ctx.world.current_Q_number = first_sysout_Q;
+
+        ctx.world.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+        ctx.world.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+        ctx.world.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+        ctx.world.parent_timestamp_1 =
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+        ctx.world.parent_timestamp_2 =
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+    } else {
+        ctx.world.generation = 0;
+        ctx.world.timestamp_2 = 0;
+        ctx.world.timestamp_1 = 0;
+        ctx.world.parent_timestamp_2 = 0;
+        ctx.world.parent_timestamp_1 = 0;
+    }
+    ctx.world.current_Q_number = first_map_Q;
+    read_load_map(ctx.world, MapEntrySelector::Wired);
+    read_load_map(ctx.world, MapEntrySelector::Unwired);
+
+    return true;
 }
 
 fn read_ivory_world_file_Q(w: &World, address: u32) -> QWord {
@@ -612,14 +640,7 @@ fn read_ivory_world_file_Q(w: &World, address: u32) -> QWord {
         vpunt(format!(
             "Invalid word number {} for world file {}",
             address,
-            match w.pathname {
-                Some(path) => {
-                    path.display().to_string()
-                }
-                None => {
-                    String::from("NO FILE PATH PROVIDED")
-                }
-            }
+            &w.pathname.display().to_string()
         ));
     }
 
@@ -645,20 +666,17 @@ pub fn world_p(candidate_world: DirEntry, ctx: &mut GlobalContext) -> bool {
     let mut candidate_pathname: &Path;
 
     if candidate_world.file_name().len() > VLMWORLD_SUFFIX.len() {
-        a_world.pathname = Some(
-            PathBuf::from("/")
-                .join(&ctx.scanning_dir)
-                .join(candidate_world.file_name()),
-        );
+        a_world.pathname = PathBuf::from("/")
+            .join(&ctx.scanning_dir)
+            .join(candidate_world.file_name());
 
         match open_world_file(ctx, false) {
             false => return false,
             true => {
                 if ctx.worlds.len() as u32 == ctx.total_worlds {
                     ctx.total_worlds += 32;
-                    for _ in 1..=ctx.total_worlds {
-                        ctx.worlds.push(World::default());
-                    }
+                    ctx.worlds
+                        .append(&mut vec![&mut World::default(); ctx.total_worlds]);
                 }
 
                 // ctx.n_worlds += 1;
@@ -681,7 +699,7 @@ pub fn write_lisp_obj_data_u(q: &mut QWord, data: u32) {
 //  memory.  (Eventually, we may also merge adjacent load map rentries.)
 fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
     let mut new_n_wired_map_entries: u32 = 0;
-    let mut new_wired_map_entries: Vec<Rc<RefCell<LoadMapEntry>>> = vec![];
+    let mut new_wired_map_entries: Vec<LoadMapEntry> = vec![];
     let mut new_map_entry: Option<LoadMapEntry> = None;
 
     let mut page_number: u32 = 0;
@@ -690,44 +708,42 @@ fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
     let mut n_Qs: u32 = 0;
     let mut j: u32 = 0;
 
-    let w = ctx.world.get_mut();
-    let n_wired_entries = w.wired_map_entries.len() as u32;
+    let n_wired_entries = ctx.world.wired_map_entries.len() as u32;
+
     let mut i: u32 = 0;
-
     while i < n_wired_entries {
-        // let map_entry = w.wired_map_entries[i as usize].get_mut();
+        // let map_entry = ctx.world.wired_map_entries[i as usize].get_mut();
 
-        let (d, r) = w.wired_map_entries[i as usize]
-            .get_mut()
+        let (d, r) = ctx.world.wired_map_entries[i as usize]
             .address
             .div_rem(&VLMPAGE_SIZE_QS);
         if r == 0 {
             // Page Aligned:  Assign the page number within the file
-            w.wired_map_entries[i as usize].get_mut().data =
-                make_lisp_obj_u(CDR::Nil, QTag::Fixnum, page_number); // Tag 8
+            ctx.world.wired_map_entries[i as usize].data =
+                make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
             page_number = page_number + d + 1;
             i += 1;
         } else {
             // Not Page Aligned:  Convert into a series of LoadMapConstant entries
             for j in 0..n_wired_entries {
-                w.wired_map_entries
-                    [(i + j + w.wired_map_entries[i as usize].get_mut().count) as usize] =
-                    w.wired_map_entries[(i + j + 1) as usize]
+                let count = ctx.world.wired_map_entries[i as usize].count;
+                ctx.world.wired_map_entries[(i + j + count) as usize] =
+                    ctx.world.wired_map_entries[(i + j + 1) as usize]
             }
 
-            for j in 0..w.wired_map_entries[i as usize].get_mut().count {
-                let map_entry_tmp = w.wired_map_entries[(i + i) as usize].get_mut();
+            for j in 0..ctx.world.wired_map_entries[i as usize].count {
+                let map_entry_tmp = ctx.world.wired_map_entries[(i + i) as usize];
 
-                w.wired_map_entries[(i + j) as usize].get_mut().address =
-                    w.wired_map_entries[i as usize].get_mut().address + j;
-                w.wired_map_entries[(i + j) as usize].get_mut().map_code =
+                ctx.world.wired_map_entries[(i + j) as usize].address =
+                    ctx.world.wired_map_entries[i as usize].address + j;
+                ctx.world.wired_map_entries[(i + j) as usize].map_code =
                     LoadMapEntryOpcode::Constant;
-                w.wired_map_entries[(i + j) as usize].get_mut().count = 1;
-                w.wired_map_entries[(i + j) as usize].get_mut().data =
-                    virtual_memory_read(w.wired_map_entries[(i + j) as usize].get_mut().address);
+                ctx.world.wired_map_entries[(i + j) as usize].count = 1;
+                ctx.world.wired_map_entries[(i + j) as usize].data =
+                    virtual_memory_read(ctx.world.wired_map_entries[(i + j) as usize].address);
             }
 
-            i += w.wired_map_entries[i as usize].get_mut().count;
+            i += ctx.world.wired_map_entries[i as usize].count;
         }
     }
 
@@ -737,17 +753,14 @@ fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
     block_count = (page_count * IVORY_PAGE_SIZE_BYTES).div(VLMPAGE_SIZE_QS) + 1;
 
     if block_count > VLMMAXIMUM_HEADER_BLOCKS {
-        w.close(true);
+        ctx.world.close(true);
         vpunt(format!(
             "Unable to store data map in space reserved for same in world file {}",
-            w.pathname
-                .unwrap_or(PathBuf::from("NO FILE PATH PROVIDED"))
-                .display()
-                .to_string()
+            ctx.world.pathname.display().to_string()
         ));
     }
-    w.vlm_tags_page_base = block_count;
-    w.vlm_data_page_base = (w.vlm_tags_page_base + 1) * page_number;
+    ctx.world.vlm_tags_page_base = block_count;
+    ctx.world.vlm_data_page_base = (ctx.world.vlm_tags_page_base + 1) * page_number;
 }
 
 pub fn write_ivory_world_file_next_Q(w: &mut World, q: QWord) {}
@@ -964,20 +977,13 @@ fn read_swapped_VLM_world_file_Q(world: &mut World, mut q_number: u32) -> QWord 
         vpunt(format!(
             "Invalid word number {} for world file {}",
             q_number,
-            match world.pathname {
-                Some(path) => {
-                    path.display().to_string()
-                }
-                None => {
-                    String::from("NO FILE PATH PROVIDED")
-                }
-            }
+            world.pathname.display().to_string()
         ));
     }
 
     datum = byte_swap_32(world.vlm_data_page[q_number as usize]);
     let tag: QTag = unsafe { ::std::mem::transmute(world.vlm_tags_page[q_number as usize]) };
-    return make_lisp_obj_u(CDR::Nil, tag, datum);
+    return make_lisp_obj_u(CDR::Jump, tag, datum);
 }
 
 fn read_swapped_VLM_world_file_next_Q(world: &mut World) -> QWord {
@@ -1176,7 +1182,7 @@ pub fn map_world_load(ctx: &mut GlobalContext, start: u32, length: u32, offset: 
     let mut swap_map_entries: u32 = 0;
     let mut file_map_entries: u32 = 0;
 
-    let mut world_file = &ctx.world.get_mut().fd.unwrap();
+    let world_file = &ctx.world.fd.unwrap();
     let mmap_buf = unsafe { Mmap::map(world_file) };
 
     // sigh, have to copy partial pages and pages that already exist (e.g., shared FEP page)
@@ -1315,27 +1321,29 @@ pub fn map_world_load(ctx: &mut GlobalContext, start: u32, length: u32, offset: 
 }
 
 fn VLM_load_map_data(ctx: &mut GlobalContext, map_selector: MapEntrySelector, index: usize) -> u32 {
-    let w = ctx.world.get_mut();
-    let entry = w.select_entries(map_selector)[index].get_mut();
+    let entry = ctx.world.select_entries(map_selector)[index];
 
     match entry.map_code {
         LoadMapEntryOpcode::DataPages => {
             // let map_world = map_entry.world;
             let page_number = unsafe { entry.data.parts.data.u };
-            if w.byte_swapped {
+            if ctx.world.byte_swapped {
                 // ensure_virtual_address_range(entry.address, entry.count, false);
-                read_swapped_VLM_world_file_page(w, page_number);
+                read_swapped_VLM_world_file_page(ctx.world, page_number);
 
-                let the_address = entry.address;
-                w.current_Q_number = 0;
+                let mut the_address = entry.address;
+                ctx.world.current_Q_number = 0;
                 println!("LoadMapDataPages @ {}, count {}", the_address, entry.count,);
 
                 for _ in 0..entry.count {
-                    virtual_memory_write(the_address, read_swapped_VLM_world_file_next_Q(w));
+                    virtual_memory_write(
+                        the_address,
+                        read_swapped_VLM_world_file_next_Q(ctx.world),
+                    );
                     the_address += 1;
                 }
             } else {
-                let file_offset = 8192 * (w.vlm_data_page_base + page_number * 4);
+                let file_offset = 8192 * (ctx.world.vlm_data_page_base + page_number * 4);
                 // let tag_offset = 8192 * (&ctx.world.vlm_data_page_base + page_number * 1);
 
                 map_world_load(ctx, entry.address, entry.count, file_offset);
@@ -1365,10 +1373,7 @@ fn VLM_load_map_data(ctx: &mut GlobalContext, map_selector: MapEntrySelector, in
             vpunt(format!(
                 "Unknown load map opcode {} in world file {}",
                 entry.map_code,
-                w.pathname
-                    .unwrap_or(PathBuf::from("NO FILE PATH PROVIDED"))
-                    .display()
-                    .to_string()
+                ctx.world.pathname.display().to_string()
             ))
         }
     }

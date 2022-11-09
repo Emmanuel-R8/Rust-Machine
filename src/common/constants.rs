@@ -980,23 +980,23 @@ pub const MEMORY_STACK_CACHE_BASE:u32 = 0xF800_0100;
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum SystemCommAreaSlot {
     #[default]
-    syscomMajorVersionNumber = ADDRESS_SYSTEM_COMM_AREA,
-    syscomMinorVersionNumber = 0xF804_1104,
-    systemStartup = 0xF804_1108,
+    SyscomMajorVersionNumber = ADDRESS_SYSTEM_COMM_AREA,
+    SyscomMinorVersionNumber = 0xF804_1104,
+    SystemStartup = 0xF804_1108,
 
     // Address Spacemap
-    addressSpaceMapAddress = 0xF804_110C, // Maps quanta to regions.  See STORAGE for format info.
-    oblastFreeSize = 0xF804_1110,         // Contiguous free quanta in each oblast.
+    AddressSpaceMapAddress = 0xF804_110C, // Maps quanta to regions.  See STORAGE for format info.
+    OblastFreeSize = 0xF804_1110,         // Contiguous free quanta in each oblast.
 
     // Per-area tables.  These are arrays.  They are here for the console program.
-    areaName = 0xF804_1114, // A symbol
-    areaMaximumQuantumSize = 0xF804_1118,
-    areaRegionQuantumSize = 0xF804_111C,
-    areaRegionList = 0xF804_1120,
-    areaRegionBits = 0xF804_1124,
+    AreaName = 0xF804_1114, // A symbol
+    AreaMaximumQuantumSize = 0xF804_1118,
+    AreaRegionQuantumSize = 0xF804_111C,
+    AreaRegionList = 0xF804_1120,
+    AreaRegionBits = 0xF804_1124,
 
     // Per-region tables.  These are arrays.  They are here for the console program.
-    regionQuantumOrigin = 0xF804_1128,
+    RegionQuantumOrigin = 0xF804_1128,
     regionQuantumLength = 0xF804_112C,
     regionFreePointer = 0xF804_1130, // Number of words actually used
     regionGCPointer = 0xF804_1134,   // Number of words scanned by (long-term) GC
@@ -1012,53 +1012,53 @@ pub enum SystemCommAreaSlot {
     defaultConsArea = 0xF804_115C,
 
     // Pointers to critical storage-system tables (these are displaced arrays)
-    pht = 0xF804_1160,   // Page hash table
-    mmptY = 0xF804_1164, // Main Memory Y subscript table
-    mmpt = 0xF804_1168,  // Main Memory page table
-    smpt = 0xF804_116C,  // Secondary Memory page table
-    loadBitmaps = 0xF804_1170,
+    PHT = 0xF804_1160,   // Page hash table
+    MainMemoryPageTableY = 0xF804_1164, // Main Memory Y subscript table
+    MainMemoryPageTable = 0xF804_1168,  // Main Memory page table
+    SecondaryMemoryPageTable = 0xF804_116C,  // Secondary Memory page table
+    LoadBitmaps = 0xF804_1170,
 
     //  The following are red herrings for functionality that is really in FEPCOM.
     //  Presumably they leaked in from L-world during the IMach project.
-    loadMap = 0xF804_1174,    // Red herring */
-    loadMapDPN = 0xF804_1178, // Red herring */
-    swapMap = 0xF804_117C,    // Red herring */
-    swapMapDPN = 0xF804_1180, // Red herring */
-    sysoutBitmaps = 0xF804_1184,
+    LoadMap = 0xF804_1174,    // Red herring */
+    LoadMapDpn = 0xF804_1178, // Red herring */
+    SwapMap = 0xF804_117C,    // Red herring */
+    SwapMapDpn = 0xF804_1180, // Red herring */
+    SysoutBitmaps = 0xF804_1184,
 
     // Dynamic storage array					4 bits per PHT bucket.
-    phtCollisionCounts = 0xF804_1188,
+    PHTCollisionCounts = 0xF804_1188,
     mmpt1 = 0xF804_118C,
-    storageColdBoot = 0xF804_1190,
-    flushableQueueHead = 0xF804_1194,
-    flushableQueueTail = 0xF804_1198,
-    flushableQueueModified = 0xF804_119C,
-    wiredPhysicalAddressHigh = 0xF804_11A0,
-    wiredVirtualAddressHigh = 0xF804_11A4,
-    enableSysoutAtColdBoot = 0xF804_11A8,
-    sysoutGenerationNumber = 0xF804_11AC,
-    sysoutTimestamp1 = 0xF804_11B0,
-    sysoutTimestamp2 = 0xF804_11B4,
+    StorageColdBoot = 0xF804_1190,
+    FlushableQueueHead = 0xF804_1194,
+    FlushableQueueTail = 0xF804_1198,
+    FlushableQueueModified = 0xF804_119C,
+    WiredPhysicalAddressHigh = 0xF804_11A0,
+    WiredVirtualAddressHigh = 0xF804_11A4,
+    EnableSysoutAtColdBoot = 0xF804_11A8,
+    SysoutGenerationNumber = 0xF804_11AC,
+    SysoutTimestamp1 = 0xF804_11B0,
+    SysoutTimestamp2 = 0xF804_11B4,
 
     // microsecond clock at some convenient time
     // of disk-save/sysout.
-    sysoutParentTimestamp1 = 0xF804_11B8,
-    sysoutParentTimestamp2 = 0xF804_11BC,
-    initialStackGroup = 0xF804_11C0,
-    currentStackGroup = 0xF804_11C4,
-    stackGroupLock = 0xF804_11C8,
-    currentStackGroupStatusBits = 0xF804_11CC,
-    inhibitSchedulingFlag = 0xF804_11D0,
-    controlStackLow = 0xF804_11D4,
-    bindingStackLow = 0xF804_11D8,
+    SysoutParentTimestamp1 = 0xF804_11B8,
+    SysoutParentTimestamp2 = 0xF804_11BC,
+    InitialStackGroup = 0xF804_11C0,
+    CurrentStackGroup = 0xF804_11C4,
+    StackGroupLock = 0xF804_11C8,
+    CurrentStackGroupStatusBits = 0xF804_11CC,
+    InhibitSchedulingFlag = 0xF804_11D0,
+    ControlStackLow = 0xF804_11D4,
+    BindingStackLow = 0xF804_11D8,
 
     // Floating-point control registers
-    floatOperatingMode = 0xF804_11DC,
-    floatOperationStatus = 0xF804_11E0,
+    FloatOperatingMode = 0xF804_11DC,
+    FloatOperationStatus = 0xF804_11E0,
 
-    packageNameTable = 0xF804_11E4,
-    lispReleaseString = 0xF804_11E8,
-    busMode = 0xF804_11EC,
+    PackageNameTable = 0xF804_11E4,
+    LispReleaseString = 0xF804_11E8,
+    BusMode = 0xF804_11EC,
     Usused_1 = 0xF804_11F0,
     Usused_2 = 0xF804_11F4,
     Usused_3 = 0xF804_11F8,
@@ -1080,61 +1080,61 @@ pub enum FEPCommArea {
     SpyStatus = 0xF804_1010,  // Obsolete
     SpyPc = 0xF804_1014,      // Obsolete
     LoadMapSize = 0xF804_1018,
-    loadMapVMAAddress = 0xF804_101C,
-    loadMapOpcodeAddress = 0xF804_1020,
-    loadMapOperandAddress = 0xF804_1024,
-    swapMapSize = 0xF804_1028,
-    swapMapAddress = 0xF804_102C,
-    swapMapDPNAddress = 0xF804_1030,
-    mainMemoryMapSize = 0xF804_1034,
-    mainMemoryMapAddress = 0xF804_1038,
-    badMemoryPagesSize = 0xF804_103C,
-    badMemoryPagesAddress = 0xF804_1040,
-    fepPhysicalAddressHigh = 0xF804_1044,
-    unwiredVirtualAddressLow = 0xF804_1048,
-    unwiredVirtualAddressHigh = 0xF804_104C,
-    unwiredPhysicalAddressLow = 0xF804_1050,
-    unwiredPhysicalAddressHigh = 0xF804_1054,
-    requestingLispToStop = 0xF804_1058,
-    currentFEPOverlays = 0xF804_105C,
-    embCommunicationArea = 0xF804_1060,
-    loadedBandName = 0xF804_1064,
-    netbootControlString = 0xF804_1068,
-    softwareConfiguration = 0xF804_106C,
-    netAddress1 = 0xF804_1070,
-    netAddress2 = 0xF804_1074,
-    primaryNetworkAddress = 0xF804_1078,
-    fepCommandString = 0xF804_107C,
-    fepCrashDataRequest = 0xF804_1080,
-    coldLoadStreamReadCharacter = 0xF804_1084,
-    coldLoadStreamListen = 0xF804_1088,
-    coldLoadStreamReadHardwareCharacter = 0xF804_108C,
-    coldLoadStreamDrawCharacter = 0xF804_1090,
-    coldLoadStreamDisplayLozengedString = 0xF804_1094,
-    coldLoadStreamSelect = 0xF804_1098,
-    coldLoadStreamBeep = 0xF804_109C,
-    coldLoadStreamFinish = 0xF804_10A0,
-    coldLoadStreamInsideSize = 0xF804_10A4,
-    coldLoadStreamSetCursorpos = 0xF804_10A8,
-    coldLoadStreamReadCursorpos = 0xF804_10AC,
-    coldLoadStreamComputeMotion = 0xF804_10B0,
-    coldLoadStreamClearBetweenCursorposes = 0xF804_10B4,
-    coldLoadStreamSetEdges = 0xF804_10B8,
-    mainScreenParameters = 0xF804_10BC,
-    wiredFormat = 0xF804_10C0,
-    fepSequenceBreak = 0xF804_10C4, // Obsolete
-    lispStoppedCleanly = 0xF804_10C8,
-    loadPagesToSwapAreaP = 0xF804_10CC,
-    remoteDebugLoop = 0xF804_10D0,
-    timezoneOffsetMinutes = 0xF804_10D4,
-    timezoneName = 0xF804_10D8,
-    namespaceDescriptorFile = 0xF804_10DC,
-    siteName = 0xF804_10E0,
-    savedLispRegisters = 0xF804_10E4,
-    lispStateSaved = 0xF804_10E8,
-    enableFPAp = 0xF804_10EC,
-    diskUnitTable = 0xF804_10F0,
-    hardwareConfiguration = 0xF804_10F4,
+    LoadMapVmaaddress = 0xF804_101C,
+    LoadMapOpcodeAddress = 0xF804_1020,
+    LoadMapOperandAddress = 0xF804_1024,
+    SwapMapSize = 0xF804_1028,
+    SwapMapAddress = 0xF804_102C,
+    SwapMapDpnaddress = 0xF804_1030,
+    MainMemoryMapSize = 0xF804_1034,
+    MainMemoryMapAddress = 0xF804_1038,
+    BadMemoryPagesSize = 0xF804_103C,
+    BadMemoryPagesAddress = 0xF804_1040,
+    FEPPhysicalAddressHigh = 0xF804_1044,
+    UnwiredVirtualAddressLow = 0xF804_1048,
+    UnwiredVirtualAddressHigh = 0xF804_104C,
+    UnwiredPhysicalAddressLow = 0xF804_1050,
+    UnwiredPhysicalAddressHigh = 0xF804_1054,
+    RequestingLispToStop = 0xF804_1058,
+    CurrentFEPOverlays = 0xF804_105C,
+    EmbCommunicationArea = 0xF804_1060,
+    LoadedBandName = 0xF804_1064,
+    NetbootControlString = 0xF804_1068,
+    SoftwareConfiguration = 0xF804_106C,
+    NetAddress1 = 0xF804_1070,
+    NetAddress2 = 0xF804_1074,
+    PrimaryNetworkAddress = 0xF804_1078,
+    FEPCommandString = 0xF804_107C,
+    FEPCrashDataRequest = 0xF804_1080,
+    ColdLoadStreamReadCharacter = 0xF804_1084,
+    ColdLoadStreamListen = 0xF804_1088,
+    ColdLoadStreamReadHardwareCharacter = 0xF804_108C,
+    ColdLoadStreamDrawCharacter = 0xF804_1090,
+    ColdLoadStreamDisplayLozengedString = 0xF804_1094,
+    ColdLoadStreamSelect = 0xF804_1098,
+    ColdLoadStreamBeep = 0xF804_109C,
+    ColdLoadStreamFinish = 0xF804_10A0,
+    ColdLoadStreamInsideSize = 0xF804_10A4,
+    ColdLoadStreamSetCursorpos = 0xF804_10A8,
+    ColdLoadStreamReadCursorpos = 0xF804_10AC,
+    ColdLoadStreamComputeMotion = 0xF804_10B0,
+    ColdLoadStreamClearBetweenCursorposes = 0xF804_10B4,
+    ColdLoadStreamSetEdges = 0xF804_10B8,
+    MainScreenParameters = 0xF804_10BC,
+    WiredFormat = 0xF804_10C0,
+    FEPSequenceBreak = 0xF804_10C4, // Obsolete
+    LispStoppedCleanly = 0xF804_10C8,
+    LoadPagesToSwapAreaP = 0xF804_10CC,
+    RemoteDebugLoop = 0xF804_10D0,
+    TimezoneOffsetMinutes = 0xF804_10D4,
+    TimezoneName = 0xF804_10D8,
+    NamespaceDescriptorFile = 0xF804_10DC,
+    SiteName = 0xF804_10E0,
+    SavedLispRegisters = 0xF804_10E4,
+    LispStateSaved = 0xF804_10E8,
+    EnableFpap = 0xF804_10EC,
+    DiskUnitTable = 0xF804_10F0,
+    HardwareConfiguration = 0xF804_10F4,
     SlaveBufferBaseAddress = 0xF804_10F8,
     KernelCompressedStringArray = 0xF804_10FC,
     Domino8032state = 0xF804_1100,

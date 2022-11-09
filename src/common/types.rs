@@ -1,6 +1,8 @@
 use c2rust_bitfields::BitfieldStruct;
 
-use std::{cell::RefCell, fmt, rc::Rc};
+use std::fmt::{Debug, Display, Formatter, Result};
+use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::{cell::RefCell, rc::Rc};
 
 // Representation of lisp objects
 use super::constants::{QTag, CDR, VLMPAGE_SIZE_QS};
@@ -54,7 +56,7 @@ pub union QImmediate {
 }
 
 impl QImmediate {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { u: 0 }
     }
 }
@@ -92,8 +94,8 @@ impl PartialEq for QImmediate {
 
 impl Eq for QImmediate {}
 
-impl fmt::Display for QImmediate {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for QImmediate {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         unsafe {
             match self {
                 QImmediate { u: val } => write!(f, "QData u32: {}", val),
@@ -105,14 +107,77 @@ impl fmt::Display for QImmediate {
     }
 }
 
-impl fmt::Debug for QImmediate {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Debug for QImmediate {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         unsafe {
             match self {
                 QImmediate { u: val } => write!(f, "QData u32: {}", val),
                 QImmediate { s: val } => write!(f, "QData i32: {}", val),
                 QImmediate { f: val } => write!(f, "QData f32: {}", val),
                 QImmediate { a: val } => write!(f, "QData address: {}", val),
+            }
+        }
+    }
+}
+
+impl Add for QImmediate {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        let mut q = self;
+
+        unsafe {
+            match self {
+                QImmediate { u: val } => q.u += rhs.u,
+                QImmediate { s: val } => q.s += rhs.s,
+                QImmediate { f: val } => q.f += rhs.f,
+                QImmediate { a: val } => q.a += rhs.a,
+            }
+        }
+
+        return q;
+    }
+}
+
+impl Sub for QImmediate {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let mut q = self;
+
+        unsafe {
+            match self {
+                QImmediate { u: val } => q.u -= rhs.u,
+                QImmediate { s: val } => q.s -= rhs.s,
+                QImmediate { f: val } => q.f -= rhs.f,
+                QImmediate { a: val } => q.a -= rhs.a,
+            }
+        }
+
+        return q;
+    }
+}
+
+impl AddAssign for QImmediate {
+    fn add_assign(&mut self, rhs: Self) {
+        unsafe {
+            match self {
+                QImmediate { u: val } => self.u += rhs.u,
+                QImmediate { s: val } => self.s += rhs.s,
+                QImmediate { f: val } => self.f += rhs.f,
+                QImmediate { a: val } => self.a += rhs.a,
+            }
+        }
+    }
+}
+
+impl SubAssign for QImmediate {
+    fn sub_assign(&mut self, rhs: Self) {
+        unsafe {
+            match self {
+                QImmediate { u: val } => self.u -= rhs.u,
+                QImmediate { s: val } => self.s -= rhs.s,
+                QImmediate { f: val } => self.f -= rhs.f,
+                QImmediate { a: val } => self.a -= rhs.a,
             }
         }
     }
@@ -170,8 +235,8 @@ impl PartialEq for QWord {
 
 impl Eq for QWord {}
 
-impl fmt::Display for QWord {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for QWord {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         unsafe {
             match self {
                 QWord { whole: val } => write!(f, "QWord u64: {}", val),
@@ -185,8 +250,8 @@ impl fmt::Display for QWord {
     }
 }
 
-impl fmt::Debug for QWord {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Debug for QWord {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         unsafe {
             match self {
                 QWord { whole: val } => write!(f, "QWord u64: {}", val),
@@ -197,30 +262,79 @@ impl fmt::Debug for QWord {
                 ),
             }
         }
+    }
+}
+
+impl Add for QWord {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        let mut q = self;
+        unsafe {
+            q.parts.data += rhs.parts.data;
+        }
+
+        return q;
+    }
+}
+
+impl Sub for QWord {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let mut q = self;
+        unsafe { q.parts.data -= rhs.parts.data };
+
+        return q;
+    }
+}
+
+impl AddAssign for QWord {
+    fn add_assign(&mut self, rhs: Self) {
+        unsafe { self.parts.data += rhs.parts.data };
+    }
+}
+
+impl SubAssign for QWord {
+    fn sub_assign(&mut self, rhs: Self) {
+        unsafe { self.parts.data -= rhs.parts.data };
     }
 }
 
 impl QWord {
-    pub fn inc(self) -> Self{
-        let mut q = self.clone();
-        q.parts.a += 1;
+    pub fn u(self) -> u32 {
+        return unsafe { self.parts.data.u };
+    }
+    pub fn s(self) -> i32 {
+        return unsafe { self.parts.data.s };
+    }
+    pub fn f(self) -> f32 {
+        return unsafe { self.parts.data.f };
+    }
+    pub fn a(self) -> u32 {
+        return unsafe { self.parts.data.a };
+    }
 
-        return q
+    pub fn inc(self) -> Self {
+        let mut q = self.clone();
+        unsafe { q.parts.data.a += 1 };
+
+        return q;
     }
 
     pub fn dec(self) -> Self {
         let mut q = self.clone();
-        q.parts.a -= 1;
+        unsafe { q.parts.data.a -= 1 };
 
-        return q
+        return q;
     }
 
     pub fn inc_mut(&mut self) {
-        self.parts.a += 1;
+        unsafe { self.parts.data.a += 1 };
     }
 
     pub fn dec_mut(&mut self) {
-        self.parts.a -= 1;
+        unsafe { self.parts.data.a -= 1 };
     }
 }
 
@@ -343,7 +457,7 @@ impl Default for InstructionCacheLine {
             code: 0,
             operand: 0,
             instruction: 0,
-            next_cp: Rc::new(RefCell::default()),
+            next_cp: Rc::default(),
         }
     }
 }
@@ -356,22 +470,9 @@ impl Clone for InstructionCacheLine {
             code: self.code,
             operand: self.operand,
             instruction: self.instruction,
-            next_cp: Rc::new(RefCell::new(self.copy())),
+            next_cp: Rc::new(RefCell::new(self.clone())),
         }
     }
-}
-
-impl Copy for InstructionCacheLine  {
-    //     fn copy(&self) -> Self {
-    //     InstructionCacheLine {
-    //         pc: self.pc.clone(),
-    //         next_pc: self.next_pc.clone(),
-    //         code: self.code,
-    //         operand: self.operand,
-    //         instruction: self.instruction,
-    //         next_cp: Rc::new(RefCell::new(self.copy())),
-    //     }
-    // }
 }
 
 pub const INSTRUCTION_CACHE_SIZE: u32 = 0x800;

@@ -29,21 +29,21 @@ pub trait Memory {
 // Constants
 const OBJECT_T: QWord = QWord {
     parts: QCDRTagData {
-        cdr: CDR::Nil,
+        cdr: CDR::Jump,
         tag: QTag::Symbol,
         data: QImmediate { u: ADDRESS_T },
     },
 };
 const OBJECT_NIL: QWord = QWord {
     parts: QCDRTagData {
-        cdr: CDR::Nil,
+        cdr: CDR::Jump,
         tag: QTag::NIL,
         data: QImmediate { u: ADDRESS_NIL },
     },
 };
 const OBJECT_CDR_MASK: QWord = QWord {
     parts: QCDRTagData {
-        cdr: CDR::Nil,
+        cdr: CDR::Jump,
         tag: QTag::TagCdrMask,
         data: QImmediate { u: 0 },
     },
