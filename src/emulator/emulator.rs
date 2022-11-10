@@ -16,13 +16,13 @@ use crate::hardware::cpu::{
 use crate::world::world::{clone_map_entries, merge_a_map, vpunt, MapEntrySelector, World};
 
 #[derive(Debug)]
-pub struct GlobalContext<'a> {
+pub struct GlobalContext {
     pub cpu: CPU,
     pub mem: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
     pub attribute_table: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
-    pub world: &'a mut World<'a>,
-    pub worlds: Vec<&'a mut World<'a>>,
+    pub world: World,
+    pub worlds: Vec<Option<World>>,
     pub total_worlds: u32,
     pub scanning_dir: PathBuf,
 
@@ -32,7 +32,7 @@ pub struct GlobalContext<'a> {
     pub swap_map_entries: u32,
 }
 
-impl<'a> GlobalContext<'a> {
+impl GlobalContext {
     pub fn write_at(&mut self, addr: QWord, val: QWord) {
         self.mem[unsafe { addr.parts.data.a } as usize] = val;
     }
@@ -142,8 +142,8 @@ impl<'a> GlobalContext<'a> {
         // let mut w = self.world.borrow_mut();
 
         self.world.fd = None; // Drop the file descriptor and close it automatically.
-        self.world.vlm_data_page = vec![];
-        self.world.vlm_tags_page = vec![];
+        self.world.data_page = vec![];
+        self.world.tags_page = vec![];
         self.world.ivory_data_page = vec![];
         self.world.merged_wired_map_entries = vec![];
         self.world.wired_map_entries = vec![];
@@ -168,14 +168,14 @@ impl<'a> GlobalContext<'a> {
                     &self.merge_parent_load_map();
 
                     self.world.merged_wired_map_entries = merge_a_map(
-                        self.world,
+                        &self.world,
                         MapEntrySelector::Wired,
                         &mut pw.get_mut().merged_wired_map_entries,
                     )
                     .unwrap_or(vec![]);
 
                     self.world.merged_unwired_map_entries = merge_a_map(
-                        self.world,
+                        &self.world,
                         MapEntrySelector::Unwired,
                         &mut pw.get_mut().merged_unwired_map_entries,
                     )
@@ -223,12 +223,13 @@ impl<'a> GlobalContext<'a> {
         }
 
         while self.world.generation > 0 {
-            for w in &self.worlds {
-                if w.generation == self.world.generation - 1
-                    && w.timestamp_1 == self.world.parent_timestamp_1
-                    && w.timestamp_2 == self.world.parent_timestamp_2
+            for w in self.worlds {
+                let ww = w.unwrap();
+                if ww.generation == self.world.generation - 1
+                    && ww.timestamp_1 == self.world.parent_timestamp_1
+                    && ww.timestamp_2 == self.world.parent_timestamp_2
                 {
-                    self.world.parent_world = Some(Rc::new(RefCell::new(w)));
+                    self.world.parent_world = Some(Rc::new(RefCell::new(ww)));
                     break;
                 }
             }
@@ -243,7 +244,7 @@ impl<'a> GlobalContext<'a> {
                     ));
                 }
                 Some(pw) => {
-                    self.world = &mut pw.get_mut();
+                    self.world = *pw.get_mut();
                 }
             }
         }
@@ -284,7 +285,7 @@ impl<'a> GlobalContext<'a> {
 
     pub fn close_extra_worlds(&mut self) {
         for w in &mut self.worlds {
-            w.close(true);
+            w.unwrap().close(true);
         }
 
         self.worlds = Vec::new();
@@ -297,7 +298,7 @@ impl<'a> GlobalContext<'a> {
             mem: [QWord::default(); 1 << 31],
             attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
-            world: &mut World::default(),
+            world: World::default(),
             worlds: vec![],
             total_worlds: 0,
             // n_worlds: 0,

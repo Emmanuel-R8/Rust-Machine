@@ -74,7 +74,7 @@ pub fn main() {
         mem: [QWord::default(); 1 << 31],
         attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
-        world: &mut World::default(),
+        world: World::default(),
         worlds: vec![],
         total_worlds: 0,
         scanning_dir: PathBuf::from(""),

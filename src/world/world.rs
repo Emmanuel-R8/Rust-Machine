@@ -3,7 +3,7 @@ use log::warn;
 use num::Integer;
 
 use memmap::Mmap;
-use std::borrow::BorrowMut;
+use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::cmp::min;
 use std::fs::{DirEntry, File};
@@ -101,60 +101,71 @@ pub fn clone_map_entries(map_entries: &Vec<LoadMapEntry>) -> Vec<LoadMapEntry> {
 
 // Description of an open world file
 #[derive(Debug)]
-pub struct World<'a> {
-    pub pathname: PathBuf,       // -> Pathname of the world file
-    pub fd: Option<File>,        // Unix filedes # if the world file is open
-    pub format: LoadFileFormat,  // A LoadFileFormat indicating the type of file
-    pub byte_swapped: bool,      // World is byte swapped on this machine (VLM only)
-    pub vlm_data_page_base: u32, // Block number of first page of data (VLM only)
-    pub vlm_tags_page_base: u32, // Block number of first page of tags (VLM only)
-    pub vlm_page_base: u32,
-    pub vlm_data_page: Vec<u32>, // -> The data of the current VLM format page
-    pub vlm_tags_page: Vec<QTag>, // -> The tags of the current VLM format page
-    pub vlm_page: Vec<QWord>,    // -> The current VLM format page
+pub struct World {
+    pub pathname: PathBuf,      // -> Pathname of the world file
+    pub fd: Option<File>,       // Unix filedes # if the world file is open
+    pub format: LoadFileFormat, // A LoadFileFormat indicating the type of file
+    pub byte_swapped: bool,     // World is byte swapped on this machine (VLM only)
+
+    pub page_base: u32,
+    pub page: Vec<QWord>,            // -> The current VLM format page
+    pub data_page_base: u32,         // Block number of first page of data (VLM only)
+    pub data_page: Vec<u32>,         // -> The data of the current VLM format page
+    pub tags_page_base: u32,         // Block number of first page of tags (VLM only)
+    pub tags_page: Vec<QTag>,        // -> The tags of the current VLM format page
     pub ivory_data_page: Vec<QWord>, // [QWord; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page. TODO: rename to current_data-page
+    // Size is 0x500 = 0x100 for tags + 0x400 for data
     pub current_page_number: u32, // Page number of the page in the buffer, if any. -1 means not pointing yet
     pub current_Q_number: u32,    // Q number within the page to be read
-    pub parent_world: Option<Rc<RefCell<&'a World<'a>>>>, // -> Parent of this world if it's an IDS
-    pub generation: u32,          // Generation number of this world (> 0 if IDS)
-    pub timestamp_1: u32,         // Unique ID of this world, part 1 ...
-    pub timestamp_2: u32,         // ... part 2
-    pub parent_timestamp_1: u32,  // Unique ID of this world's parent, part 1 ...
-    pub parent_timestamp_2: u32,  // ... part 2
+
+    pub timestamp_1: u32, // Unique ID of this world, part 1 ...
+    pub timestamp_2: u32, // ... part 2
+
+    pub generation: u32, // Generation number of this world (> 0 if IDS)
+    // pub parent_world: Option<Rc<RefCell<&'a World<'a>>>>, // -> Parent of this world if it's an IDS
+    pub parent_world: Option<Rc<RefCell<World>>>, // -> Parent of this world if it's an IDS
+    pub parent_timestamp_1: u32,                  // Unique ID of this world's parent, part 1 ...
+    pub parent_timestamp_2: u32,                  // ... part 2
+
     pub wired_map_entries: Vec<LoadMapEntry>, // -> The wired load map entries
     pub merged_wired_map_entries: Vec<LoadMapEntry>, // ..
     pub unwired_map_entries: Vec<LoadMapEntry>, // -> The unwired load map entries (Ivory only)
     pub merged_unwired_map_entries: Vec<LoadMapEntry>, // ..
 }
 
-impl<'a> World<'a> {
-    pub fn new() -> &'a World <'a>{
-        let mut w = & Self {
+impl World {
+    pub fn new() -> World {
+        let w = Self {
             pathname: PathBuf::default(),
             fd: None,
             format: LoadFileFormat::IvoryWorldFormat,
             byte_swapped: false,
-            vlm_data_page_base: 0,
-            vlm_tags_page_base: 0,
-            vlm_page_base: 0,
-            vlm_data_page: vec![],
-            vlm_tags_page: vec![],
-            vlm_page: vec![],
+
+            page_base: 0,
+            page: vec![],
+            data_page_base: 0,
+            data_page: vec![],
+            tags_page_base: 0,
+            tags_page: vec![],
             ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
+
             current_page_number: 0,
             current_Q_number: 0,
-            parent_world: None,
-            generation: 0,
+
             timestamp_1: 0,
             timestamp_2: 0,
+
+            generation: 0,
+            parent_world: None,
             parent_timestamp_1: 0,
             parent_timestamp_2: 0,
+
             wired_map_entries: vec![],
             merged_wired_map_entries: vec![],
             unwired_map_entries: vec![],
             merged_unwired_map_entries: vec![],
         };
-        return w
+        return w;
     }
 
     // Select the specified MapEntries
@@ -170,8 +181,8 @@ impl<'a> World<'a> {
     // Close a world file
     pub fn close(&mut self, close_parent: bool) {
         self.fd = None; // Drop the file descriptor and close it automatically.
-        self.vlm_data_page = vec![];
-        self.vlm_tags_page = vec![];
+        self.data_page = vec![];
+        self.tags_page = vec![];
         self.ivory_data_page = vec![];
         self.merged_wired_map_entries = vec![];
         self.wired_map_entries = vec![];
@@ -180,50 +191,19 @@ impl<'a> World<'a> {
     }
 }
 
-// impl <'a> World<'a> {
-//     fn new() -> &'a mut Self {
-//         let  gc: &Self =  & Self {
-//             pathname: PathBuf::default(),
-//             fd: None,
-//             format: LoadFileFormat::IvoryWorldFormat,
-//             byte_swapped: false,
-//             vlm_data_page_base: 0,
-//             vlm_tags_page_base: 0,
-//             vlm_page_base: 0,
-//             vlm_data_page: vec![],
-//             vlm_tags_page: vec![],
-//             vlm_page: vec![],
-//             ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
-//             current_page_number: 0,
-//             current_Q_number: 0,
-//             parent_world: None,
-//             generation: 0,
-//             timestamp_1: 0,
-//             timestamp_2: 0,
-//             parent_timestamp_1: 0,
-//             parent_timestamp_2: 0,
-//             wired_map_entries: vec![],
-//             merged_wired_map_entries: vec![],
-//             unwired_map_entries: vec![],
-//             merged_unwired_map_entries: vec![],
-//         };
-//         return gc.borrow_mut();
-//     }
-// }
-
-impl<'a> Default for World<'a> {
+impl Default for World {
     fn default() -> Self {
         Self {
             pathname: PathBuf::default(),
             fd: None,
             format: LoadFileFormat::IvoryWorldFormat,
             byte_swapped: false,
-            vlm_data_page_base: 0,
-            vlm_tags_page_base: 0,
-            vlm_page_base: 0,
-            vlm_data_page: vec![],
-            vlm_tags_page: vec![],
-            vlm_page: vec![],
+            data_page_base: 0,
+            tags_page_base: 0,
+            page_base: 0,
+            data_page: vec![],
+            tags_page: vec![],
+            page: vec![],
             ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
             current_page_number: 0,
             current_Q_number: 0,
@@ -241,26 +221,48 @@ impl<'a> Default for World<'a> {
     }
 }
 
-impl<'a> Default for &mut World<'a> {
+impl Clone for World {
+    fn clone(&self) -> Self {
+        let w = World {
+            pathname: self.pathname.clone(),
+            fd: None,
+            format: self.format.clone(),
+            byte_swapped: self.byte_swapped.clone(),
+            page_base: self.page_base.clone(),
+            page: self.page.clone(),
+            data_page_base: self.data_page_base.clone(),
+            data_page: self.data_page.clone(),
+            tags_page_base: self.tags_page_base.clone(),
+            tags_page: self.tags_page.clone(),
+            ivory_data_page: self.ivory_data_page.clone(),
+            current_page_number: self.current_page_number.clone(),
+            current_Q_number: self.current_Q_number.clone(),
+            timestamp_1: self.timestamp_1.clone(),
+            timestamp_2: self.timestamp_2.clone(),
+            generation: self.generation.clone(),
+            parent_world: self.parent_world.clone(),
+            parent_timestamp_1: self.parent_timestamp_1.clone(),
+            parent_timestamp_2: self.parent_timestamp_2.clone(),
+            wired_map_entries: self.wired_map_entries.clone(),
+            merged_wired_map_entries: self.merged_wired_map_entries.clone(),
+            unwired_map_entries: self.unwired_map_entries.clone(),
+            merged_unwired_map_entries: self.merged_unwired_map_entries.clone(),
+        };
+        return w;
+    }
+}
+
+impl Default for &mut World {
     fn default() -> Self {
         let mut gc = World::default();
         return gc.borrow_mut();
     }
 }
 
-// impl Clone for World<'_> {
-//     fn clone_from(&mut self, source: & Self) {
-//         *self = source.clone()
-//     }
-
-//     fn clone(&self<'_>) -> Self<'_> {
-//         let mut w= &Self::default();
-//     }
-// }
-
-// impl<'a> Default for (&mut World<'a>) {
-//     fn default(self)  {
-//         self = &mut World::default();
+// impl<'a> Clone for &mut World<'a> {
+//     fn clone(self) -> Self {
+//         let mut gc = *self.clone();
+//         return gc.borrow_mut();
 //     }
 // }
 
@@ -525,8 +527,8 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
     let mut first_sysout_Q: u32 = 0;
     let mut first_map_Q: u32 = 0;
 
-    ctx.world.vlm_data_page = vec![];
-    ctx.world.vlm_tags_page = vec![];
+    ctx.world.data_page = vec![];
+    ctx.world.tags_page = vec![];
     ctx.world.ivory_data_page = vec![];
     ctx.world.wired_map_entries = vec![];
     ctx.world.unwired_map_entries = vec![];
@@ -581,7 +583,7 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
 
     // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
     if ctx.world.format == LoadFileFormat::VLMWorldFormat {
-        match unsafe { lisp_obj_data(read_ivory_world_file_Q(ctx.world, 0)).u } {
+        match unsafe { lisp_obj_data(read_ivory_world_file_Q(&ctx.world, 0)).u } {
             VLMVERSION1_AND_ARCHITECTURE => {
                 wired_count_Q = 1;
                 unwired_count_Q = 0;
@@ -606,21 +608,24 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
     }
 
     if ctx.world.format == LoadFileFormat::VLMWorldFormat {
-        page_bases = read_ivory_world_file_Q(ctx.world, pages_base_Q);
-        ctx.world.vlm_data_page_base = unsafe { page_bases.parts.data.u };
-        ctx.world.vlm_tags_page_base = unsafe { page_bases.parts.tag as u32 };
+        page_bases = read_ivory_world_file_Q(&ctx.world, pages_base_Q);
+        ctx.world.data_page_base = unsafe { page_bases.parts.data.u };
+        ctx.world.tags_page_base = unsafe { page_bases.parts.tag as u32 };
     }
 
     if first_sysout_Q != 0 {
         ctx.world.current_Q_number = first_sysout_Q;
 
-        ctx.world.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
-        ctx.world.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
-        ctx.world.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+        ctx.world.generation =
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut ctx.world)).u };
+        ctx.world.timestamp_1 =
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut ctx.world)).u };
+        ctx.world.timestamp_2 =
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut ctx.world)).u };
         ctx.world.parent_timestamp_1 =
-            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut ctx.world)).u };
         ctx.world.parent_timestamp_2 =
-            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(ctx.world)).u };
+            unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut ctx.world)).u };
     } else {
         ctx.world.generation = 0;
         ctx.world.timestamp_2 = 0;
@@ -629,8 +634,8 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
         ctx.world.parent_timestamp_1 = 0;
     }
     ctx.world.current_Q_number = first_map_Q;
-    read_load_map(ctx.world, MapEntrySelector::Wired);
-    read_load_map(ctx.world, MapEntrySelector::Unwired);
+    read_load_map(&mut ctx.world, MapEntrySelector::Wired);
+    read_load_map(&mut ctx.world, MapEntrySelector::Unwired);
 
     return true;
 }
@@ -676,8 +681,7 @@ pub fn world_p(candidate_world: DirEntry, ctx: &mut GlobalContext) -> bool {
                 if ctx.worlds.len() as u32 == ctx.total_worlds {
                     ctx.total_worlds += 32;
                     for _ in 0..32 {
-                        let  w = World::new().borrow();
-                        ctx.worlds.push(w);
+                        ctx.worlds.push(None);
                     }
                 }
 
@@ -761,8 +765,8 @@ fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
             ctx.world.pathname.display().to_string()
         ));
     }
-    ctx.world.vlm_tags_page_base = block_count;
-    ctx.world.vlm_data_page_base = (ctx.world.vlm_tags_page_base + 1) * page_number;
+    ctx.world.tags_page_base = block_count;
+    ctx.world.data_page_base = (ctx.world.tags_page_base + 1) * page_number;
 }
 
 pub fn write_ivory_world_file_next_Q(w: &mut World, q: QWord) {}
@@ -983,8 +987,8 @@ fn read_swapped_VLM_world_file_Q(world: &mut World, mut q_number: u32) -> QWord 
         ));
     }
 
-    datum = byte_swap_32(world.vlm_data_page[q_number as usize]);
-    let tag: QTag = unsafe { ::std::mem::transmute(world.vlm_tags_page[q_number as usize]) };
+    datum = byte_swap_32(world.data_page[q_number as usize]);
+    let tag: QTag = unsafe { ::std::mem::transmute(world.tags_page[q_number as usize]) };
     return make_lisp_obj_u(CDR::Jump, tag, datum);
 }
 
@@ -1331,7 +1335,7 @@ fn VLM_load_map_data(ctx: &mut GlobalContext, map_selector: MapEntrySelector, in
             let page_number = unsafe { entry.data.parts.data.u };
             if ctx.world.byte_swapped {
                 // ensure_virtual_address_range(entry.address, entry.count, false);
-                read_swapped_VLM_world_file_page(ctx.world, page_number);
+                read_swapped_VLM_world_file_page(&ctx.world, page_number);
 
                 let mut the_address = entry.address;
                 ctx.world.current_Q_number = 0;
@@ -1340,12 +1344,12 @@ fn VLM_load_map_data(ctx: &mut GlobalContext, map_selector: MapEntrySelector, in
                 for _ in 0..entry.count {
                     virtual_memory_write(
                         the_address,
-                        read_swapped_VLM_world_file_next_Q(ctx.world),
+                        read_swapped_VLM_world_file_next_Q(&mut ctx.world),
                     );
                     the_address += 1;
                 }
             } else {
-                let file_offset = 8192 * (ctx.world.vlm_data_page_base + page_number * 4);
+                let file_offset = 8192 * (ctx.world.data_page_base + page_number * 4);
                 // let tag_offset = 8192 * (&ctx.world.vlm_data_page_base + page_number * 1);
 
                 map_world_load(ctx, entry.address, entry.count, file_offset);
