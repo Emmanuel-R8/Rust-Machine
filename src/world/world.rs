@@ -252,10 +252,10 @@ impl Clone for World {
     }
 }
 
-impl Default for &mut World {
+impl Default for & World {
     fn default() -> Self {
-        let mut gc = World::default();
-        return gc.borrow_mut();
+        let  gc = World::default();
+        return &gc;
     }
 }
 
@@ -416,12 +416,13 @@ pub fn merge_a_map(
                         }
                     }
 
-                    write_lisp_obj_data_u(&mut back[idx_back as usize].data, unsafe {
+                    let data = unsafe {
                         (lisp_obj_data(back[idx_back as usize].data).u
                             + back[idx_back as usize].address
                             - old_address)
                             / page_size_Qs
-                    });
+                    };
+                    write_lisp_obj_data_u(&mut back[idx_back as usize].data, data);
                 } else {
                     // Here iff the current background entry overlaps the current foreground entry but doesn't extend past the
                     // end of the foreground entry.  We're done with this background entry
@@ -536,7 +537,7 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
     ctx.world.merged_unwired_map_entries = vec![];
     ctx.world.parent_world = None;
 
-    let path = ctx.world.pathname;
+    let path = &ctx.world.pathname;
     let f = File::open(path).expect("Could not open file");
     ctx.world.fd = Some(f);
 
@@ -1188,8 +1189,8 @@ pub fn map_world_load(ctx: &mut GlobalContext, start: u32, length: u32, offset: 
     let mut swap_map_entries: u32 = 0;
     let mut file_map_entries: u32 = 0;
 
-    let world_file = &ctx.world.fd.unwrap();
-    let mmap_buf = unsafe { Mmap::map(world_file) };
+    let world_file = ctx.world.fd.as_ref().unwrap();
+    let mmap_buf = unsafe { Mmap::map(&world_file) };
 
     // sigh, have to copy partial pages and pages that already exist (e.g., shared FEP page)
     while remaining > 0 {
@@ -1204,7 +1205,7 @@ pub fn map_world_load(ctx: &mut GlobalContext, start: u32, length: u32, offset: 
             ctx.vma_set_created(vma);
 
             vma += words;
-            offset += data_count;
+            // offset += data_count;
             remaining -= words;
             unmapped_world_words += words;
         }
@@ -1226,7 +1227,7 @@ pub fn map_world_load(ctx: &mut GlobalContext, start: u32, length: u32, offset: 
 
             data_count = words * size_of::<usize>() as u32;
             vma += words;
-            offset += data_count;
+            // offset += data_count;
             remaining -= words;
             mapped_world_words += words;
             file_map_entries += 2;
