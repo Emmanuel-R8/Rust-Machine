@@ -8,7 +8,6 @@ use std::cell::RefCell;
 use std::cmp::min;
 use std::fs::{DirEntry, File};
 use std::io::Read;
-use std::marker::Destruct;
 use std::mem::size_of;
 use std::ops::Div;
 use std::path::{Path, PathBuf};
@@ -129,8 +128,8 @@ pub struct World<'a> {
 }
 
 impl<'a> World<'a> {
-    pub fn new() -> Self {
-        return Self {
+    pub fn new() -> &'a World <'a>{
+        let mut w = & Self {
             pathname: PathBuf::default(),
             fd: None,
             format: LoadFileFormat::IvoryWorldFormat,
@@ -155,6 +154,7 @@ impl<'a> World<'a> {
             unwired_map_entries: vec![],
             merged_unwired_map_entries: vec![],
         };
+        return w
     }
 
     // Select the specified MapEntries
@@ -675,8 +675,10 @@ pub fn world_p(candidate_world: DirEntry, ctx: &mut GlobalContext) -> bool {
             true => {
                 if ctx.worlds.len() as u32 == ctx.total_worlds {
                     ctx.total_worlds += 32;
-                    ctx.worlds
-                        .append(&mut vec![&mut World::default(); ctx.total_worlds]);
+                    for _ in 0..32 {
+                        let  w = World::new().borrow();
+                        ctx.worlds.push(w);
+                    }
                 }
 
                 // ctx.n_worlds += 1;
