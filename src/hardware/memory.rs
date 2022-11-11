@@ -1,10 +1,9 @@
-use std::arch::global_asm;
-
 use crate::common::constants::{
-    QTag, VMAttribute, VMResultCode, ADDRESS_NIL, ADDRESS_T, CDR, MEMORY_ADDRESS_PAGE_SHIFT,
-    MEMORY_PAGE_MASK, MEMORY_PAGE_SIZE, PROT_EXEC, PROT_READ, PROT_WRITE, VMATTRIBUTE_ACCESS_FAULT,
-    VMATTRIBUTE_EMPTY, VMATTRIBUTE_EPHEMERAL, VMATTRIBUTE_EXISTS, VMATTRIBUTE_MODIFIED,
-    VMATTRIBUTE_TRANSPORT_DISABLE, VMATTRIBUTE_TRANSPORT_FAULT, VMATTRIBUTE_WRITE_FAULT, MEMORYWAD_ADDRESS_SHIFT,
+    QTag, VMAttribute, VMResultCode, ADDRESS_NIL, ADDRESS_T, CDR, MEMORYWAD_ADDRESS_SHIFT,
+    MEMORY_ADDRESS_PAGE_SHIFT, MEMORY_PAGE_MASK, PROT_EXEC, PROT_READ, PROT_WRITE,
+    VMATTRIBUTE_ACCESS_FAULT, VMATTRIBUTE_EMPTY, VMATTRIBUTE_EPHEMERAL, VMATTRIBUTE_EXISTS,
+    VMATTRIBUTE_MODIFIED, VMATTRIBUTE_TRANSPORT_DISABLE, VMATTRIBUTE_TRANSPORT_FAULT,
+    VMATTRIBUTE_WRITE_FAULT,
 };
 use crate::common::types::{QCDRTagData, QImmediate, QWord};
 use crate::emulator::emulator::GlobalContext;
@@ -260,11 +259,11 @@ pub fn wad_created(ctx: &GlobalContext, vma: u32) -> bool {
     let wad_addr = memory_wad_number(vma) << 3;
     let mut is_created = true;
 
-    for vma in wad_addr..wad_addr+8{
-        is_created =is_created && ctx.vma_created_p(vma);
+    for vma in wad_addr..wad_addr + 8 {
+        is_created = is_created && ctx.vma_created_p(vma);
     }
 
-    return is_created
+    return is_created;
 }
 
 // Computes the PROT_XXX setting for a particular combination of

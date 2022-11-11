@@ -60,6 +60,18 @@ pub fn main() {
         args.push(arg);
     }
 
+    // Set up log files
+    let ivory_page_log = WriteLogger::new(
+        LevelFilter::Info,
+        Config::default(),
+        File::create("ivoryPageLog.log").unwrap(),
+    );
+    let run_log = WriteLogger::new(
+        LevelFilter::Info,
+        Config::default(),
+        File::create("run.log").unwrap(),
+    );
+
     let world_image_size: usize = 0;
     let world_image_MB: usize = 0;
     let message: &str = "";
@@ -84,19 +96,8 @@ pub fn main() {
         file_map_entries: 0,
         swap_map_entries: 0,
     };
-    global_context.cpu.initialise();
 
-    // Set up log files
-    let ivory_page_log = WriteLogger::new(
-        LevelFilter::Info,
-        Config::default(),
-        File::create("ivoryPageLog.log").unwrap(),
-    );
-    let run_log = WriteLogger::new(
-        LevelFilter::Info,
-        Config::default(),
-        File::create("run.log").unwrap(),
-    );
+    global_context.cpu.initialise();
 
     // let TestFunction = config.testFunction;
 

@@ -163,26 +163,23 @@ impl GlobalContext {
             self.world.merged_unwired_map_entries =
                 clone_map_entries(&self.world.unwired_map_entries);
         } else {
-            match &self.world.parent_world {
-                Some(pw) => {
-                    &self.merge_parent_load_map();
+            if !self.world.parent_world.is_none() {
+                    self.merge_parent_load_map();
 
                     self.world.merged_wired_map_entries = merge_a_map(
                         &self.world,
                         MapEntrySelector::Wired,
-                        &mut pw.get_mut().merged_wired_map_entries,
+                         self.world.parent_world.unwrap().borrow_mut().merged_wired_map_entries,
                     )
                     .unwrap_or(vec![]);
 
                     self.world.merged_unwired_map_entries = merge_a_map(
                         &self.world,
                         MapEntrySelector::Unwired,
-                        &mut pw.get_mut().merged_unwired_map_entries,
+                        &mut self.world.parent_world.unwrap().get_mut().merged_unwired_map_entries,
                     )
                     .unwrap_or(vec![]);
                 }
-                None => {}
-            }
         }
     }
 
