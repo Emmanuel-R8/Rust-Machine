@@ -248,7 +248,6 @@ impl CPU {
         self.running = false;
         self.instruction_count = 0;
 
-        let mut i: u32 = 0;
         for i in 0..INSTRUCTION_CACHE_SIZE / 2 {
             self.instruction_cache[2 * i as usize] = InstructionCacheLine {
                 pc: QWord {

@@ -9,7 +9,7 @@ use std::cmp::min;
 use std::fs::{DirEntry, File};
 use std::io::Read;
 use std::mem::size_of;
-use std::ops::Div;
+use std::ops::{Deref, Div};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::{fmt, process};
@@ -252,9 +252,9 @@ impl Clone for World {
     }
 }
 
-impl Default for & World {
+impl Default for &World {
     fn default() -> Self {
-        let  gc = World::default();
+        let gc = World::default();
         return &gc;
     }
 }
@@ -318,15 +318,34 @@ pub fn read_ivory_world_file_page(w: &mut World, page_number: u32) {
 
 // Merges a foreground load map and a background load map together into a single load map
 // background are the entries in the parent world
-// foreground are the child world shadowing the parent (foreground)
+// foreground are the child world shadowing the parent (background)
 pub fn merge_a_map(
     world: &World,
-    map: MapEntrySelector,
-    back: &mut Vec<LoadMapEntry>,
+    fore_map_selector: MapEntrySelector,
+    back_map_selector: MapEntrySelector,
 ) -> Option<Vec<LoadMapEntry>> {
-    let fore = match map {
-        MapEntrySelector::Wired | MapEntrySelector::MergedWired => &world.wired_map_entries,
-        MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => &world.unwired_map_entries,
+    // Load the relevant maps
+    // We need mutable copies to adjust ends and starts if need at each iteration.
+    let mut fore = match fore_map_selector {
+        MapEntrySelector::Wired | MapEntrySelector::MergedWired => world.wired_map_entries.clone(),
+        MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => {
+            world.unwired_map_entries.clone()
+        }
+    };
+    let mut back = match back_map_selector {
+        MapEntrySelector::Wired | MapEntrySelector::MergedWired => world
+            .parent_world
+            .unwrap()
+            .get_mut()
+            .merged_wired_map_entries
+            .clone(),
+
+        MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => world
+            .parent_world
+            .unwrap()
+            .get_mut()
+            .merged_unwired_map_entries
+            .clone(),
     };
 
     let n_fore = fore.len() as u32;
@@ -340,111 +359,116 @@ pub fn merge_a_map(
 
     let page_size_Qs = match world.format {
         LoadFileFormat::VLMWorldFormat => VLMPAGE_SIZE_QS,
-        _ => 0xFF,
+        _ => IVORY_PAGE_SIZE_QS,
     };
 
-    let mut old_address: u32 = 0;
-    let mut slop: u32 = 0;
-
+    // Resulting new map
     let mut new_map_entries: Vec<LoadMapEntry> = vec![];
 
-    let mut idx_fore: u32 = 0;
-    let mut idx_back: u32 = 0;
-    let mut fore_copied_p: bool = false;
-
-    while idx_fore < n_fore {
-        // Fill all the background entries that will not be shadowed by the current foreground entry.
-        // Here iff the current background entry is either a special operation or falls entirely below the current foreground entry
-        while idx_back < n_back && back[idx_back as usize].map_code != LoadMapEntryOpcode::DataPages
-            || back[idx_back as usize].address < fore[idx_fore as usize].address
-                && back[idx_back as usize].address + back[idx_back as usize].count
-                    < fore[idx_fore as usize].address
-        {
-            new_map_entries.push(back[idx_back as usize]);
-            idx_back += 1;
+    let mut fore_idx: u32 = 0;
+    let mut back_idx: u32 = 0;
+    loop {
+        if back[back_idx as usize].map_code != LoadMapEntryOpcode::DataPages {
+            back_idx += 1;
+            continue;
         }
 
-        // Here iff there are no more background entries or the current background entry either overlaps the current foreground entry or
-        // lies entirely above it
-        if fore[idx_fore as usize].map_code != LoadMapEntryOpcode::DataPages && !fore_copied_p {
-            // If the foreground entry is special, copy it now
-            new_map_entries.push(fore[idx_fore as usize]);
-            fore_copied_p = true;
-        } else {
-            if back[idx_back as usize].address < fore[idx_fore as usize].address {
-                // Here iff the current background entry overlaps the current foreground entry and part of it lies below the current
-                // foreground entry.  Create an entry in the merged map for the portion of the background entry that falls below the
-                // foreground entry.  We don't have to check the extent of the background entry as the earlier loop above guaranteed that
-                // this entry must overlap the foreground entry
-                new_map_entries.push(back[idx_back as usize]);
-                let l = new_map_entries.len();
-                new_map_entries[l - 1].count =
-                    fore[idx_fore as usize].address - back[idx_back as usize].address;
+        let fore_start = fore[fore_idx as usize].address;
+        let fore_final = fore_start + fore[fore_idx as usize].count - 1;
+
+        let back_start = back[fore_idx as usize].address;
+        let back_final = back_start + back[fore_idx as usize].count - 1;
+
+        // Possible situations:
+        //  1: |--- BACK ---|
+        //     No more entries in FRONT
+        //  Push all the BACK on the new map, final exit
+        //
+        //  2: |--- FRONT ---|
+        //     No more entries in BACK
+        //  Push all the FRONT on the new map, final exit
+        //
+        //  3: |--- BACK ---|
+        //                         |--- FRONT ---|
+        //  Easy: Push BACK on the new map, increase back_idx, iterate
+        //
+        //  4: |--- BACK --------|
+        //                   |----- FRONT ---|
+        //  Push BACK until beginning of front; adjust beginning of BACK, iterate. Note no index increases.
+        //
+        //  5:         |--- BACK ----|
+        //        |----- FRONT -----------|
+        //  This BACK is usealess. increase back_idx to drop it, iterate. No increase of fore_idx, we could next have another 5, 6 or 7.
+        //
+        //  6:           |--- BACK --------|
+        //          |----- FRONT ---|
+        //  Push FRONT and increase fore_idx, adjust the start of BACK, iterate.
+        //
+        //  7:                    |--- BACK --------|
+        //      |----- FRONT ---|
+        //  Push FRONT and increase fore_idx. Iterate.
+        //
+
+        // Situation 1:
+        if fore_idx >= n_fore {
+            while back_idx < n_back {
+                new_map_entries.push(back[back_idx as usize]);
+                back_idx += 1;
             }
-
-            if !fore_copied_p {
-                new_map_entries.push(fore[idx_fore as usize]);
-                fore_copied_p = true;
-            }
-
-            if back[idx_back as usize].address
-                < fore[idx_fore as usize].address + fore[idx_fore as usize].count
-            {
-                if back[idx_back as usize].address + back[idx_back as usize].count
-                    > fore[idx_fore as usize].address + fore[idx_fore as usize].count
-                {
-                    // Here iff the current background entry overlaps the current foreground entry but also extends past the end
-                    // of the foreground entry.  Adjust the background entry to cover just the region above the end of the current
-                    // foreground entry
-                    old_address = back[idx_back as usize].address;
-                    back[idx_back as usize].address =
-                        fore[idx_fore as usize].address + fore[idx_fore as usize].count;
-                    back[idx_back as usize].count - fore[idx_fore as usize].address
-                        + fore[idx_fore as usize].count
-                        - old_address;
-
-                    slop = back[idx_back as usize].address & page_size_Qs - 1;
-                    if slop != 0 {
-                        // Adjust the new background entry to start on a page boundary. If the resulting entry is empty or zero
-                        // length, both the background and foreground end on the same page but the background includes more of
-                        // that page which shouldn't happen
-                        back[idx_back as usize].address += page_size_Qs - slop;
-                        back[idx_back as usize].count -= slop;
-                        if back[idx_back as usize].count <= 0 {
-                            vpunt(format!("A merged load map entry wouldn't start on a page boundary for world file {}",
-                                world.pathname.display().to_string()));
-                        }
-                    }
-
-                    let data = unsafe {
-                        (lisp_obj_data(back[idx_back as usize].data).u
-                            + back[idx_back as usize].address
-                            - old_address)
-                            / page_size_Qs
-                    };
-                    write_lisp_obj_data_u(&mut back[idx_back as usize].data, data);
-                } else {
-                    // Here iff the current background entry overlaps the current foreground entry but doesn't extend past the
-                    // end of the foreground entry.  We're done with this background entry
-                    idx_back += 1;
-                }
-            }
+            break;
         }
 
-        // Here iff there are no more background entries or the next background entry does not overlap the current foreground entry.
-        // We're done with this foreground entry
-        if idx_back >= n_back
-            || back[idx_back as usize].address
-                >= fore[idx_fore as usize].address + fore[idx_fore as usize].count
-        {
-            idx_fore += 1;
-            fore_copied_p = false;
+        // Situation 2:
+        if back_idx >= n_back {
+            while fore_idx < n_fore {
+                new_map_entries.push(fore[fore_idx as usize]);
+                fore_idx += 1;
+            }
+            break;
         }
-    }
 
-    // Copy all the remaining background entries that lie entirely above the last foreground entry
-    for idx in idx_back..n_back {
-        new_map_entries.push(back[idx_back as usize]);
+        // Situation 3:
+        if back_final < fore_start {
+            new_map_entries.push(back[back_idx as usize]);
+            back_idx += 1;
+            continue;
+        }
+
+        // Situation 4:
+        if back_start < fore_start && back_final >= fore_start {
+            new_map_entries.push(LoadMapEntry {
+                address: back[back_idx as usize].address,
+                count: fore[fore_idx as usize].address
+                    - (back[back_idx as usize].address + back[back_idx as usize].count - 1),
+                map_code: back[back_idx as usize].map_code,
+                data: back[back_idx as usize].data,
+            });
+            back[back_idx as usize].address = fore[fore_idx as usize].address;
+            back[back_idx as usize].count = back_final - back[back_idx as usize].address + 1;
+            continue;
+        }
+
+        // Situation 5:
+        if back_start >= fore_start && back_final <= fore_final {
+            back_idx += 1;
+            continue;
+        }
+
+        // Situation 6:
+        if back_start >= fore_start && back_final > fore_final {
+            new_map_entries.push(fore[fore_idx as usize]);
+            fore_idx += 1;
+            back[back_idx as usize].address = fore_final + 1;
+            back[back_idx as usize].count = back_final - back[back_idx as usize].address + 1;
+            continue;
+        }
+
+        // Situation 7:
+        if back_start > fore_final {
+            new_map_entries.push(fore[fore_idx as usize]);
+            fore_idx += 1;
+            continue;
+        }
     }
 
     return Some(new_map_entries);
@@ -538,7 +562,7 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
     ctx.world.parent_world = None;
 
     let path = &ctx.world.pathname;
-    let f = File::open(path).expect("Could not open file");
+    let mut f = File::open(path).expect("Could not open file");
     ctx.world.fd = Some(f);
 
     let mut cookie = [0 as u8; size_of::<u32>()];
@@ -559,6 +583,7 @@ fn open_world_file(ctx: &mut GlobalContext, puntOnErrors: bool) -> bool {
             ctx.world.format = LoadFileFormat::VLMWorldFormat;
             ctx.world.byte_swapped = true;
         }
+
         IVORY_WORLD_FILE_COOKIE => {
             ctx.world.format = LoadFileFormat::IvoryWorldFormat;
             wired_count_Q = 1;
@@ -724,6 +749,7 @@ fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
         let (d, r) = ctx.world.wired_map_entries[i as usize]
             .address
             .div_rem(&VLMPAGE_SIZE_QS);
+
         if r == 0 {
             // Page Aligned:  Assign the page number within the file
             ctx.world.wired_map_entries[i as usize].data =

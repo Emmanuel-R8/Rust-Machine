@@ -25,7 +25,6 @@ pub unsafe extern "C" fn InstallSignalHandler(
 ) -> SignalNumber {
     let mut policy: u32 = 0;
     let mut priority: u32 = 0;
-    let mut i: u32 = 0;
     let mut signal: SignalMask = 0;
     if (*EmbCommAreaPtr).useSignalLocks != 0 {
         if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
@@ -35,7 +34,8 @@ pub unsafe extern "C" fn InstallSignalHandler(
             );
         }
     }
-    i = 0;
+
+    let mut i: u32 = 0;
     while i < 32 {
         signal = ((1) << i) as SignalMask;
         if (*EmbCommAreaPtr).live_guest_to_host_signals & signal == 0 {
@@ -250,9 +250,9 @@ pub unsafe extern "C" fn RemoveSignalHandler(mut signal: SignalNumber) {
 }
 
 pub unsafe extern "C" fn TerminateSignalHandlers() {
-    let mut i: u32 = 0;
     let mut exit_value: *mut libc::c_void = 0;
-    i = 0;
+
+    let mut i: u32 = 0;
     while i < 32 {
         if (*EmbCommAreaPtr).signalHandler[i].handlerThreadSetup != 0 {
             pthread_cancel((*EmbCommAreaPtr).signalHandler[i].handlerThread);
@@ -265,6 +265,7 @@ pub unsafe extern "C" fn TerminateSignalHandlers() {
         i += 1;
     }
 }
+
 unsafe extern "C" fn SignalHandlerTopLevel(mut argument: pthread_addr_t) {
     let mut signalHandler: *mut SignalHandler = argument as *mut SignalHandler;
     let mut self_0: u64 = (*signalHandler).handlerThread;

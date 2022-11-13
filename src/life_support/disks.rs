@@ -361,6 +361,7 @@ fn DoDiskIO(
     let mut nAddresses: u32 = 0;
     let mut nVectors: u32 = 0;
     let mut i: u32 = 0;
+
     if (*command).page < 0 || (*command).page + (*command).count > (*diskChannel).number_of_pages {
         return 22;
     }
@@ -373,6 +374,7 @@ fn DoDiskIO(
     while nAddresses > 0 {
         nVectors = if nAddresses > 32 { 32 } else { nAddresses };
         nBytes = 0 as ssize_t;
+
         i = 0;
         while i < nVectors {
             let ref mut fresh2 = (*diskState).iovs[i].iov_base;

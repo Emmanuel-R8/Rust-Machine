@@ -169,14 +169,14 @@ impl GlobalContext {
                     self.world.merged_wired_map_entries = merge_a_map(
                         &self.world,
                         MapEntrySelector::Wired,
-                         self.world.parent_world.unwrap().borrow_mut().merged_wired_map_entries,
+                        MapEntrySelector::Wired,
                     )
                     .unwrap_or(vec![]);
 
                     self.world.merged_unwired_map_entries = merge_a_map(
                         &self.world,
                         MapEntrySelector::Unwired,
-                        &mut self.world.parent_world.unwrap().get_mut().merged_unwired_map_entries,
+                        MapEntrySelector::Unwired,
                     )
                     .unwrap_or(vec![]);
                 }
