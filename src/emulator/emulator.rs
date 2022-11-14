@@ -1,8 +1,11 @@
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fs::{read_dir, DirEntry};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+
+use uuid::Uuid;
 
 use crate::common::constants::{
     QTag, VMAttribute, CDR, MEMORY_ADDRESS_PAGE_SHIFT, VMATTRIBUTE_CREATED_DEFAULT,
@@ -21,15 +24,35 @@ pub struct GlobalContext {
     pub mem: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
     pub attribute_table: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
-    pub world: World,
-    pub worlds: Vec<Option<World>>,
-    pub total_worlds: u32,
+    pub world: Uuid,
+    pub worlds: HashMap<Uuid, World>,
+
     pub scanning_dir: PathBuf,
 
     pub unmapped_world_words: u32,
     pub mapped_world_words: u32,
     pub file_map_entries: u32,
     pub swap_map_entries: u32,
+}
+
+impl Default for GlobalContext {
+    fn default() -> Self {
+        return GlobalContext {
+            cpu: CPU::default(),
+            mem: [QWord::default(); 1 << 31],
+            attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
+
+            world: Uuid::nil(),
+            worlds: HashMap::new(),
+
+            scanning_dir: PathBuf::from(""),
+
+            unmapped_world_words: 0,
+            mapped_world_words: 0,
+            file_map_entries: 0,
+            swap_map_entries: 0,
+        };
+    }
 }
 
 impl GlobalContext {
@@ -137,57 +160,52 @@ impl GlobalContext {
         self.attribute_table[vma as usize] = VMATTRIBUTE_EMPTY;
     }
 
-    // Close a world file
+    // Close the world file
     pub fn close(&mut self, close_parent: bool) {
-        // let mut w = self.world.borrow_mut();
+        let mut pw = Uuid::nil();
+        // Get the parent world
 
-        self.world.fd = None; // Drop the file descriptor and close it automatically.
-        self.world.data_page = vec![];
-        self.world.tags_page = vec![];
-        self.world.ivory_data_page = vec![];
-        self.world.merged_wired_map_entries = vec![];
-        self.world.wired_map_entries = vec![];
-        self.world.merged_unwired_map_entries = vec![];
-        self.world.unwired_map_entries = vec![];
+        match self.worlds.get(&self.world) {
+            Some(w) => {
+                pw = w.parent_world;
+                self.worlds.remove(&self.world);
+            }
+            _ => {},
+        }
 
-        // if close_parent && self.parent_world.is_some() {
-        //     self.parent_world.unwrap().close(true);
-        //     self.parent_world = None;
-        // }
+        if close_parent {
+            self.worlds.remove(&pw);
+        }
     }
 
     pub fn merge_parent_load_map(&mut self) {
+        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
+
         // If at the top of the topmost parent (no generation above)
-        if self.world.generation == 0 {
-            self.world.merged_wired_map_entries = clone_map_entries(&self.world.wired_map_entries);
-            self.world.merged_unwired_map_entries =
-                clone_map_entries(&self.world.unwired_map_entries);
+        if w.generation == 0 {
+            w.merged_wired_map_entries = clone_map_entries(&w.wired_map_entries);
+            w.merged_unwired_map_entries = clone_map_entries(&w.unwired_map_entries);
         } else {
-            if !self.world.parent_world.is_none() {
-                    self.merge_parent_load_map();
+            if !w.parent_world.is_nil() {
+                self.merge_parent_load_map();
 
-                    self.world.merged_wired_map_entries = merge_a_map(
-                        &self.world,
-                        MapEntrySelector::Wired,
-                        MapEntrySelector::Wired,
-                    )
-                    .unwrap_or(vec![]);
+                w.merged_wired_map_entries =
+                    merge_a_map(&w, MapEntrySelector::Wired, MapEntrySelector::Wired)
+                        .unwrap_or(vec![]);
 
-                    self.world.merged_unwired_map_entries = merge_a_map(
-                        &self.world,
-                        MapEntrySelector::Unwired,
-                        MapEntrySelector::Unwired,
-                    )
-                    .unwrap_or(vec![]);
-                }
+                w.merged_unwired_map_entries =
+                    merge_a_map(&w, MapEntrySelector::Unwired, MapEntrySelector::Unwired)
+                        .unwrap_or(vec![]);
+            }
         }
     }
 
     pub fn merge_load_maps(&mut self, world_search_path: String) {
-        if self.world.generation == 0 {
-            self.world.merged_wired_map_entries = clone_map_entries(&self.world.wired_map_entries);
-            self.world.merged_unwired_map_entries =
-                clone_map_entries(&self.world.unwired_map_entries);
+        let mut w: &mut World = unsafe { self.worlds.get(&self.world).unwrap() };
+
+        if w.generation == 0 {
+            w.merged_wired_map_entries = clone_map_entries(&w.wired_map_entries);
+            w.merged_unwired_map_entries = clone_map_entries(&w.unwired_map_entries);
         } else {
             self.find_parent_worlds(world_search_path);
             self.merge_parent_load_map();
@@ -195,23 +213,21 @@ impl GlobalContext {
     }
 
     fn find_parent_worlds(&mut self, mut world_search_path: String) {
-        let mut failing_world_pathname: String = String::from("");
-        let mut slash_position: String = String::from("");
-        let mut colon_position: String = String::from("");
+        // Remove all worlds apart from current one
+        let current_world = self.world;
+        self.worlds.retain(|&u, _|  u == current_world);
 
-        self.total_worlds = 0;
-        self.worlds = vec![];
 
-        let mut dir_components = self.world.pathname.ancestors();
+        let w = self.worlds.get(&current_world).unwrap();
+        let mut dir_components = w.pathname.ancestors();
         let full_path = dir_components.next();
         let base_directory = dir_components.next();
 
         match base_directory {
             None => {
-                self.world.close(true);
                 vpunt(format!(
                     "Unable to determine pathname of directory containing world file {}",
-                    self.world.pathname.display()
+                    w.pathname.display()
                 ));
             }
             Some(base_dir) => {
@@ -219,36 +235,30 @@ impl GlobalContext {
             }
         }
 
-        while self.world.generation > 0 {
-            for w in self.worlds {
-                let ww = w.unwrap();
-                if ww.generation == self.world.generation - 1
-                    && ww.timestamp_1 == self.world.parent_timestamp_1
-                    && ww.timestamp_2 == self.world.parent_timestamp_2
+        while w.generation > 0 {
+            for (w_uuid, w_world) in &mut self.worlds {
+                if w_world.generation == w_world.generation - 1
+                    && w_world.timestamp_1 == w_world.parent_timestamp_1
+                    && w_world.timestamp_2 == w_world.parent_timestamp_2
                 {
-                    self.world.parent_world = Some(Rc::new(RefCell::new(ww)));
+                    w_world.parent_world = w_uuid.clone();
                     break;
                 }
             }
 
-            match self.world.parent_world {
-                None => {
-                    self.close_extra_worlds();
-                    self.world.close(true);
-                    vpunt(format!(
-                        "Unable to find parent of world file {}",
-                        self.world.pathname.display()
-                    ));
-                }
-                Some(pw) => {
-                    self.world = *pw.get_mut();
-                }
+            if w.parent_world.is_nil() {
+                vpunt(format!(
+                    "Unable to find parent of world file {}",
+                    w.pathname.display()
+                ));
+            } else {
+                self.world = w.parent_world.clone();
             }
         }
         self.close_extra_worlds();
     }
 
-    fn scan_one_directory(&mut self, dir: &Path) -> Vec<DirEntry> {
+    fn scan_one_directory(&self, dir: &Path) -> Vec<DirEntry> {
         // scan the directory specified in the global context and only keeps the world files.
         let dir_reader = read_dir(&self.scanning_dir);
         let mut results: Vec<DirEntry> = vec![];
@@ -270,7 +280,6 @@ impl GlobalContext {
         }
 
         if results.len() == 0 {
-            self.close_extra_worlds();
             vpunt(format!(
                 "Unable to search directory {} to find parents of world file.",
                 dir.display()
@@ -281,31 +290,12 @@ impl GlobalContext {
     }
 
     pub fn close_extra_worlds(&mut self) {
-        for w in &mut self.worlds {
-            w.unwrap().close(true);
-        }
-
-        self.worlds = Vec::new();
-        self.total_worlds = 0;
+        // No use of clear() to avoid maintaining memory allocation
+        self.worlds = HashMap::new();
     }
 
-    pub fn initialise(&mut self) -> &GlobalContext {
-        let gc = &mut GlobalContext {
-            cpu: CPU::default(),
-            mem: [QWord::default(); 1 << 31],
-            attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
-
-            world: World::default(),
-            worlds: vec![],
-            total_worlds: 0,
-            // n_worlds: 0,
-            scanning_dir: PathBuf::from(""),
-
-            unmapped_world_words: 0,
-            mapped_world_words: 0,
-            file_map_entries: 0,
-            swap_map_entries: 0,
-        };
+    pub fn initialise(&mut self) {
+        let gc = &mut GlobalContext::default();
 
         // Push initial frames:  These are a lie, they will be popped when you
         // start, so that the "continuation" at 4 becomes the PC.  The
@@ -317,7 +307,5 @@ impl GlobalContext {
 
         // EnsureVirtualAddressRange(0xf8000100, 0xf00, false);
         // EnsureVirtualAddressRange(0xf8062000, 0x9e000, false);
-
-        return gc;
     }
 }

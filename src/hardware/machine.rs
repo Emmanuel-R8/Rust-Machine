@@ -1,11 +1,11 @@
 use crate::common::constants::VMAttribute;
-use crate::hardware::cpu::{CPU};
-use crate::hardware::memory::{VMMemory};
+use crate::hardware::cpu::CPU;
+use crate::hardware::memory::VMMemory;
 
 // Structure of a virtual machine
 pub struct VirtualMachine {
     cpu: CPU,
-    mem : VMMemory,
+    mem: VMMemory,
 
     vm_attribute_table: [VMAttribute; 0x8_00_00],
 

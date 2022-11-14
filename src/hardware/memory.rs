@@ -254,16 +254,18 @@ pub fn wad_number_memory(vwn: u32) -> u32 {
 
 /* f-ing poor excuse for a macro language */
 pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
-pub fn wad_created(ctx: &GlobalContext, vma: u32) -> bool {
-    // WADs are 8 contiguous memory pages
-    let wad_addr = memory_wad_number(vma) << 3;
-    let mut is_created = true;
+impl GlobalContext {
+    pub fn wad_created(&self, vma: u32) -> bool {
+        // WADs are 8 contiguous memory pages
+        let wad_addr = memory_wad_number(vma) << 3;
+        let mut is_created = true;
 
-    for vma in wad_addr..wad_addr + 8 {
-        is_created = is_created && ctx.vma_created_p(vma);
+        for vma in wad_addr..wad_addr + 8 {
+            is_created = is_created && self.vma_created_p(vma);
+        }
+
+        return is_created;
     }
-
-    return is_created;
 }
 
 // Computes the PROT_XXX setting for a particular combination of

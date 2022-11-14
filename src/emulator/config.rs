@@ -45,7 +45,7 @@ pub struct VLMConfig<'a> {
     pub test_function: bool,
 }
 
-impl Default for VLMConfig <'static> {
+impl Default for VLMConfig<'static> {
     fn default() -> Self {
         let mut trace_config = TraceConfig {
             traceP: false,

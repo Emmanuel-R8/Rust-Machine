@@ -54,6 +54,9 @@ use emulator::emulator::GlobalContext;
 use hardware::cpu::CPU;
 use world::world::World;
 
+// Global state
+pub static mut _GC: &GlobalContext = &GlobalContext::default();
+
 pub fn main() {
     let mut args: Vec<String> = Vec::new();
     for arg in ::std::env::args() {
@@ -72,31 +75,16 @@ pub fn main() {
         File::create("run.log").unwrap(),
     );
 
-    let world_image_size: usize = 0;
-    let world_image_MB: usize = 0;
-    let message: &str = "";
-    let reason: u32 = 0;
+    // let world_image_size: usize = 0;
+    // let world_image_MB: usize = 0;
+    // let message: &str = "";
+    // let reason: u32 = 0;
 
-    let config = VLMConfig::default();
-    let enable_IDS_p = config.enableIDS;
-    let trace_p = config.tracing.tracePOST;
+    let mut config = VLMConfig::default();
+    let mut enable_IDS_p = config.enableIDS;
+    let mut trace_p = config.tracing.tracePOST;
 
-    let global_context = &mut GlobalContext {
-        cpu: CPU::default(),
-        mem: [QWord::default(); 1 << 31],
-        attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
-
-        world: World::default(),
-        worlds: vec![],
-        total_worlds: 0,
-        scanning_dir: PathBuf::from(""),
-
-        unmapped_world_words: 0,
-        mapped_world_words: 0,
-        file_map_entries: 0,
-        swap_map_entries: 0,
-    };
-
+    let global_context = &mut GlobalContext::default();
     global_context.cpu.initialise();
 
     // let TestFunction = config.testFunction;

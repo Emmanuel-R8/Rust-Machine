@@ -166,7 +166,6 @@ pub const PROGRAM_COUNTER_INIT: u32 = 0x07FE_0040;
 
 impl Default for CPU {
     fn default() -> Self {
-
         Self {
             sp: QWord::default(),
             restarts_p: QWord::default(),
@@ -182,7 +181,10 @@ impl Default for CPU {
                 },
             },
             continuation: QWord::default(),
-            instruction_cache: vec![InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE as usize],
+            instruction_cache: vec![
+                InstructionCacheLine::default();
+                INSTRUCTION_CACHE_SIZE as usize
+            ],
             stack_cache: [QWord { whole: 0 };
                 (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize],
             stack_cache_limit: QWord::default(),
@@ -230,7 +232,8 @@ impl Default for CPU {
 impl CPU {
     pub fn initialise(&mut self) {
         if !self.allocated_caches {
-            self.instruction_cache = vec![InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE as usize];
+            self.instruction_cache =
+                vec![InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE as usize];
             self.stack_cache =
                 [QWord::default(); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize];
             self.stack_cache_limit = QWord {

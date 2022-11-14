@@ -106,7 +106,6 @@ pub enum CDR {
     Normal = 2,
     #[default]
     Jump = 3,
-
 }
 
 impl fmt::Display for CDR {
@@ -947,7 +946,6 @@ pub const IVORY_WORLD_FILE_FIRST_MAP_Q: u32 = 8;
 
 pub const IVORY_STACK_CACHE_SIZE: u32 = 0x4;
 
-
 // size reflects 'count from 0' array indices
 // Memory_TotalSize*: QAddress = bottomMask(0)
 
@@ -970,8 +968,7 @@ pub const ADDRESS_NIL: u32 = 0xF804_1200;
 
 pub const ADDRESS_SYSTEM_COMM_AREA: u32 = 0xF804_1100;
 
-pub const MEMORY_STACK_CACHE_BASE:u32 = 0xF800_0100;
-
+pub const MEMORY_STACK_CACHE_BASE: u32 = 0xF800_0100;
 
 // Genera version of System Communications area
 // Define SYS:I-SYS;SYSDF1 line 403+
@@ -1012,10 +1009,10 @@ pub enum SystemCommAreaSlot {
     defaultConsArea = 0xF804_115C,
 
     // Pointers to critical storage-system tables (these are displaced arrays)
-    PHT = 0xF804_1160,   // Page hash table
-    MainMemoryPageTableY = 0xF804_1164, // Main Memory Y subscript table
-    MainMemoryPageTable = 0xF804_1168,  // Main Memory page table
-    SecondaryMemoryPageTable = 0xF804_116C,  // Secondary Memory page table
+    PHT = 0xF804_1160,                      // Page hash table
+    MainMemoryPageTableY = 0xF804_1164,     // Main Memory Y subscript table
+    MainMemoryPageTable = 0xF804_1168,      // Main Memory page table
+    SecondaryMemoryPageTable = 0xF804_116C, // Secondary Memory page table
     LoadBitmaps = 0xF804_1170,
 
     //  The following are red herrings for functionality that is really in FEPCOM.

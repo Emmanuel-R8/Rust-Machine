@@ -4,7 +4,6 @@
 ///
 use c2rust_bitfields::BitfieldStruct;
 
-
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct FullWord {
@@ -12,7 +11,7 @@ pub struct FullWord {
     #[bitfield(name = "N", ty = "u8", bits = "32..=34")]
     #[bitfield(name = "S", ty = "u8", bits = "35..=37")]
     #[bitfield(name = "CDR", ty = "u8", bits = "38..=39")]
-    pub fullword:  [u8; 8],
+    pub fullword: [u8; 8],
 }
 
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
@@ -22,7 +21,7 @@ pub struct Entry {
     #[bitfield(name = "N", ty = "u32", bits = "32..=34")]
     #[bitfield(name = "S", ty = "u32", bits = "35..=37")]
     #[bitfield(name = "CDR", ty = "u64", bits = "38..=39")]
-    pub entry:  [u8; 8],
+    pub entry: [u8; 8],
 }
 
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
@@ -57,7 +56,7 @@ pub struct Branch {
 #[repr(C)]
 pub struct FieldExtraction {
     #[bitfield(name = "bottom", ty = "u8", bits = "0..=4")] //location of the bottom bit, i.e.rotate count (>> N)
-    #[bitfield(name = "size", ty = "u8", bits = "5..=9")]  // field size - 1
+    #[bitfield(name = "size", ty = "u8", bits = "5..=9")] // field size - 1
     #[bitfield(name = "tbd", ty = "u32", bits = "10..=17")]
     pub extraction: [u8; 4],
 }

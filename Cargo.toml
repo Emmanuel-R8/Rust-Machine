@@ -19,3 +19,10 @@ num = "0.4.0"
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 simplelog = "0.12.0"
+
+[dependencies.uuid]
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]

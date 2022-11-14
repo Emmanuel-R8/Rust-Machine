@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 #[derive(Clone, Debug)]
 pub struct NetworkInterface<'a> {
     defined_p: bool,
-    present: bool,                            // present
-    device: PathBuf,                         // device
-    my_protocol: u8,                          // my_protocol
-    my_address: u32,                          // my_address
-    my_options: String,                       // my_options
+    present: bool,                                             // present
+    device: PathBuf,                                           // device
+    my_protocol: u8,                                           // my_protocol
+    my_address: u32,                                           // my_address
+    my_options: String,                                        // my_options
     other_address: [Option<Box<&'a NetworkInterface<'a>>>; 8], // Another addres
 }
 
