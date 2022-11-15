@@ -5,6 +5,7 @@ use std::fs::{read_dir, DirEntry};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use sets::Set;
 use uuid::Uuid;
 
 use crate::common::constants::{
@@ -16,9 +17,9 @@ use crate::hardware::cpu::{
     read_control_argument_size, read_control_caller_frame_size, write_control_argument_size,
     write_control_caller_frame_size, CPU,
 };
-use crate::world::world::{clone_map_entries, merge_a_map, vpunt, MapEntrySelector, World};
+use crate::world::world::{clone_map_entries, merge_a_map, vpunt, MapEntrySelector, World, LoadMapEntry};
 
-#[derive(Debug)]
+#[derive()]
 pub struct GlobalContext {
     pub cpu: CPU,
     pub mem: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
@@ -191,17 +192,17 @@ impl GlobalContext {
 
                 w.merged_wired_map_entries =
                     merge_a_map(&w, MapEntrySelector::Wired, MapEntrySelector::Wired)
-                        .unwrap_or(vec![]);
+                        .unwrap_or(Set::<LoadMapEntry>::new_ordered(&[], true));
 
                 w.merged_unwired_map_entries =
                     merge_a_map(&w, MapEntrySelector::Unwired, MapEntrySelector::Unwired)
-                        .unwrap_or(vec![]);
+                        .unwrap_or(Set::<LoadMapEntry>::new_ordered(&[], true));
             }
         }
     }
 
     pub fn merge_load_maps(&mut self, world_search_path: String) {
-        let mut w: &mut World = unsafe { self.worlds.get(&self.world).unwrap() };
+        let mut w: &World = unsafe { self.worlds.get(&self .world).unwrap() };
 
         if w.generation == 0 {
             w.merged_wired_map_entries = clone_map_entries(&w.wired_map_entries);

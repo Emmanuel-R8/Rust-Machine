@@ -3,9 +3,10 @@ use log::warn;
 use num::Integer;
 
 use memmap::Mmap;
+use sets::{SType, Set};
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
-use std::cmp::min;
+use std::cmp::{min, Ordering};
 use std::fs::{DirEntry, File};
 use std::io::Read;
 use std::mem::size_of;
@@ -54,17 +55,6 @@ impl Default for LoadMapEntry {
     }
 }
 
-impl LoadMapEntry {
-    pub fn copy(self) -> Self {
-        return LoadMapEntry {
-            address: self.address,
-            count: self.count,
-            map_code: self.map_code,
-            data: self.data,
-        };
-    }
-}
-
 /// Load map operation codes
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LoadMapEntryOpcode {
@@ -81,6 +71,24 @@ impl fmt::Display for LoadMapEntryOpcode {
     }
 }
 
+// Ord and PartialOrd are implemented to have ordered sets
+// Ordered by address then count
+impl Ord for LoadMapEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.address.cmp(&other.address) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => self.count.cmp(&other.count),
+        }
+    }
+}
+
+impl PartialOrd for LoadMapEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 // List of possible map entries
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MapEntrySelector {
@@ -91,18 +99,18 @@ pub enum MapEntrySelector {
     MergedUnwired,
 }
 
-pub fn clone_map_entries(map_entries: &Vec<LoadMapEntry>) -> Vec<LoadMapEntry> {
-    let mut res: Vec<LoadMapEntry> = vec![];
+pub fn clone_map_entries(map_entries: &Set<LoadMapEntry>) -> Set<LoadMapEntry> {
+    let mut res: Set<LoadMapEntry> = Set::new_ordered(&[], true);
 
-    for m in map_entries {
-        res.push(m.clone());
+    for m in map_entries.data {
+        res.insert(m.clone());
     }
 
     return res;
 }
 
 // Description of an open world file
-#[derive(Debug)]
+#[derive()]
 pub struct World {
     pub id: Uuid,
     pub pathname: PathBuf,      // -> Pathname of the world file
@@ -130,10 +138,10 @@ pub struct World {
     pub parent_timestamp_1: u32, // Unique ID of this world's parent, part 1 ...
     pub parent_timestamp_2: u32, // ... part 2
 
-    pub wired_map_entries: Vec<LoadMapEntry>, // -> The wired load map entries
-    pub merged_wired_map_entries: Vec<LoadMapEntry>, // ..
-    pub unwired_map_entries: Vec<LoadMapEntry>, // -> The unwired load map entries (Ivory only)
-    pub merged_unwired_map_entries: Vec<LoadMapEntry>, // ..
+    pub wired_map_entries: Set<LoadMapEntry>, // -> The wired load map entries
+    pub merged_wired_map_entries: Set<LoadMapEntry>, // ..
+    pub unwired_map_entries: Set<LoadMapEntry>, // -> The unwired load map entries (Ivory only)
+    pub merged_unwired_map_entries: Set<LoadMapEntry>, // ..
 }
 
 impl World {
@@ -164,16 +172,16 @@ impl World {
             parent_timestamp_1: 0,
             parent_timestamp_2: 0,
 
-            wired_map_entries: vec![],
-            merged_wired_map_entries: vec![],
-            unwired_map_entries: vec![],
-            merged_unwired_map_entries: vec![],
+            wired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
+            merged_wired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
+            unwired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
+            merged_unwired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
         };
         return w;
     }
 
     // Select the specified MapEntries
-    fn select_entries(&mut self, selector: MapEntrySelector) -> &Vec<LoadMapEntry> {
+    fn select_entries(&mut self, selector: MapEntrySelector) -> &Set<LoadMapEntry> {
         return match selector {
             MapEntrySelector::Wired => &(self.wired_map_entries),
             MapEntrySelector::MergedWired => &(self.merged_wired_map_entries),
@@ -188,10 +196,10 @@ impl World {
         self.data_page = vec![];
         self.tags_page = vec![];
         self.ivory_data_page = vec![];
-        self.merged_wired_map_entries = vec![];
-        self.wired_map_entries = vec![];
-        self.merged_unwired_map_entries = vec![];
-        self.unwired_map_entries = vec![];
+        self.merged_wired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        self.wired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        self.merged_unwired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        self.unwired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
     }
 }
 
@@ -218,10 +226,10 @@ impl Default for World {
             timestamp_2: 0,
             parent_timestamp_1: 0,
             parent_timestamp_2: 0,
-            wired_map_entries: vec![],
-            merged_wired_map_entries: vec![],
-            unwired_map_entries: vec![],
-            merged_unwired_map_entries: vec![],
+            wired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
+            merged_wired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
+            unwired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
+            merged_unwired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
         }
     }
 }
@@ -330,13 +338,15 @@ pub fn merge_a_map(
     world: &World,
     fore_map_selector: MapEntrySelector,
     back_map_selector: MapEntrySelector,
-) -> Option<Vec<LoadMapEntry>> {
+) -> Option<Set<LoadMapEntry>> {
     // Load the relevant maps
     // We need mutable copies to adjust ends and starts if need at each iteration.
     let mut fore = match fore_map_selector {
-        MapEntrySelector::Wired | MapEntrySelector::MergedWired => world.wired_map_entries.clone(),
+        MapEntrySelector::Wired | MapEntrySelector::MergedWired => {
+            world.wired_map_entries.data.clone()
+        }
         MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => {
-            world.unwired_map_entries.clone()
+            world.unwired_map_entries.data.clone()
         }
     };
     let mut back = match back_map_selector {
@@ -345,6 +355,7 @@ pub fn merge_a_map(
                 .get(&world.parent_world)
                 .unwrap()
                 .merged_wired_map_entries
+                .data
                 .clone()
         },
 
@@ -353,6 +364,7 @@ pub fn merge_a_map(
                 .get(&world.parent_world)
                 .unwrap()
                 .merged_unwired_map_entries
+                .data
                 .clone()
         },
     };
@@ -372,7 +384,7 @@ pub fn merge_a_map(
     };
 
     // Resulting new map
-    let mut new_map_entries: Vec<LoadMapEntry> = vec![];
+    let mut new_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
 
     let mut fore_idx: u32 = 0;
     let mut back_idx: u32 = 0;
@@ -421,7 +433,7 @@ pub fn merge_a_map(
         // Situation 1:
         if fore_idx >= n_fore {
             while back_idx < n_back {
-                new_map_entries.push(back[back_idx as usize]);
+                new_map_entries.insert(back[back_idx as usize]);
                 back_idx += 1;
             }
             break;
@@ -430,7 +442,7 @@ pub fn merge_a_map(
         // Situation 2:
         if back_idx >= n_back {
             while fore_idx < n_fore {
-                new_map_entries.push(fore[fore_idx as usize]);
+                new_map_entries.insert(fore[fore_idx as usize]);
                 fore_idx += 1;
             }
             break;
@@ -438,14 +450,14 @@ pub fn merge_a_map(
 
         // Situation 3:
         if back_final < fore_start {
-            new_map_entries.push(back[back_idx as usize]);
+            new_map_entries.insert(back[back_idx as usize]);
             back_idx += 1;
             continue;
         }
 
         // Situation 4:
         if back_start < fore_start && back_final >= fore_start {
-            new_map_entries.push(LoadMapEntry {
+            new_map_entries.insert(LoadMapEntry {
                 address: back[back_idx as usize].address,
                 count: fore[fore_idx as usize].address
                     - (back[back_idx as usize].address + back[back_idx as usize].count - 1),
@@ -465,7 +477,7 @@ pub fn merge_a_map(
 
         // Situation 6:
         if back_start >= fore_start && back_final > fore_final {
-            new_map_entries.push(fore[fore_idx as usize]);
+            new_map_entries.insert(fore[fore_idx as usize]);
             fore_idx += 1;
             back[back_idx as usize].address = fore_final + 1;
             back[back_idx as usize].count = back_final - back[back_idx as usize].address + 1;
@@ -474,7 +486,7 @@ pub fn merge_a_map(
 
         // Situation 7:
         if back_start > fore_final {
-            new_map_entries.push(fore[fore_idx as usize]);
+            new_map_entries.insert(fore[fore_idx as usize]);
             fore_idx += 1;
             continue;
         }
@@ -508,10 +520,10 @@ pub fn merge_a_map(
 
 pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) {
     let map: &mut Vec<LoadMapEntry> = match map_selector {
-        MapEntrySelector::Wired => w.wired_map_entries.borrow_mut(),
-        MapEntrySelector::MergedWired => w.merged_wired_map_entries.borrow_mut(),
-        MapEntrySelector::Unwired => w.unwired_map_entries.borrow_mut(),
-        MapEntrySelector::MergedUnwired => w.merged_unwired_map_entries.borrow_mut(),
+        MapEntrySelector::Wired => w.wired_map_entries.data.borrow_mut(),
+        MapEntrySelector::MergedWired => w.merged_wired_map_entries.data.borrow_mut(),
+        MapEntrySelector::Unwired => w.unwired_map_entries.data.borrow_mut(),
+        MapEntrySelector::MergedUnwired => w.merged_unwired_map_entries.data.borrow_mut(),
     };
 
     for e in map {
@@ -566,10 +578,10 @@ fn open_world_file(puntOnErrors: bool) -> bool {
     w.data_page = vec![];
     w.tags_page = vec![];
     w.ivory_data_page = vec![];
-    w.wired_map_entries = vec![];
-    w.unwired_map_entries = vec![];
-    w.merged_wired_map_entries = vec![];
-    w.merged_unwired_map_entries = vec![];
+    w.wired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+    w.unwired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+    w.merged_wired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+    w.merged_unwired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
     w.parent_world = Uuid::nil();
 
     let path = &w.pathname;
@@ -716,47 +728,44 @@ pub fn write_lisp_obj_data_u(q: &mut QWord, data: u32) {
     q.parts.data.u = data
 }
 
+
 //  Canonicalize the load map entries for a VLM world:  Look for load map entries
 //  that don't start on a page boundary and convert them into a series of
 //  LoadMapConstant entries to load the data.  Thus, all data in the world file
 //  will be page-aligned to allow for direct mapping of the world load file into
 //  memory.  (Eventually, we may also merge adjacent load map rentries.)
 fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
-    let mut new_n_wired_map_entries: u32 = 0;
-    let mut new_wired_map_entries: Vec<LoadMapEntry> = vec![];
-    let mut new_map_entry: Option<LoadMapEntry> = None;
-
-    let mut page_number: u32 = 0;
-    let mut page_count: u32 = 0;
-    let mut block_count: u32 = 0;
-    let mut n_Qs: u32 = 0;
-    let mut j: u32 = 0;
+    let mut new_wired_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
 
     let mut w = unsafe { _GC.worlds.get(&_GC.world).unwrap() };
-    let n_wired_entries = w.wired_map_entries.len() as u32;
+    let n_wired_entries = w.wired_map_entries.data.len() as u32;
+
+    let mut page_number: u32 = 0;
 
     let mut i: u32 = 0;
     while i < n_wired_entries {
-        let (d, r) = w.wired_map_entries[i as usize]
-            .address
-            .div_rem(&VLMPAGE_SIZE_QS);
+        let current_map = w.wired_map_entries.data[i as usize];
+
+        let (d, r) = current_map.address.div_rem(&VLMPAGE_SIZE_QS);
 
         if r == 0 {
-            // Page Aligned:  Assign the page number within the file
-            w.wired_map_entries[i as usize].data =
-                make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+            // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
+            // assign the page number within the file
+            let mut new_entry = w.wired_map_entries.data[i as usize];
+            new_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+            new_wired_map_entries.insert(new_entry);
             page_number = page_number + d + 1;
             i += 1;
         } else {
             // Not Page Aligned:  Convert into a series of LoadMapConstant entries
             for j in 0..n_wired_entries {
-                let count = w.wired_map_entries[i as usize].count;
+                let count = w.wired_map_entries.data[i as usize].count;
                 w.wired_map_entries[(i + j + count) as usize] =
                     w.wired_map_entries[(i + j + 1) as usize]
             }
 
             for j in 0..w.wired_map_entries[i as usize].count {
-                let map_entry_tmp = w.wired_map_entries[(i + i) as usize];
+                let map_entry_tmp = w.wired_map_entries.data[(i + j) as usize];
 
                 w.wired_map_entries[(i + j) as usize].address =
                     w.wired_map_entries[i as usize].address + j;
@@ -771,9 +780,9 @@ fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
     }
 
     // Compute size of header in VLM blocks to determine where the tags and data pages will start within the world file
-    n_Qs = n_wired_entries * 3 + VLMWORLD_FILE_V2_FIRST_MAP_Q;
-    page_count = n_Qs.div(IVORY_PAGE_SIZE_QS) + 1;
-    block_count = (page_count * IVORY_PAGE_SIZE_BYTES).div(VLMPAGE_SIZE_QS) + 1;
+    let n_Qs = n_wired_entries * 3 + VLMWORLD_FILE_V2_FIRST_MAP_Q;
+    let page_count = n_Qs.div(IVORY_PAGE_SIZE_QS) + 1;
+    let block_count = (page_count * IVORY_PAGE_SIZE_BYTES).div(VLMPAGE_SIZE_QS) + 1;
 
     if block_count > VLMMAXIMUM_HEADER_BLOCKS {
         w.close(true);
@@ -1367,7 +1376,10 @@ impl GlobalContext {
                     println!("LoadMapDataPages @ {}, count {}", the_address, entry.count,);
 
                     for _ in 0..entry.count {
-                        virtual_memory_write(the_address, self.read_swapped_VLM_world_file_next_Q());
+                        virtual_memory_write(
+                            the_address,
+                            self.read_swapped_VLM_world_file_next_Q(),
+                        );
                         the_address += 1;
                     }
                 } else {
