@@ -17,7 +17,7 @@ use crate::hardware::cpu::{
     read_control_argument_size, read_control_caller_frame_size, write_control_argument_size,
     write_control_caller_frame_size, CPU,
 };
-use crate::world::world::{clone_map_entries, merge_a_map, vpunt, MapEntrySelector, World, LoadMapEntry};
+use crate::world::world::{clone, merge_a_map, vpunt, LoadMapEntry, World};
 
 #[derive()]
 pub struct GlobalContext {
@@ -171,7 +171,7 @@ impl GlobalContext {
                 pw = w.parent_world;
                 self.worlds.remove(&self.world);
             }
-            _ => {},
+            _ => {}
         }
 
         if close_parent {
@@ -179,45 +179,69 @@ impl GlobalContext {
         }
     }
 
-    pub fn merge_parent_load_map(&mut self) {
-        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
+    pub fn merge_parent_load_map(&self, world: Uuid) -> (Set<LoadMapEntry>, Set<LoadMapEntry>) {
+        if world.is_nil() {
+            return (
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+            );
+        }
 
         // If at the top of the topmost parent (no generation above)
-        if w.generation == 0 {
-            w.merged_wired_map_entries = clone_map_entries(&w.wired_map_entries);
-            w.merged_unwired_map_entries = clone_map_entries(&w.unwired_map_entries);
-        } else {
-            if !w.parent_world.is_nil() {
-                self.merge_parent_load_map();
+        let w = self.worlds.get(&world).unwrap();
 
-                w.merged_wired_map_entries =
-                    merge_a_map(&w, MapEntrySelector::Wired, MapEntrySelector::Wired)
-                        .unwrap_or(Set::<LoadMapEntry>::new_ordered(&[], true));
-
-                w.merged_unwired_map_entries =
-                    merge_a_map(&w, MapEntrySelector::Unwired, MapEntrySelector::Unwired)
-                        .unwrap_or(Set::<LoadMapEntry>::new_ordered(&[], true));
-            }
+        if w.generation == 0 || w.parent_world.is_nil() {
+            return (
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+            );
         }
+
+        // let new_merged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        // let new_unmerged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        let (mut new_merged_wired_entries, mut new_unmerged_wired_entries) =self.merge_parent_load_map(w.parent_world);
+        new_merged_wired_entries = merge_a_map(w, &new_merged_wired_entries, &w.merged_wired_map_entries);
+        new_unmerged_wired_entries = merge_a_map(&w, &new_unmerged_wired_entries, &w.unwired_map_entries);
+
+        return (new_merged_wired_entries, new_unmerged_wired_entries);
     }
 
-    pub fn merge_load_maps(&mut self, world_search_path: String) {
-        let mut w: &World = unsafe { self.worlds.get(&self .world).unwrap() };
-
+    pub fn merge_load_maps(
+        &mut self,
+        world_search_path: String,
+    ) -> (Set<LoadMapEntry>, Set<LoadMapEntry>) {
+        let w = self.worlds.get(&self.world).unwrap();
         if w.generation == 0 {
-            w.merged_wired_map_entries = clone_map_entries(&w.wired_map_entries);
-            w.merged_unwired_map_entries = clone_map_entries(&w.unwired_map_entries);
-        } else {
-            self.find_parent_worlds(world_search_path);
-            self.merge_parent_load_map();
+            return (
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+            );
         }
+
+        let mut new_merged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        let mut new_unmerged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+
+        self.find_parent_worlds(world_search_path);
+        let w = self.worlds.get(&self.world);
+        if w.is_none() {
+            return (
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+                Set::<LoadMapEntry>::new_ordered(&[], true),
+            );
+        }
+
+        let pw = w.unwrap().parent_world;
+        if pw.is_nil() {
+            return (new_merged_wired_entries, new_unmerged_wired_entries);
+        }
+
+        return self.merge_parent_load_map(pw);
     }
 
-    fn find_parent_worlds(&mut self, mut world_search_path: String) {
+    fn find_parent_worlds(&mut self, world_search_path: String) {
         // Remove all worlds apart from current one
         let current_world = self.world;
-        self.worlds.retain(|&u, _|  u == current_world);
-
+        self.worlds.retain(|&u, _| u == current_world);
 
         let w = self.worlds.get(&current_world).unwrap();
         let mut dir_components = w.pathname.ancestors();
@@ -237,7 +261,7 @@ impl GlobalContext {
         }
 
         while w.generation > 0 {
-            for (w_uuid, w_world) in &mut self.worlds {
+            for (w_uuid, w_world) in &self.worlds {
                 if w_world.generation == w_world.generation - 1
                     && w_world.timestamp_1 == w_world.parent_timestamp_1
                     && w_world.timestamp_2 == w_world.parent_timestamp_2

@@ -42,17 +42,13 @@ mod utils;
 //
 use simplelog::{Config, LevelFilter, WriteLogger};
 use std::fs::File;
-use std::path::PathBuf;
 
 //
 // LOCAL IMPORTS
 //
 use common::constants::{MEMORY_ADDRESS_PAGE_SHIFT, VMATTRIBUTE_EMPTY};
-use common::types::QWord;
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
-use hardware::cpu::CPU;
-use world::world::World;
 
 // Global state
 pub static mut _GC: &GlobalContext = &GlobalContext::default();
@@ -84,8 +80,7 @@ pub fn main() {
     let mut enable_IDS_p = config.enableIDS;
     let mut trace_p = config.tracing.tracePOST;
 
-    let global_context = &mut GlobalContext::default();
-    global_context.cpu.initialise();
+    unsafe { _GC.cpu.initialise() };
 
     // let TestFunction = config.testFunction;
 

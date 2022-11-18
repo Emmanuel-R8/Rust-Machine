@@ -3,16 +3,14 @@ use log::warn;
 use num::Integer;
 
 use memmap::Mmap;
-use sets::{SType, Set};
-use std::borrow::{Borrow, BorrowMut};
-use std::cell::RefCell;
+use sets::Set;
+use std::borrow::BorrowMut;
 use std::cmp::{min, Ordering};
 use std::fs::{DirEntry, File};
 use std::io::Read;
 use std::mem::size_of;
-use std::ops::{Deref, Div};
+use std::ops::Div;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use std::{fmt, process};
 use uuid::Uuid;
 
@@ -43,6 +41,22 @@ pub struct LoadMapEntry {
     pub data: QWord,                  // Interpretation is based on the opcode
                                       // pub world: Rc<RefCell<World<'a>>>, // Ref to World from which this entry was obtained  // !!!!!!!!! Should not be needed to link back
 }
+
+pub fn clone(map_entries: &Set<LoadMapEntry>) -> Set<LoadMapEntry> {
+    let mut res: Set<LoadMapEntry> = Set::new_ordered(&[], true);
+
+    for m in map_entries.data {
+        res.insert(m.clone());
+    }
+
+    return res;
+}
+
+// impl Default for Set<LoadMapEntry> {
+//     fn default() -> Self {
+//         return Set::<LoadMapEntry>::new_ordered(&[], true)
+//     }
+// }
 
 impl Default for LoadMapEntry {
     fn default() -> Self {
@@ -97,16 +111,6 @@ pub enum MapEntrySelector {
     MergedWired,
     Unwired,
     MergedUnwired,
-}
-
-pub fn clone_map_entries(map_entries: &Set<LoadMapEntry>) -> Set<LoadMapEntry> {
-    let mut res: Set<LoadMapEntry> = Set::new_ordered(&[], true);
-
-    for m in map_entries.data {
-        res.insert(m.clone());
-    }
-
-    return res;
 }
 
 // Description of an open world file
@@ -180,7 +184,7 @@ impl World {
         return w;
     }
 
-    // Select the specified MapEntries
+    // Select the specified Set<LoadMapEntry>
     fn select_entries(&mut self, selector: MapEntrySelector) -> &Set<LoadMapEntry> {
         return match selector {
             MapEntrySelector::Wired => &(self.wired_map_entries),
@@ -334,48 +338,26 @@ pub fn read_ivory_world_file_page(w: &mut World, page_number: u32) {
 // Merges a foreground load map and a background load map together into a single load map
 // background are the entries in the parent world
 // foreground are the child world shadowing the parent (background)
-pub fn merge_a_map(
+pub fn merge_a_map<'a>(
     world: &World,
-    fore_map_selector: MapEntrySelector,
-    back_map_selector: MapEntrySelector,
-) -> Option<Set<LoadMapEntry>> {
+    fore_map: &Set<LoadMapEntry>,
+    back_map: &Set<LoadMapEntry>,
+) -> Set<LoadMapEntry> {
     // Load the relevant maps
     // We need mutable copies to adjust ends and starts if need at each iteration.
-    let mut fore = match fore_map_selector {
-        MapEntrySelector::Wired | MapEntrySelector::MergedWired => {
-            world.wired_map_entries.data.clone()
-        }
-        MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => {
-            world.unwired_map_entries.data.clone()
-        }
-    };
-    let mut back = match back_map_selector {
-        MapEntrySelector::Wired | MapEntrySelector::MergedWired => unsafe {
-            _GC.worlds
-                .get(&world.parent_world)
-                .unwrap()
-                .merged_wired_map_entries
-                .data
-                .clone()
-        },
+    let mut new_back = clone(&back_map);
+    let mut new_fore = clone(fore_map);
 
-        MapEntrySelector::Unwired | MapEntrySelector::MergedUnwired => unsafe {
-            _GC.worlds
-                .get(&world.parent_world)
-                .unwrap()
-                .merged_unwired_map_entries
-                .data
-                .clone()
-        },
-    };
+    let n_back = new_back.data.len() as u32;
+    let n_fore = new_fore.data.len() as u32;
 
-    let n_fore = fore.len() as u32;
-    let n_back = back.len() as u32;
+    // Resulting new map
+    let mut new_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
 
     // See SYS:IFEP;WORLD-SUBSTRATE.LISP for an explanation of the maximum number of entries
     let max = n_back + n_fore + n_fore;
     if max == 0 {
-        return None;
+        return new_map_entries;
     }
 
     let page_size_Qs = match world.format {
@@ -383,22 +365,19 @@ pub fn merge_a_map(
         _ => IVORY_PAGE_SIZE_QS,
     };
 
-    // Resulting new map
-    let mut new_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
-
     let mut fore_idx: u32 = 0;
     let mut back_idx: u32 = 0;
     loop {
-        if back[back_idx as usize].map_code != LoadMapEntryOpcode::DataPages {
+        if new_back.data[back_idx as usize].map_code != LoadMapEntryOpcode::DataPages {
             back_idx += 1;
             continue;
         }
 
-        let fore_start = fore[fore_idx as usize].address;
-        let fore_final = fore_start + fore[fore_idx as usize].count - 1;
+        let fore_start = new_fore.data[fore_idx as usize].address;
+        let fore_final = fore_start + new_fore.data[fore_idx as usize].count - 1;
 
-        let back_start = back[fore_idx as usize].address;
-        let back_final = back_start + back[fore_idx as usize].count - 1;
+        let back_start = new_back.data[fore_idx as usize].address;
+        let back_final = back_start + new_back.data[fore_idx as usize].count - 1;
 
         // Possible situations:
         //  1: |--- BACK ---|
@@ -433,7 +412,7 @@ pub fn merge_a_map(
         // Situation 1:
         if fore_idx >= n_fore {
             while back_idx < n_back {
-                new_map_entries.insert(back[back_idx as usize]);
+                new_map_entries.insert(new_back.data[back_idx as usize]);
                 back_idx += 1;
             }
             break;
@@ -442,7 +421,7 @@ pub fn merge_a_map(
         // Situation 2:
         if back_idx >= n_back {
             while fore_idx < n_fore {
-                new_map_entries.insert(fore[fore_idx as usize]);
+                new_map_entries.insert(new_fore.data[fore_idx as usize]);
                 fore_idx += 1;
             }
             break;
@@ -450,7 +429,7 @@ pub fn merge_a_map(
 
         // Situation 3:
         if back_final < fore_start {
-            new_map_entries.insert(back[back_idx as usize]);
+            new_map_entries.insert(new_back.data[back_idx as usize]);
             back_idx += 1;
             continue;
         }
@@ -458,14 +437,17 @@ pub fn merge_a_map(
         // Situation 4:
         if back_start < fore_start && back_final >= fore_start {
             new_map_entries.insert(LoadMapEntry {
-                address: back[back_idx as usize].address,
-                count: fore[fore_idx as usize].address
-                    - (back[back_idx as usize].address + back[back_idx as usize].count - 1),
-                map_code: back[back_idx as usize].map_code,
-                data: back[back_idx as usize].data,
+                address: new_back.data[back_idx as usize].address,
+                count: new_fore.data[fore_idx as usize].address
+                    - (new_back.data[back_idx as usize].address
+                        + new_back.data[back_idx as usize].count
+                        - 1),
+                map_code: new_back.data[back_idx as usize].map_code,
+                data: new_back.data[back_idx as usize].data,
             });
-            back[back_idx as usize].address = fore[fore_idx as usize].address;
-            back[back_idx as usize].count = back_final - back[back_idx as usize].address + 1;
+            new_back.data[back_idx as usize].address = new_fore.data[fore_idx as usize].address;
+            new_back.data[back_idx as usize].count =
+                back_final - new_back.data[back_idx as usize].address + 1;
             continue;
         }
 
@@ -477,22 +459,23 @@ pub fn merge_a_map(
 
         // Situation 6:
         if back_start >= fore_start && back_final > fore_final {
-            new_map_entries.insert(fore[fore_idx as usize]);
+            new_map_entries.insert(new_fore.data[fore_idx as usize]);
             fore_idx += 1;
-            back[back_idx as usize].address = fore_final + 1;
-            back[back_idx as usize].count = back_final - back[back_idx as usize].address + 1;
+            new_back.data[back_idx as usize].address = fore_final + 1;
+            new_back.data[back_idx as usize].count =
+                back_final - new_back.data[back_idx as usize].address + 1;
             continue;
         }
 
         // Situation 7:
         if back_start > fore_final {
-            new_map_entries.insert(fore[fore_idx as usize]);
+            new_map_entries.insert(new_fore.data[fore_idx as usize]);
             fore_idx += 1;
             continue;
         }
     }
 
-    return Some(new_map_entries);
+    return new_map_entries;
 }
 
 // fn read_ivory_world_file_page(mut world: *mut World, mut page_number: u32) {
@@ -545,7 +528,7 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) {
     }
 }
 
-// fn read_load_map(mut world: *mut World, mut nMapEntries: u32, mut mapEntries: *mut LoadMapEntry) {
+// fn read_load_map(mut world: *mut World, mut nSet<LoadMapEntry>: u32, mut Set<LoadMapEntry>: *mut LoadMapEntry) {
 //     let mut q: QWord = LispObj {
 //         parts: _LispObj {
 //             tag: 0,
@@ -554,14 +537,14 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) {
 //     };
 //     let mut i: u32 = 0;
 //     i = 0;
-//     while i < nMapEntries {
-//         (*mapEntries).address = ReadIvoryWorldFileNextQ(world, &mut q);
-//         *(&mut (*mapEntries).op as *mut isize) = ReadIvoryWorldFileNextQ(world, &mut q);
-//         (*mapEntries).data = ReadIvoryWorldFileNextQ(world, &mut q);
-//         let ref mut fresh36 = (*mapEntries).world;
+//     while i < nSet<LoadMapEntry> {
+//         (*Set<LoadMapEntry>).address = ReadIvoryWorldFileNextQ(world, &mut q);
+//         *(&mut (*Set<LoadMapEntry>).op as *mut isize) = ReadIvoryWorldFileNextQ(world, &mut q);
+//         (*Set<LoadMapEntry>).data = ReadIvoryWorldFileNextQ(world, &mut q);
+//         let ref mut fresh36 = (*Set<LoadMapEntry>).world;
 //         *fresh36 = world as PtrV;
 //         i += 1;
-//         mapEntries = mapEntries.offset(1);
+//         Set<LoadMapEntry> = Set<LoadMapEntry>.offset(1);
 //     }
 // }
 
@@ -728,71 +711,68 @@ pub fn write_lisp_obj_data_u(q: &mut QWord, data: u32) {
     q.parts.data.u = data
 }
 
+impl GlobalContext {
+    //  Canonicalize the load map entries for a VLM world:  Look for load map entries
+    //  that don't start on a page boundary and convert them into a series of
+    //  LoadMapConstant entries to load the data.  Thus, all data in the world file
+    //  will be page-aligned to allow for direct mapping of the world load file into
+    //  memory.  (Eventually, we may also merge adjacent load map rentries.)
+    fn canonicalize_VLM_load_map_entries(&mut self) -> Set<LoadMapEntry> {
+        let mut new_wired_map_entries: Set<LoadMapEntry> =
+            Set::<LoadMapEntry>::new_ordered(&[], true);
 
-//  Canonicalize the load map entries for a VLM world:  Look for load map entries
-//  that don't start on a page boundary and convert them into a series of
-//  LoadMapConstant entries to load the data.  Thus, all data in the world file
-//  will be page-aligned to allow for direct mapping of the world load file into
-//  memory.  (Eventually, we may also merge adjacent load map rentries.)
-fn canonicalize_VLM_load_map_entries(ctx: &mut GlobalContext) {
-    let mut new_wired_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
+        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
+        let n_wired_entries = w.wired_map_entries.data.len() as u32;
 
-    let mut w = unsafe { _GC.worlds.get(&_GC.world).unwrap() };
-    let n_wired_entries = w.wired_map_entries.data.len() as u32;
+        let mut page_number: u32 = 0;
 
-    let mut page_number: u32 = 0;
+        let mut i: u32 = 0;
+        while i < n_wired_entries {
+            let current_map_entry = &w.wired_map_entries.data[i as usize];
 
-    let mut i: u32 = 0;
-    while i < n_wired_entries {
-        let current_map = w.wired_map_entries.data[i as usize];
+            let (page_count, r) = current_map_entry.address.div_rem(&VLMPAGE_SIZE_QS);
 
-        let (d, r) = current_map.address.div_rem(&VLMPAGE_SIZE_QS);
+            if r == 0 {
+                // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
+                // assign the page number within the file
+                let mut new_wired_map_entry = w.wired_map_entries.data[i as usize];
+                new_wired_map_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+                new_wired_map_entries.insert(new_wired_map_entry);
+                page_number = page_number + page_count;
+                i += 1;
+            } else {
+                // Not Page Aligned:  Convert into a series of LoadMapConstant entries
+                for j in 0..current_map_entry.count {
+                    let mut new_wired_map_entry = w.wired_map_entries.data[(i + j) as usize];
 
-        if r == 0 {
-            // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
-            // assign the page number within the file
-            let mut new_entry = w.wired_map_entries.data[i as usize];
-            new_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
-            new_wired_map_entries.insert(new_entry);
-            page_number = page_number + d + 1;
-            i += 1;
-        } else {
-            // Not Page Aligned:  Convert into a series of LoadMapConstant entries
-            for j in 0..n_wired_entries {
-                let count = w.wired_map_entries.data[i as usize].count;
-                w.wired_map_entries[(i + j + count) as usize] =
-                    w.wired_map_entries[(i + j + 1) as usize]
+                    new_wired_map_entry.address = w.wired_map_entries.data[i as usize].address + j;
+                    new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
+                    new_wired_map_entry.count = 1;
+                    new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.address);
+                    new_wired_map_entries.insert(new_wired_map_entry);
+                }
+
+                i += current_map_entry.count;
             }
-
-            for j in 0..w.wired_map_entries[i as usize].count {
-                let map_entry_tmp = w.wired_map_entries.data[(i + j) as usize];
-
-                w.wired_map_entries[(i + j) as usize].address =
-                    w.wired_map_entries[i as usize].address + j;
-                w.wired_map_entries[(i + j) as usize].map_code = LoadMapEntryOpcode::Constant;
-                w.wired_map_entries[(i + j) as usize].count = 1;
-                w.wired_map_entries[(i + j) as usize].data =
-                    virtual_memory_read(w.wired_map_entries[(i + j) as usize].address);
-            }
-
-            i += w.wired_map_entries[i as usize].count;
         }
-    }
 
-    // Compute size of header in VLM blocks to determine where the tags and data pages will start within the world file
-    let n_Qs = n_wired_entries * 3 + VLMWORLD_FILE_V2_FIRST_MAP_Q;
-    let page_count = n_Qs.div(IVORY_PAGE_SIZE_QS) + 1;
-    let block_count = (page_count * IVORY_PAGE_SIZE_BYTES).div(VLMPAGE_SIZE_QS) + 1;
+        // Compute size of header in VLM blocks to determine where the tags and data pages will start within the world file
+        let n_Qs = new_wired_map_entries.data.len() as u32 * 3 + VLMWORLD_FILE_V2_FIRST_MAP_Q;
+        let page_count = (n_Qs - 1).div(IVORY_PAGE_SIZE_QS);
+        let block_count = (page_count * IVORY_PAGE_SIZE_BYTES - 1).div(VLMPAGE_SIZE_QS);
 
-    if block_count > VLMMAXIMUM_HEADER_BLOCKS {
-        w.close(true);
-        vpunt(format!(
-            "Unable to store data map in space reserved for same in world file {}",
-            w.pathname.display().to_string()
-        ));
+        if block_count > VLMMAXIMUM_HEADER_BLOCKS {
+            w.close(true);
+            vpunt(format!(
+                "Unable to store data map in space reserved for same in world file {}",
+                w.pathname.display().to_string()
+            ));
+        }
+        w.tags_page_base = block_count;
+        w.data_page_base = (w.tags_page_base + 1) * page_number;
+
+        return new_wired_map_entries;
     }
-    w.tags_page_base = block_count;
-    w.data_page_base = (w.tags_page_base + 1) * page_number;
 }
 
 pub fn write_ivory_world_file_next_Q(w: &mut World, q: QWord) {}
@@ -1359,9 +1339,9 @@ impl GlobalContext {
         // let mut words: u32 = 0;
     }
 
-    pub fn VLM_load_map_data(&self, map_selector: MapEntrySelector, index: usize) -> u32 {
-        let mut w = unsafe { _GC.worlds.get(&self.world).unwrap() };
-        let entry = w.select_entries(map_selector)[index];
+    pub fn VLM_load_map_data(self, map_selector: MapEntrySelector, index: usize) -> u32 {
+        let mut w = unsafe { &_GC.worlds.get(&self.world).unwrap() };
+        let mut entry = (*w).select_entries(map_selector).data[index];
 
         match entry.map_code {
             LoadMapEntryOpcode::DataPages => {

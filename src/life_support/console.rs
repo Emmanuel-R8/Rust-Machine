@@ -349,7 +349,7 @@
 //         visualID: 0,
 //         class: 0,
 //         bitsPerRGB: 0,
-//         colormapEntries: 0,
+//         colorSet<LoadMapEntry>: 0,
 //         redMask: 0,
 //         greenMask: 0,
 //         blueMask: 0,
@@ -467,7 +467,7 @@
 //             visualType.visualID = (*visual).visualid as CARD32;
 //             visualType.class = (*visual).class as CARD8;
 //             visualType.bitsPerRGB = (*visual).bits_per_rgb as CARD8;
-//             visualType.colormapEntries = (*visual).map_entries as CARD16;
+//             visualType.colorSet<LoadMapEntry> = (*visual).map_entries as CARD16;
 //             visualType.redMask = (*visual).red_mask as CARD32;
 //             visualType.greenMask = (*visual).green_mask as CARD32;
 //             visualType.blueMask = (*visual).blue_mask as CARD32;
