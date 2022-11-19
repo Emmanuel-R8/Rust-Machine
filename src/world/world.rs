@@ -501,22 +501,26 @@ pub fn merge_a_map<'a>(
 //     world.current_page_number = page_number;
 // }
 
-pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) {
-    let map: &mut Vec<LoadMapEntry> = match map_selector {
-        MapEntrySelector::Wired => w.wired_map_entries.data.borrow_mut(),
-        MapEntrySelector::MergedWired => w.merged_wired_map_entries.data.borrow_mut(),
-        MapEntrySelector::Unwired => w.unwired_map_entries.data.borrow_mut(),
-        MapEntrySelector::MergedUnwired => w.merged_unwired_map_entries.data.borrow_mut(),
+pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadMapEntry> {
+    let map = match map_selector {
+        MapEntrySelector::Wired => w.wired_map_entries.data.clone(),
+        MapEntrySelector::MergedWired => w.merged_wired_map_entries.data.clone(),
+        MapEntrySelector::Unwired => w.unwired_map_entries.data.clone(),
+        MapEntrySelector::MergedUnwired => w.merged_unwired_map_entries.data.clone(),
     };
 
+    let mut res = Set::<LoadMapEntry>::new_ordered(&[], true);
+
     for e in map {
+        let mut new_entry = e.clone();
+
         let q = read_ivory_world_file_next_Q(w);
-        e.address = q.a();
+        new_entry.address = q.a();
 
         let q = read_ivory_world_file_next_Q(w);
         let op = q.u();
-        e.count = op & 0x00FF_FFFF;
-        e.map_code = match (op & 0xFF00_0000) >> 24 {
+        new_entry.count = op & 0x00FF_FFFF;
+        new_entry.map_code = match (op & 0xFF00_0000) >> 24 {
             0 => LoadMapEntryOpcode::DataPages,
             1 => LoadMapEntryOpcode::Constant,
             2 => LoadMapEntryOpcode::ConstantIncremented,
@@ -524,8 +528,12 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) {
             _ => LoadMapEntryOpcode::default(),
         };
 
-        e.data = read_ivory_world_file_next_Q(w);
+        new_entry.data = read_ivory_world_file_next_Q(w);
+
+        res.insert(new_entry);
     }
+
+    return res;
 }
 
 // fn read_load_map(mut world: *mut World, mut nSet<LoadMapEntry>: u32, mut Set<LoadMapEntry>: *mut LoadMapEntry) {
@@ -556,22 +564,13 @@ fn open_world_file(puntOnErrors: bool) -> bool {
     let mut first_sysout_Q: u32 = 0;
     let mut first_map_Q: u32 = 0;
 
-    let mut w = unsafe { _GC.worlds.get(&_GC.world).unwrap() };
-
-    w.data_page = vec![];
-    w.tags_page = vec![];
-    w.ivory_data_page = vec![];
-    w.wired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
-    w.unwired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
-    w.merged_wired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
-    w.merged_unwired_map_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
-    w.parent_world = Uuid::nil();
+    let mut w = World::new();
 
     let path = &w.pathname;
     let mut f = File::open(path).expect("Could not open file");
     w.fd = Some(f);
 
-    let mut cookie = [0 as u8; size_of::<u32>()];
+    let mut cookie:[u8;4] = [0 as u8; size_of::<u32>()];
     if f.read_exact(&mut cookie).is_err() && puntOnErrors {
         w.close(true);
         vpunt(format!("Reading world file {} cookie.", path.display()));
@@ -600,7 +599,6 @@ fn open_world_file(puntOnErrors: bool) -> bool {
 
         _ => {
             if puntOnErrors {
-                w.close(true);
                 vpunt(format!(
                     "Format of world file {} is unrecognized",
                     path.display()
@@ -610,7 +608,6 @@ fn open_world_file(puntOnErrors: bool) -> bool {
     }
 
     w.ivory_data_page = vec![QWord::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
-
     w.current_page_number = 0;
 
     // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
@@ -661,8 +658,11 @@ fn open_world_file(puntOnErrors: bool) -> bool {
         w.parent_timestamp_1 = 0;
     }
     w.current_Q_number = first_map_Q;
-    read_load_map(&mut w, MapEntrySelector::Wired);
-    read_load_map(&mut w, MapEntrySelector::Unwired);
+    w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
+    w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
+
+    let key = unsafe { _GC.world };
+    unsafe { _GC.worlds.insert(key, w) };
 
     return true;
 }
