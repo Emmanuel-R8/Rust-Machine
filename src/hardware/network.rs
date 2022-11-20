@@ -9,7 +9,7 @@ pub struct NetworkInterface<'a> {
     my_protocol: u8,                                           // my_protocol
     my_address: u32,                                           // my_address
     my_options: String,                                        // my_options
-    other_address: [Option<Box<&'a NetworkInterface<'a>>>; 8], // Another addres
+    other_address: [Option<&'a NetworkInterface<'a>>; 8], // Another addres
 }
 
 impl<'a> Default for NetworkInterface<'a> {

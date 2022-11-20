@@ -3,9 +3,11 @@
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
 
+
 #[macro_use()]
 extern crate num;
 extern crate num_derive;
+extern crate lazy_static;
 
 //
 // CRATE FILES
@@ -46,14 +48,16 @@ use std::fs::File;
 //
 // LOCAL IMPORTS
 //
-use common::constants::{MEMORY_ADDRESS_PAGE_SHIFT, VMATTRIBUTE_EMPTY};
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 
-// Global state
-pub static mut _GC: &GlobalContext = &GlobalContext::default();
+
 
 pub fn main() {
+    // Global state
+    let mut ctx : GlobalContext = GlobalContext::new();
+    ctx.cpu.initialise();
+
     let mut args: Vec<String> = Vec::new();
     for arg in ::std::env::args() {
         args.push(arg);
@@ -80,7 +84,6 @@ pub fn main() {
     let mut enable_IDS_p = config.enableIDS;
     let mut trace_p = config.tracing.tracePOST;
 
-    unsafe { _GC.cpu.initialise() };
 
     // let TestFunction = config.testFunction;
 
