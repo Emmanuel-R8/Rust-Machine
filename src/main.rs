@@ -7,7 +7,6 @@
 #[macro_use()]
 extern crate num;
 extern crate num_derive;
-extern crate lazy_static;
 
 //
 // CRATE FILES

@@ -1,34 +1,24 @@
-use close_file::Closable;
 // #![feature(use_extern_macros, prox_macro_non_items)]
 use log::warn;
 use num::Integer;
 
-use memmap::Mmap;
 use sets::Set;
-use std::cmp::{min, Ordering};
+use std::borrow::BorrowMut;
+use std::cmp::Ordering;
 use std::fs::{DirEntry, File};
-use std::io::Read;
-use std::mem::size_of;
 use std::ops::Div;
 use std::path::{Path, PathBuf};
 use std::{fmt, process};
 use uuid::Uuid;
 
 use crate::common::constants::{
-    LoadFileFormat, QTag, CDR, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, IVORY_WORLD_FILE_COOKIE,
-    MEMORYWAD_SIZE, MEMORY_PAGE_SIZE, VLMMAXIMUM_HEADER_BLOCKS, VLMPAGE_SIZE_QS,
-    VLMVERSION1_AND_ARCHITECTURE, VLMVERSION2_AND_ARCHITECTURE, VLMWORLD_FILE_COOKIE,
-    VLMWORLD_FILE_V2_FIRST_MAP_Q,
+    LoadFileFormat, QTag, CDR, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, VLMMAXIMUM_HEADER_BLOCKS,
+    VLMPAGE_SIZE_QS, VLMWORLD_FILE_V2_FIRST_MAP_Q,
 };
 use crate::common::types::QWord;
 
 use crate::emulator::emulator::GlobalContext;
-use crate::hardware::machine::VirtualMachine;
-use crate::hardware::memory::{
-    compute_protection, default_attributes, lisp_obj_data, make_lisp_obj_u, memory_page_offset,
-    memory_wad_offset,
-};
-use crate::utils::{byte_swap_32, pack_8_to_32};
+use crate::hardware::memory::make_lisp_obj_u;
 
 /// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -42,9 +32,9 @@ pub struct LoadMapEntry {
 }
 
 pub fn clone(map_entries: &Set<LoadMapEntry>) -> Set<LoadMapEntry> {
-    let mut res: Set<LoadMapEntry> = Set::new_ordered(&[], true);
+    let res: Set<LoadMapEntry> = Set::new_ordered(&[], true);
 
-    for m in map_entries.data {
+    for m in &map_entries.data {
         res.insert(m.clone());
     }
 
@@ -609,20 +599,27 @@ impl GlobalContext {
         let mut new_wired_map_entries: Set<LoadMapEntry> =
             Set::<LoadMapEntry>::new_ordered(&[], true);
 
-        let mut w = &self.worlds.get(&self.world).unwrap();
-        let n_wired_entries = w.wired_map_entries.data.len() as u32;
-        let mut page_number: u32 = 0;
+        let world_id = self.world;
 
+        let mut world: &mut World = &mut match self.worlds.get(&world_id) {
+            Some(w) => w.clone(),
+
+            None => return new_wired_map_entries,
+        };
+
+        let n_wired_entries = world.wired_map_entries.data.len() as u32;
+
+        let mut page_number: u32 = 0;
         let mut i: u32 = 0;
         while i < n_wired_entries {
-            let current_map_entry = &w.wired_map_entries.data[i as usize];
+            let current_map_entry = &world.wired_map_entries.data[i as usize];
 
             let (page_count, r) = current_map_entry.address.div_rem(&VLMPAGE_SIZE_QS);
 
             if r == 0 {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
                 // assign the page number within the file
-                let mut new_wired_map_entry = w.wired_map_entries.data[i as usize];
+                let mut new_wired_map_entry = world.wired_map_entries.data[i as usize];
                 new_wired_map_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
                 new_wired_map_entries.insert(new_wired_map_entry);
                 page_number = page_number + page_count;
@@ -630,9 +627,10 @@ impl GlobalContext {
             } else {
                 // Not Page Aligned:  Convert into a series of LoadMapConstant entries
                 for j in 0..current_map_entry.count {
-                    let mut new_wired_map_entry = w.wired_map_entries.data[(i + j) as usize];
+                    let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
 
-                    new_wired_map_entry.address = w.wired_map_entries.data[i as usize].address + j;
+                    new_wired_map_entry.address =
+                        world.wired_map_entries.data[i as usize].address + j;
                     new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
                     new_wired_map_entry.count = 1;
                     new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.address);
@@ -649,14 +647,14 @@ impl GlobalContext {
         let block_count = (page_count * IVORY_PAGE_SIZE_BYTES - 1).div(VLMPAGE_SIZE_QS);
 
         if block_count > VLMMAXIMUM_HEADER_BLOCKS {
-            w.close(true);
+            world.close(true);
             panic_exit(format!(
                 "Unable to store data map in space reserved for same in world file {}",
-                w.pathname.display().to_string()
+                world.pathname.display().to_string()
             ));
         }
-        w.tags_page_base = block_count;
-        w.data_page_base = (w.tags_page_base + 1) * page_number;
+        world.tags_page_base = block_count;
+        world.data_page_base = (world.tags_page_base + 1) * page_number;
 
         return new_wired_map_entries;
     }
