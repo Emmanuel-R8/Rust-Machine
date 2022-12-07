@@ -5,37 +5,46 @@ use std::collections::HashMap;
 use std::fs::{read_dir, DirEntry, File};
 use std::io::Read;
 use std::mem::size_of;
+use std::ops::Div;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use memmap::Mmap;
+use num::Integer;
 use sets::Set;
 use uuid::Uuid;
 
 use crate::common::constants::{
-    LoadFileFormat, QTag, VMAttribute, CDR, IVORY_PAGE_SIZE_BYTES, MEMORY_ADDRESS_PAGE_SHIFT,
-    VMATTRIBUTE_CREATED_DEFAULT, VMATTRIBUTE_EMPTY, VMATTRIBUTE_EXISTS, MEMORY_PAGE_SIZE, MEMORYWAD_SIZE, VLMPAGE_SIZE_QS,
+    LoadFileFormat, QTag, VMAttribute, CDR, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS,
+    IVORY_WORLD_FILE_COOKIE, MEMORYWAD_SIZE, MEMORY_ADDRESS_PAGE_SHIFT, MEMORY_PAGE_SIZE,
+    VLMMAXIMUM_HEADER_BLOCKS, VLMPAGE_SIZE_QS, VLMWORLD_FILE_COOKIE, VLMWORLD_FILE_COOKIE_SWAPPED,
+    VLMWORLD_FILE_V2_FIRST_MAP_Q, VLMWORLD_SUFFIX, VMATTRIBUTE_CREATED_DEFAULT, VMATTRIBUTE_EMPTY,
+    VMATTRIBUTE_EXISTS, VLMVERSION1_AND_ARCHITECTURE, VLMVERSION2_AND_ARCHITECTURE,
 };
 use crate::common::types::{QCDRTagData, QImmediate, QWord};
 use crate::hardware::cpu::{
     read_control_argument_size, read_control_caller_frame_size, write_control_argument_size,
     write_control_caller_frame_size, CPU,
 };
-use crate::hardware::memory::{lisp_obj_data, default_attributes, compute_protection, memory_wad_offset, memory_page_offset, make_lisp_obj_u};
-use crate::utils::{pack_8_to_32, byte_swap_32};
+use crate::hardware::memory::{
+    compute_protection, default_attributes, lisp_obj_data, make_lisp_obj_u, memory_page_offset,
+    memory_wad_offset,
+};
+use crate::utils::{byte_swap_32, pack_8_to_32};
 use crate::world::world::{
     clone, merge_a_map, panic_exit, read_ivory_world_file_Q, read_ivory_world_file_next_Q,
-    read_load_map, LoadMapEntry, MapEntrySelector, World, LoadMapEntryOpcode, virtual_memory_write, virtual_memory_write_block_constant, virtual_memory_read,
+    read_load_map, virtual_memory_read, virtual_memory_write, virtual_memory_write_block_constant,
+    LoadMapEntry, LoadMapEntryOpcode, MapEntrySelector, World,
 };
 
 #[derive()]
-pub struct GlobalContext {
+pub struct GlobalContext<'a> {
     pub cpu: CPU,
     pub mem: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
     pub attribute_table: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
     pub world: Uuid,
-    pub worlds: HashMap<Uuid, World>,
+    pub worlds: HashMap<Uuid, &'a World>,
 
     pub scanning_dir: PathBuf,
 
@@ -45,7 +54,7 @@ pub struct GlobalContext {
     pub swap_map_entries: u32,
 }
 
-impl Default for GlobalContext {
+impl<'a> Default for GlobalContext<'a> {
     fn default() -> Self {
         return GlobalContext {
             cpu: CPU::default(),
@@ -65,7 +74,7 @@ impl Default for GlobalContext {
     }
 }
 
-impl GlobalContext {
+impl<'a> GlobalContext<'a> {
     pub fn new() -> Self {
         return GlobalContext {
             cpu: CPU::default(),
@@ -195,7 +204,7 @@ impl GlobalContext {
 
         match self.worlds.get(&self.world) {
             Some(w) => {
-                pw = w.parent_world;
+                pw = (*w).parent_world;
                 self.worlds.remove(&self.world);
             }
             _ => {}
@@ -268,35 +277,35 @@ impl GlobalContext {
         return self.merge_parent_load_map(pw);
     }
 
+    /// Find the ancestors of the user's world
+    ///
+    /// Searches the directory containing
+    /// said world and then the world file search path for the ancestors.  If
+    /// successful, the world.parentWorld slot will form a chain from the user's
+    /// world to the base world
+    /// TODO: REIMPLEMENT. THE CURRENT VERSION DOESN'T WORK AT ALL
     fn find_parent_worlds(&mut self, world_search_path: String) {
+        // Get the list of all world files in the directory where that world is located
+        let list_world_files = self.scan_one_directory(&self.scanning_dir);
+
         // Remove all worlds apart from current one
         let current_world = self.world;
         self.worlds.retain(|&u, _| u == current_world);
 
-        let w = self.worlds.get(&current_world).unwrap();
+        let w = *self.worlds.get(&current_world).unwrap();
         let mut dir_components = w.pathname.ancestors();
         let full_path = dir_components.next();
         let base_directory = dir_components.next();
 
-        match base_directory {
-            None => {
-                panic_exit(format!(
-                    "Unable to determine pathname of directory containing world file {}",
-                    w.pathname.display()
-                ));
-            }
-            Some(base_dir) => {
-                self.scan_one_directory(base_dir);
-            }
-        }
-
+        let mut top_uuid = Uuid::nil();
         while w.generation > 0 {
-            for (w_uuid, mut w_world) in &self.worlds {
+            for (w_uuid, w_world) in self.worlds.iter_mut() {
                 if w_world.generation == w_world.generation - 1
                     && w_world.timestamp_1 == w_world.parent_timestamp_1
                     && w_world.timestamp_2 == w_world.parent_timestamp_2
                 {
-                    w_world.parent_world = w_uuid.clone();
+                    top_uuid = *w_uuid;
+                    // w_world.parent_world = tmp_uuid;
                     break;
                 }
             }
@@ -313,35 +322,17 @@ impl GlobalContext {
         self.close_extra_worlds();
     }
 
-    fn scan_one_directory(&self, dir: &Path) -> Vec<DirEntry> {
+    /// Scan a directory looking for world files
+    ///
+    /// Adds all acceptable world files
+    /// that are found to the worlds array defined above
+    pub fn scan_one_directory(&self, dir: &Path) -> Vec<DirEntry> {
         // scan the directory specified in the global context and only keeps the world files.
-        let dir_reader = read_dir(&self.scanning_dir);
-        let mut results: Vec<DirEntry> = vec![];
-
-        match dir_reader {
-            Ok(dr) => {
-                // dr.map(|elt| elt.into_ok()).filter(|d| world_p(dr, ctx));
-
-                for r in dr {
-                    match r {
-                        Ok(r_) => {
-                            results.push(r_);
-                        }
-                        Err(_) => {}
-                    }
-                }
-            }
-            Err(_) => {}
-        }
-
-        if results.len() == 0 {
-            panic_exit(format!(
-                "Unable to search directory {} to find parents of world file.",
-                dir.display()
-            ));
-        }
-
-        return results;
+        return read_dir(dir)
+            .expect("Error reading the world directory")
+            .filter_map(Result::ok)
+            .filter(|f| f.path().ends_with(VLMWORLD_SUFFIX))
+            .collect();
     }
 
     pub fn close_extra_worlds(&mut self) {
@@ -468,14 +459,14 @@ impl GlobalContext {
         w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
 
         let key = self.world;
-        self.worlds.insert(key, w);
+        self.worlds.insert(key, &w);
 
         return true;
     }
 
     ///
     /// Load a map in to the GlobalContext world structure
-    pub fn map_world_load(&self, start: u32, length: u32, offset: u32) -> u32 {
+    pub fn map_world_load(&mut self, start: u32, length: u32, offset: u32) -> u32 {
         // According to the doc, by mapping PRIVATE, writes to the address
         //  will not go to the file, so we get copy-on-write for free.  The
         //  only reason we map read-only, is to catch modified for IDS */
@@ -494,13 +485,13 @@ impl GlobalContext {
         let mut swap_map_entries: u32 = 0;
         let mut file_map_entries: u32 = 0;
 
-        let mut w = self.worlds.get(&self.world).unwrap();
+        let w = self.worlds.get(&self.world).unwrap();
         let world_file = w.fd.as_ref().unwrap();
         let mmap_buf = unsafe { Mmap::map(&world_file) };
 
         // sigh, have to copy partial pages and pages that already exist (e.g., shared FEP page)
         while remaining > 0 {
-            while memory_wad_offset(vma) != 0 || self.vma_created_p(vma)  {
+            while memory_wad_offset(vma) != 0 || self.vma_created_p(vma) {
                 words = min(MEMORY_PAGE_SIZE - memory_page_offset(vma), remaining);
 
                 // ensure_virtual_address(vma);
@@ -508,7 +499,7 @@ impl GlobalContext {
                 tag_count = words + size_of::<QTag>() as u32;
 
                 // Adjust the protection to catch modifications to world pages
-                self.vma_set_created(vma) ;
+                self.vma_set_created(vma);
 
                 vma += words;
                 // offset += data_count;
@@ -520,13 +511,13 @@ impl GlobalContext {
 
             // Set the attributes for mapped in pages
             if remaining > 0 {
-                let mut limit: u32 = remaining - memory_page_offset(remaining);
+                let limit: u32 = remaining - memory_page_offset(remaining);
                 words = 0;
-                while words < limit &&  !self.wad_created(vma)  {
+                while words < limit && !self.wad_created(vma) {
                     let wad_limit: u32 = words + MEMORYWAD_SIZE;
                     // TODO: Check should not be sweeping through all addresses.
                     while words < wad_limit {
-                        self.vma_set_attr(vma + words, default_attributes(false, true)) ;
+                        self.vma_set_attr(vma + words, default_attributes(false, true));
                         words += MEMORY_PAGE_SIZE;
                     }
                 }
@@ -634,7 +625,7 @@ impl GlobalContext {
     }
 
     pub fn VLM_load_map_data(&mut self, map_selector: MapEntrySelector, index: usize) -> u32 {
-        let mut w =  self.worlds.get(&self.world).unwrap() ;
+        let mut w = self.worlds.get(&self.world).unwrap();
         let mut entry = (*w).select_entries(map_selector).data[index];
 
         match entry.map_code {
@@ -704,7 +695,8 @@ impl GlobalContext {
 
         return entry.count;
     }
-fn read_swapped_VLM_world_file_page(&self, mut page_number: u32) {
+
+    fn read_swapped_VLM_world_file_page(&self, mut page_number: u32) {
         unimplemented!()
 
         // // If the page current loaded in the world is the page we are looking for, then nothing to do
@@ -775,5 +767,74 @@ fn read_swapped_VLM_world_file_page(&self, mut page_number: u32) {
         w.current_Q_number += 1;
 
         return q;
+    }
+
+    //  Canonicalize the load map entries for a VLM world:  Look for load map entries
+    //  that don't start on a page boundary and convert them into a series of
+    //  LoadMapConstant entries to load the data.  Thus, all data in the world file
+    //  will be page-aligned to allow for direct mapping of the world load file into
+    //  memory.  (Eventually, we may also merge adjacent load map rentries.)
+    fn canonicalize_VLM_load_map_entries(&mut self) -> Set<LoadMapEntry> {
+        let mut new_wired_map_entries: Set<LoadMapEntry> =
+            Set::<LoadMapEntry>::new_ordered(&[], true);
+
+        let world_id = self.world;
+
+        let mut world: &World = match self.worlds.get(&world_id) {
+            Some(&w) => w,
+
+            None => return new_wired_map_entries,
+        };
+
+        let n_wired_entries = world.wired_map_entries.data.len() as u32;
+
+        let mut page_number: u32 = 0;
+        let mut i: u32 = 0;
+        while i < n_wired_entries {
+            let current_map_entry = &world.wired_map_entries.data[i as usize];
+
+            let (page_count, r) = current_map_entry.address.div_rem(&VLMPAGE_SIZE_QS);
+
+            if r == 0 {
+                // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
+                // assign the page number within the file
+                let mut new_wired_map_entry = world.wired_map_entries.data[i as usize];
+                new_wired_map_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+                new_wired_map_entries.insert(new_wired_map_entry);
+                page_number = page_number + page_count;
+                i += 1;
+            } else {
+                // Not Page Aligned:  Convert into a series of LoadMapConstant entries
+                for j in 0..current_map_entry.count {
+                    let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
+
+                    new_wired_map_entry.address =
+                        world.wired_map_entries.data[i as usize].address + j;
+                    new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
+                    new_wired_map_entry.count = 1;
+                    new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.address);
+                    new_wired_map_entries.insert(new_wired_map_entry);
+                }
+
+                i += current_map_entry.count;
+            }
+        }
+
+        // Compute size of header in VLM blocks to determine where the tags and data pages will start within the world file
+        let n_Qs = new_wired_map_entries.data.len() as u32 * 3 + VLMWORLD_FILE_V2_FIRST_MAP_Q;
+        let page_count = (n_Qs - 1).div(IVORY_PAGE_SIZE_QS);
+        let block_count = (page_count * IVORY_PAGE_SIZE_BYTES - 1).div(VLMPAGE_SIZE_QS);
+
+        if block_count > VLMMAXIMUM_HEADER_BLOCKS {
+            world.close(true);
+            panic_exit(format!(
+                "Unable to store data map in space reserved for same in world file {}",
+                world.pathname.display().to_string()
+            ));
+        }
+        world.tags_page_base = block_count;
+        world.data_page_base = (world.tags_page_base + 1) * page_number;
+
+        return new_wired_map_entries;
     }
 }

@@ -994,19 +994,19 @@ pub enum SystemCommAreaSlot {
 
     // Per-region tables.  These are arrays.  They are here for the console program.
     RegionQuantumOrigin = 0xF804_1128,
-    regionQuantumLength = 0xF804_112C,
-    regionFreePointer = 0xF804_1130, // Number of words actually used
-    regionGCPointer = 0xF804_1134,   // Number of words scanned by (long-term) GC
-    regionBits = 0xF804_1138,        // Fixnum of random fields (see %%REGION- bytes)
-    regionListThread = 0xF804_113C,
-    regionArea = 0xF804_1140,
-    regionCreatedPages = 0xF804_1144,
-    regionFreePointerBeforeFlip = 0xF804_1148,
-    regionConsAlarm = 0xF804_114C,
-    pageConsAlarm = 0xF804_1150,
-    structureCacheRegion = 0xF804_1154,
-    listCacheRegion = 0xF804_1158,
-    defaultConsArea = 0xF804_115C,
+    RegionQuantumLength = 0xF804_112C,
+    RegionFreePointer = 0xF804_1130, // Number of words actually used
+    RegionGcpointer = 0xF804_1134,   // Number of words scanned by (long-term) GC
+    RegionBits = 0xF804_1138,        // Fixnum of random fields (see %%REGION- bytes)
+    RegionListThread = 0xF804_113C,
+    RegionArea = 0xF804_1140,
+    RegionCreatedPages = 0xF804_1144,
+    RegionFreePointerBeforeFlip = 0xF804_1148,
+    RegionConsAlarm = 0xF804_114C,
+    PageConsAlarm = 0xF804_1150,
+    StructureCacheRegion = 0xF804_1154,
+    ListCacheRegion = 0xF804_1158,
+    DefaultConsArea = 0xF804_115C,
 
     // Pointers to critical storage-system tables (these are displaced arrays)
     PHT = 0xF804_1160,                      // Page hash table
@@ -1025,7 +1025,7 @@ pub enum SystemCommAreaSlot {
 
     // Dynamic storage array					4 bits per PHT bucket.
     PHTCollisionCounts = 0xF804_1188,
-    mmpt1 = 0xF804_118C,
+    Mmpt1 = 0xF804_118C,
     StorageColdBoot = 0xF804_1190,
     FlushableQueueHead = 0xF804_1194,
     FlushableQueueTail = 0xF804_1198,
@@ -1056,15 +1056,17 @@ pub enum SystemCommAreaSlot {
     PackageNameTable = 0xF804_11E4,
     LispReleaseString = 0xF804_11E8,
     BusMode = 0xF804_11EC,
-    Usused_1 = 0xF804_11F0,
-    Usused_2 = 0xF804_11F4,
-    Usused_3 = 0xF804_11F8,
-    Usused_4 = 0xF804_11FC,
+    Usused1 = 0xF804_11F0,
+    Usused2 = 0xF804_11F4,
+    Usused3 = 0xF804_11F8,
+    Usused4 = 0xF804_11FC,
 }
 
 pub const ADDRESS_FEPCOMM_AREA: u32 = 0xF804_1000;
 pub const FEPCOMM_AREA_SIZE: u32 = 256;
 pub const ADDRESS_FEPMODETRAPVECADDRESS: u32 = 0xF804_0A47;
+pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
+
 // // Genera version of FEP Communications area */
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 #[repr(u32)]
