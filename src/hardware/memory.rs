@@ -252,9 +252,8 @@ pub fn wad_number_memory(vwn: u32) -> u32 {
     return vwn << MEMORYWAD_ADDRESS_SHIFT;
 }
 
-/* f-ing poor excuse for a macro language */
-pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
-impl GlobalContext {
+// f-ing poor excuse for a macro language
+impl<'a> GlobalContext<'a> {
     pub fn wad_created(&self, vma: u32) -> bool {
         // WADs are 8 contiguous memory pages
         let wad_addr = memory_wad_number(vma) << 3;

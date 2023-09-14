@@ -1,3 +1,4 @@
+
 [package]
 name = "manny8888_rust_machine"
 version = "0.1.0"
@@ -6,24 +7,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-c2rust-bitfields = "0.3.0"
+c2rust-bitfields = "0.18.0"
 chrono = "0.4.22"
 close-file = "0.1.0"
 fern = "0.6.1"
-interpolate = "0.2.3"
 libc = "0.2.134"
 log = "0.4.17"
 memmap = "0.7.0"
 modular-bitfield = "0.11.2"
 num = "0.4.0"
-num-derive = "0.3.3"
+num-derive = "0.4.0"
 num-traits = "0.2.15"
 sets = "1.2.0"
 simplelog = "0.12.0"
 
 [dependencies.uuid]
 features = [
-    "v4",                # Lets you generate random UUIDs
-    "fast-rng",          # Use a faster (but still sufficiently random) RNG
-    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+  "v4",                # Lets you generate random UUIDs
+  "fast-rng",          # Use a faster (but still sufficiently random) RNG
+  "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
 ]
