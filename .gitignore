@@ -7,8 +7,13 @@ Cargo.lock
 /docs/*
 /src/generated/*
 
-# RStudio
+# Editors
+
+## RStudio
 .Rproj.user
+
+## VScode
+.vscode
 
 # Backup files
 *ods#
