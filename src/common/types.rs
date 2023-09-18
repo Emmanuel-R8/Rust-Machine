@@ -6,88 +6,116 @@ use std::{cell::RefCell, rc::Rc};
 
 // Representation of lisp objects
 use super::constants::{QTag, CDR, VLMPAGE_SIZE_QS};
+use crate::common::types::QWord::whole;
 
 // See I-Machine specs p. 4
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union QList {
-    pub c: u32,  // Conses TODO: decline
-    pub l: u32,  // Compact list TODO: decline
-    pub cl: u32, // Closure
-    pub r: u32,  // Big ratio
-    pub f: u32,  // f64 - Double precision floating point
-    pub cx: u32, // Complex number
-    pub g: u32,  // Generic function
+pub enum QList {
+    c(u32),  // Conses TODO: decline
+    l(u32),  // Compact list TODO: decline
+    cl(u32), // Closure
+    r(u32),  // Big ratio
+    f(f32),  // f64 - Double precision floating point
+    cx(u32), // Complex number
+    g(u32),  // Generic function
 }
 
 impl Default for QList {
     fn default() -> Self {
-        Self { r: 0 }
+        Self::r(0)
     }
 }
 
 // See I-Machine specs p. 4
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union QStructure {
-    pub c: u32, // Compiled function
-    pub i: u32, // Instances
-    pub s: u32, // Symbols
-    pub b: u32, // Bignums
+pub enum QStructure {
+    c(u32), // Compiled function
+    i(u32), // Instances
+    s(u32), // Symbols
+    b(u32), // Bignums
 }
 
 impl Default for QStructure {
     fn default() -> Self {
-        Self { b: 0 }
+        Self::b(0)
     }
 }
 
 // See I-Machine specs p. 15
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union QImmediate {
-    pub u: u32, // Fixnum
-    pub s: i32, // Signed fixed num
-    pub f: f32, // 32-bit floating point (single precision)
+pub enum QImmediate {
+    u(u32), // Fixnum
+    s(i32), // Signed fixed num
+    f(f32), // 32-bit floating point (single precision)
     // pub c: f32, // Characters
     // pub r: f32, // small ratio
-    pub a: u32, // Physical address
-                // pub p: u32, // Packed instructions - TODO: bitfield
+    a(u32), // Physical address
+            // pub p: u32, // Packed instructions - TODO: bitfield
 }
 
 impl QImmediate {
     pub fn new() -> Self {
-        Self { u: 0 }
+        Self::u(0)
+    }
+
+    pub fn u(self) -> Option<u32> {
+        match self {
+            QImmediate::u(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn s(self) -> Option<i32> {
+        match self {
+            QImmediate::s(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn f(self) -> Option<f32> {
+        match self {
+            QImmediate::f(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn a(self) -> Option<u32> {
+        match self {
+            QImmediate::a(val) => Some(val),
+            _ => None,
+        }
     }
 }
 
 impl Default for QImmediate {
     fn default() -> Self {
-        Self { u: 0 }
+        Self::u(0)
     }
 }
 
 impl PartialEq for QImmediate {
     fn eq(&self, other: &Self) -> bool {
-        unsafe {
-            match self {
-                QImmediate { u: val1 } => match other {
-                    QImmediate { u: val2 } => val1 == val2,
-                    _ => false,
-                },
-                QImmediate { s: val1 } => match other {
-                    QImmediate { s: val2 } => val1 == val2,
-                    _ => false,
-                },
-                QImmediate { f: val1 } => match other {
-                    QImmediate { f: val2 } => val1 == val2,
-                    _ => false,
-                },
-                QImmediate { a: val1 } => match other {
-                    QImmediate { a: val2 } => val1 == val2,
-                    _ => false,
-                },
-            }
+        match self {
+            QImmediate::u(val1) => match other {
+                QImmediate::u(val2) => val1 == val2,
+                _ => false,
+            },
+            QImmediate::s(val1) => match other {
+                QImmediate::s(val2) => val1 == val2,
+                _ => false,
+            },
+            QImmediate::f(val1) => match other {
+                QImmediate::f(val2) => val1 == val2,
+                _ => false,
+            },
+            QImmediate::f(val1) => match other {
+                QImmediate::f(val2) => val1 == val2,
+                _ => false,
+            },
+            _ => false,
         }
     }
 }
@@ -96,26 +124,24 @@ impl Eq for QImmediate {}
 
 impl Display for QImmediate {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QImmediate { u: val } => write!(f, "QData u32: {}", val),
-                QImmediate { s: val } => write!(f, "QData i32: {}", val),
-                QImmediate { f: val } => write!(f, "QData f32: {}", val),
-                QImmediate { a: val } => write!(f, "QData address: {}", val),
-            }
+        match self {
+            QImmediate::u(val) => write!(f, "QData u32: {}", val),
+            QImmediate::s(val) => write!(f, "QData s32: {}", val),
+            QImmediate::f(val) => write!(f, "QData f32: {}", val),
+            QImmediate::a(val) => write!(f, "QData address: {}", val),
+            _ => write!(f, "UNKNOWN"),
         }
     }
 }
 
 impl Debug for QImmediate {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QImmediate { u: val } => write!(f, "QData u32: {}", val),
-                QImmediate { s: val } => write!(f, "QData i32: {}", val),
-                QImmediate { f: val } => write!(f, "QData f32: {}", val),
-                QImmediate { a: val } => write!(f, "QData address: {}", val),
-            }
+        match self {
+            QImmediate::u(val) => write!(f, "QData u32: {}", val),
+            QImmediate::s(val) => write!(f, "QData s32: {}", val),
+            QImmediate::f(val) => write!(f, "QData f32: {}", val),
+            QImmediate::a(val) => write!(f, "QData address: {}", val),
+            _ => write!(f, "UNKNOWN"),
         }
     }
 }
@@ -125,13 +151,24 @@ impl Add for QImmediate {
     fn add(self, rhs: Self) -> Self {
         let mut q = self;
 
-        unsafe {
-            match self {
-                QImmediate { u: val } => q.u += rhs.u,
-                QImmediate { s: val } => q.s += rhs.s,
-                QImmediate { f: val } => q.f += rhs.f,
-                QImmediate { a: val } => q.a += rhs.a,
-            }
+        match self {
+            QImmediate::u(mut val1) => match rhs {
+                QImmediate::u(val2) => val1 += val2,
+                _ => {}
+            },
+            QImmediate::s(mut val1) => match rhs {
+                QImmediate::s(val2) => val1 += val2,
+                _ => {}
+            },
+            QImmediate::f(mut val1) => match rhs {
+                QImmediate::f(val2) => val1 += val2,
+                _ => {}
+            },
+            QImmediate::a(mut val1) => match rhs {
+                QImmediate::a(val2) => val1 += val2,
+                _ => {}
+            },
+            _ => {}
         }
 
         return q;
@@ -144,13 +181,24 @@ impl Sub for QImmediate {
     fn sub(self, rhs: Self) -> Self {
         let mut q = self;
 
-        unsafe {
-            match self {
-                QImmediate { u: val } => q.u -= rhs.u,
-                QImmediate { s: val } => q.s -= rhs.s,
-                QImmediate { f: val } => q.f -= rhs.f,
-                QImmediate { a: val } => q.a -= rhs.a,
-            }
+        match self {
+            QImmediate::u(mut val1) => match rhs {
+                QImmediate::u(val2) => val1 -= val2,
+                _ => {}
+            },
+            QImmediate::s(mut val1) => match rhs {
+                QImmediate::s(val2) => val1 -= val2,
+                _ => {}
+            },
+            QImmediate::f(mut val1) => match rhs {
+                QImmediate::f(val2) => val1 -= val2,
+                _ => {}
+            },
+            QImmediate::a(mut val1) => match rhs {
+                QImmediate::a(val2) => val1 -= val2,
+                _ => {}
+            },
+            _ => {}
         }
 
         return q;
@@ -159,26 +207,48 @@ impl Sub for QImmediate {
 
 impl AddAssign for QImmediate {
     fn add_assign(&mut self, rhs: Self) {
-        unsafe {
-            match self {
-                QImmediate { u: val } => self.u += rhs.u,
-                QImmediate { s: val } => self.s += rhs.s,
-                QImmediate { f: val } => self.f += rhs.f,
-                QImmediate { a: val } => self.a += rhs.a,
-            }
+        match self {
+            QImmediate::u(mut val1) => match rhs {
+                QImmediate::u(val2) => val1 += val2,
+                _ => {}
+            },
+            QImmediate::s(mut val1) => match rhs {
+                QImmediate::s(val2) => val1 += val2,
+                _ => {}
+            },
+            QImmediate::f(mut val1) => match rhs {
+                QImmediate::f(val2) => val1 += val2,
+                _ => {}
+            },
+            QImmediate::a(mut val1) => match rhs {
+                QImmediate::a(val2) => val1 += val2,
+                _ => {}
+            },
+            _ => {}
         }
     }
 }
 
 impl SubAssign for QImmediate {
     fn sub_assign(&mut self, rhs: Self) {
-        unsafe {
-            match self {
-                QImmediate { u: val } => self.u -= rhs.u,
-                QImmediate { s: val } => self.s -= rhs.s,
-                QImmediate { f: val } => self.f -= rhs.f,
-                QImmediate { a: val } => self.a -= rhs.a,
-            }
+        match self {
+            QImmediate::u(mut val1) => match rhs {
+                QImmediate::u(val2) => val1 -= val2,
+                _ => {}
+            },
+            QImmediate::s(mut val1) => match rhs {
+                QImmediate::s(val2) => val1 -= val2,
+                _ => {}
+            },
+            QImmediate::f(mut val1) => match rhs {
+                QImmediate::f(val2) => val1 -= val2,
+                _ => {}
+            },
+            QImmediate::a(mut val1) => match rhs {
+                QImmediate::a(val2) => val1 -= val2,
+                _ => {}
+            },
+            _ => {}
         }
     }
 }
@@ -199,36 +269,37 @@ pub struct QCDRTagData {
 
 #[repr(C)]
 #[derive(Copy)]
-pub union QWord {
-    pub whole: u64,
-    pub parts: QCDRTagData,
+pub enum QWord {
+    whole(u64),
+    parts(QCDRTagData),
 }
 
 impl Default for QWord {
     fn default() -> Self {
-        Self { whole: 0 }
+        Self::whole(0)
     }
 }
 
 impl Clone for QWord {
     fn clone(&self) -> Self {
-        unsafe { QWord { whole: self.whole } } // easier to copy the u64
+        let QWord::whole(val) = self;
+        return QWord::whole(*val); // easier to copy the u64
     }
 }
 
 impl PartialEq for QWord {
     fn eq(&self, other: &Self) -> bool {
-        unsafe {
-            match self {
-                QWord { whole: val1 } => match other {
-                    QWord { whole: val2 } => val1 == val2,
-                    QWord { parts: val2 } => false,
-                },
-                QWord { parts: val1 } => match other {
-                    QWord { whole: val2 } => false,
-                    QWord { parts: val2 } => val1 == val2,
-                },
-            }
+        match self {
+            QWord::whole(mut val1) => match other {
+                QWord::whole(val2) => val1 == *val2,
+                _ => false,
+            },
+            _ => false,
+            QWord::parts(val1) => match other {
+                QWord::parts(val2) => val1 == val2,
+                _ => false,
+            },
+            _ => false,
         }
     }
 }
@@ -237,30 +308,26 @@ impl Eq for QWord {}
 
 impl Display for QWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QWord { whole: val } => write!(f, "QWord u64: {}", val),
-                QWord { parts: val } => write!(
-                    f,
-                    "QWord cdr: {}, tag: {}, data: {}",
-                    val.cdr, val.tag, val.data
-                ),
-            }
+        match self {
+            QWord::whole(val) => write!(f, "QWord u64: {}", val),
+            QWord::parts(val) => write!(
+                f,
+                "QWord cdr: {}, tag: {}, data: {}",
+                val.cdr, val.tag, val.data
+            ),
         }
     }
 }
 
 impl Debug for QWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QWord { whole: val } => write!(f, "QWord u64: {}", val),
-                QWord { parts: val } => write!(
-                    f,
-                    "QWord cdr: {}, tag: {}, data: {}",
-                    val.cdr, val.tag, val.data
-                ),
-            }
+        match self {
+            QWord::whole(val) => write!(f, "QWord u64: {}", val),
+            QWord::parts(val) => write!(
+                f,
+                "QWord cdr: {}, tag: {}, data: {}",
+                val.cdr, val.tag, val.data
+            ),
         }
     }
 }
@@ -269,12 +336,10 @@ impl Add for QWord {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        let mut q = self;
-        unsafe {
-            q.parts.data += rhs.parts.data;
-        }
+        let QWord::whole(val_lhs) = self;
+        let QWord::whole(val_rhs) = rhs;
 
-        return q;
+        return self::whole(val_lhs + val_rhs);
     }
 }
 
@@ -282,59 +347,153 @@ impl Sub for QWord {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
-        let mut q = self;
-        unsafe { q.parts.data -= rhs.parts.data };
+        let QWord::whole(val_lhs) = self;
+        let QWord::whole(val_rhs) = rhs;
 
-        return q;
+        return self::whole(val_lhs - val_rhs);
     }
 }
 
 impl AddAssign for QWord {
     fn add_assign(&mut self, rhs: Self) {
-        unsafe { self.parts.data += rhs.parts.data };
+        let QWord::whole(val_lhs) = self;
+        let QWord::whole(val_rhs) = rhs;
+
+        self::whole(*val_lhs + val_rhs);
     }
 }
 
 impl SubAssign for QWord {
     fn sub_assign(&mut self, rhs: Self) {
-        unsafe { self.parts.data -= rhs.parts.data };
+        let QWord::whole(val_lhs) = self;
+        let QWord::whole(val_rhs) = rhs;
+
+        self::whole(*val_lhs - val_rhs);
     }
 }
 
 impl QWord {
-    pub fn u(self) -> u32 {
-        return unsafe { self.parts.data.u };
+    pub fn cdr(self) -> Option<CDR> {
+        match self {
+            QWord::parts(p) => Some(p.cdr),
+            _ => return None,
+        }
     }
-    pub fn s(self) -> i32 {
-        return unsafe { self.parts.data.s };
+
+    pub fn tag(self) -> Option<QTag> {
+        match self {
+            QWord::parts(p) => Some(p.tag),
+            _ => return None,
+        }
     }
-    pub fn f(self) -> f32 {
-        return unsafe { self.parts.data.f };
+
+    pub fn data(self) -> Option<QImmediate> {
+        match self {
+            QWord::parts(p) => Some(p.data),
+            _ => return None,
+        }
     }
-    pub fn a(self) -> u32 {
-        return unsafe { self.parts.data.a };
+
+    pub fn u(self) -> Option<u32> {
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::u(val) => return Some(val),
+                _ => None,
+            },
+            _ => return None,
+        }
+    }
+
+    pub fn s(self) -> Option<i32> {
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::s(val) => return Some(val),
+                _ => None,
+            },
+            _ => return None,
+        }
+    }
+    pub fn f(self) -> Option<f32> {
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::f(val) => return Some(val),
+                _ => None,
+            },
+            _ => return None,
+        }
+    }
+    pub fn a(self) -> Option<u32> {
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(val) => return Some(val),
+                _ => None,
+            },
+            _ => return None,
+        }
     }
 
     pub fn inc(self) -> Self {
-        let mut q = self.clone();
-        unsafe { q.parts.data.a += 1 };
-
-        return q;
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(addr) => {
+                    return QWord::parts(QCDRTagData {
+                        cdr: p.cdr,
+                        tag: p.tag,
+                        data: QImmediate::a(addr + 1),
+                    });
+                }
+                _ => {
+                    return self.clone();
+                }
+            },
+            _ => {
+                return self.clone();
+            }
+        }
     }
 
     pub fn dec(self) -> Self {
-        let mut q = self.clone();
-        unsafe { q.parts.data.a -= 1 };
-
-        return q;
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(addr) => {
+                    return QWord::parts(QCDRTagData {
+                        cdr: p.cdr,
+                        tag: p.tag,
+                        data: QImmediate::a(addr - 1),
+                    });
+                }
+                _ => {
+                    return self.clone();
+                }
+            },
+            _ => {
+                return self.clone();
+            }
+        }
     }
 
     pub fn inc_mut(&mut self) {
-        unsafe { self.parts.data.a += 1 };
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(addr) => {
+                    p.data = QImmediate::a(addr + 1);
+                }
+                _ => {}
+            },
+            _ => {}
+        }
     }
 
     pub fn dec_mut(&mut self) {
-        unsafe { self.parts.data.a -= 1 };
+        match self {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(addr) => {
+                    p.data = QImmediate::a(addr - 1);
+                }
+                _ => {}
+            },
+            _ => {}
+        }
     }
 }
 

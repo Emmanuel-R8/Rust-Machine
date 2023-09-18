@@ -26,90 +26,96 @@ pub trait Memory {
 }
 
 // Constants
-const OBJECT_T: QWord = QWord {
-    parts: QCDRTagData {
-        cdr: CDR::Jump,
-        tag: QTag::Symbol,
-        data: QImmediate { u: ADDRESS_T },
-    },
-};
-const OBJECT_NIL: QWord = QWord {
-    parts: QCDRTagData {
-        cdr: CDR::Jump,
-        tag: QTag::NIL,
-        data: QImmediate { u: ADDRESS_NIL },
-    },
-};
-const OBJECT_CDR_MASK: QWord = QWord {
-    parts: QCDRTagData {
-        cdr: CDR::Jump,
-        tag: QTag::TagCdrMask,
-        data: QImmediate { u: 0 },
-    },
-};
+const OBJECT_T: QWord = QWord::parts(QCDRTagData {
+            cdr: CDR::Jump,
+            tag: QTag::Symbol,
+            data: QImmediate::a(ADDRESS_T),
+        });
+
+const OBJECT_NIL: QWord = QWord::parts(QCDRTagData {
+            cdr: CDR::Jump,
+            tag: QTag::Symbol,
+            data: QImmediate::a(ADDRESS_NIL),
+        });
+
+const OBJECT_CDR_MASK: QWord = QWord::parts(QCDRTagData {
+            cdr: CDR::Jump,
+            tag: QTag::TagCdrMask,
+            data: QImmediate::u(0),
+        });
+
 
 pub fn make_lisp_obj(c: CDR, t: QTag, d: QImmediate) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::parts(QCDRTagData {
             cdr: c,
             tag: t,
             data: d,
-        },
-    };
+        });
 }
 
 pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::parts(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate { u: val },
-        },
-    };
+            data: QImmediate::u(val),
+        });
 }
 
 pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::parts(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate { s: val },
-        },
-    };
+            data: QImmediate::s(val),
+        });
 }
 
 pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::parts(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate { f: val },
-        },
-    };
+            data: QImmediate::f(val),
+        });
 }
 
-pub fn lisp_obj_cdr(q: QWord) -> CDR {
-    return unsafe { q.parts.cdr };
+pub fn lisp_obj_cdr(q: QWord) -> Option<CDR> {
+    return match q {
+        QWord::parts(p) => Some(p.cdr),
+        _ => None,
+    } ;
 }
 
-pub fn lisp_obj_tag(q: QWord) -> QTag {
-    return unsafe { q.parts.tag };
-}
+pub fn lisp_obj_tag(q: QWord) -> Option<QTag> {
+    return match q {
+        QWord::parts(p) => Some(p.tag),
+        _ => None,
+    } ;}
 
-pub fn lisp_obj_data(q: QWord) -> QImmediate {
-    return unsafe { q.parts.data };
+pub fn lisp_obj_data(q: QWord) -> Option<QImmediate> {
+    return match q {
+        QWord::parts(p) => Some(p.data),
+        _ => None,
+    } ;
 }
 
 pub fn write_lisp_obj_cdr(q: &mut QWord, newcdr: CDR) {
-    q.parts.cdr = newcdr;
+    match q {
+        QWord::parts(mut p) => { p.cdr = newcdr},
+        _ => {},
+    } ;
 }
 
 pub fn write_lisp_obj_tag(q: &mut QWord, newtag: QTag) {
-    q.parts.tag = newtag;
+    match q {
+        QWord::parts(mut p) => { p.tag = newtag},
+        _ => {},
+    } ;
 }
 
 pub fn write_lisp_obj_data(q: &mut QWord, newdata: u32) {
-    q.parts.data.u = newdata;
+    match q {
+        QWord::parts(mut p) => { p.data = QImmediate::u(newdata)},
+        _ => {},
+    } ;
 }
 
 pub fn memory_page_number(vma: u32) -> u32 {

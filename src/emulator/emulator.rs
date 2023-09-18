@@ -95,7 +95,7 @@ impl<'a> GlobalContext<'a> {
     }
 
     pub fn write_at(&mut self, addr: QWord, val: QWord) {
-        self.mem[unsafe { addr.parts.data.a } as usize] = val;
+        self.mem[unsafe { addr.a().unwrap() } as usize] = val;
     }
 
     pub fn inc_and_write_at(&mut self, addr: QWord, val: QWord) -> QWord {
@@ -111,7 +111,7 @@ impl<'a> GlobalContext<'a> {
     }
 
     pub fn read_at(&mut self, addr: QWord) -> QWord {
-        return self.mem[unsafe { addr.parts.data.a } as usize];
+        return self.mem[unsafe { addr.a().unwrap() } as usize];
     }
 
     pub fn inc_and_read_at(&mut self, addr: QWord) -> (QWord, QWord) {
@@ -137,24 +137,15 @@ impl<'a> GlobalContext<'a> {
         self.cpu.fp = self.cpu.sp;
 
         // Push the control register
-        let mut q = QWord::default();
-        q.parts.cdr = CDR::Jump;
-        q.parts.tag = QTag::Fixnum;
-        q.parts.data.u = unsafe { self.cpu.control.parts.data.u };
+        let mut q = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, self.cpu.control.u().unwrap() );
         self.cpu.sp = self.inc_and_write_at(self.cpu.sp, q);
 
         // Create a new control register
-        self.cpu.control = QWord {
-            parts: QCDRTagData {
-                cdr: CDR::Jump,
-                tag: QTag::Fixnum,
-                data: QImmediate { u: 0 },
-            },
-        };
+        self.cpu.control = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, 0);
         write_control_argument_size(&mut self.cpu.control, 2);
-        write_control_caller_frame_size(&mut self.cpu.control, unsafe {
-            (self.cpu.sp - self.cpu.fp).parts.data.u
-        });
+        write_control_caller_frame_size(&mut self.cpu.control,
+            (self.cpu.sp - self.cpu.fp).u().unwrap()
+        );
 
         self.cpu.continuation = self.cpu.pc;
     }
@@ -172,7 +163,7 @@ impl<'a> GlobalContext<'a> {
 
         // Temporary copy of FP
         (self.cpu.continuation, self.cpu.fp) = self.read_at_and_inc(self.cpu.fp);
-        self.cpu.control.parts.data.u = unsafe { self.read_at(self.cpu.fp).parts.data.u };
+        self.cpu.control.parts.data.u = unsafe { self.read_at(self.cpu.fp).u().unwrap() };
 
         self.cpu.lp = self.cpu.fp.clone();
         unsafe { self.cpu.lp.parts.data.a += read_control_argument_size(self.cpu.control) };
@@ -410,7 +401,7 @@ impl<'a> GlobalContext<'a> {
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
         if w.format == LoadFileFormat::VLMWorldFormat {
-            match unsafe { lisp_obj_data(read_ivory_world_file_Q(&w, 0)).u } {
+            match lisp_obj_data(read_ivory_world_file_Q(&w, 0)).unwrap().u().unwrap() {
                 VLMVERSION1_AND_ARCHITECTURE => {
                     wired_count_Q = 1;
                     unwired_count_Q = 0;
@@ -436,18 +427,18 @@ impl<'a> GlobalContext<'a> {
 
         if w.format == LoadFileFormat::VLMWorldFormat {
             page_bases = read_ivory_world_file_Q(&w, pages_base_Q);
-            w.data_page_base = unsafe { page_bases.parts.data.u };
-            w.tags_page_base = unsafe { page_bases.parts.tag as u32 };
+            w.data_page_base =  page_bases.u().unwrap();
+            w.tags_page_base = unsafe { page_bases.tag().unwrap() as u32 };
         }
 
         if first_sysout_Q != 0 {
             w.current_Q_number = first_sysout_Q;
 
-            w.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.parent_timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.parent_timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
+            w.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap() };
+            w.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
+            w.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
+            w.parent_timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
+            w.parent_timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
         } else {
             w.generation = 0;
             w.timestamp_2 = 0;
@@ -632,7 +623,7 @@ impl<'a> GlobalContext<'a> {
         match entry.map_code {
             LoadMapEntryOpcode::DataPages => {
                 // let map_world = map_entry.world;
-                let page_number = unsafe { entry.data.parts.data.u };
+                let page_number = entry.data.u().unwrap();
                 if w.byte_swapped {
                     // ensure_virtual_address_range(entry.address, entry.count, false);
                     self.read_swapped_VLM_world_file_page(page_number);
@@ -676,7 +667,7 @@ impl<'a> GlobalContext<'a> {
             LoadMapEntryOpcode::Copy => {
                 // ensure_virtual_address_range(entry.address, entry.count, false);
                 let mut the_address = entry.address;
-                let mut the_source_address = unsafe { entry.data.parts.data.u };
+                let mut the_source_address = unsafe { entry.data.u().unwrap() };
 
                 for i in 0..entry.count {
                     virtual_memory_write(the_address, virtual_memory_read(the_source_address));

@@ -15,7 +15,7 @@ use crate::common::constants::{
     LoadFileFormat, QTag, CDR, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, VLMMAXIMUM_HEADER_BLOCKS,
     VLMPAGE_SIZE_QS, VLMWORLD_FILE_V2_FIRST_MAP_Q,
 };
-use crate::common::types::QWord;
+use crate::common::types::{QImmediate, QWord};
 
 use crate::emulator::emulator::GlobalContext;
 use crate::hardware::memory::make_lisp_obj_u;
@@ -504,10 +504,10 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadM
         let mut new_entry = e.clone();
 
         let q = read_ivory_world_file_next_Q(w);
-        new_entry.address = q.a();
+        new_entry.address = q.a().unwrap();
 
         let q = read_ivory_world_file_next_Q(w);
-        let op = q.u();
+        let op = q.u().unwrap();
         new_entry.count = op & 0x00FF_FFFF;
         new_entry.map_code = match (op & 0xFF00_0000) >> 24 {
             0 => LoadMapEntryOpcode::DataPages,
@@ -586,7 +586,10 @@ pub fn world_p(candidate_world: DirEntry) -> bool {
 }
 
 pub fn write_lisp_obj_data_u(q: &mut QWord, data: u32) {
-    q.parts.data.u = data
+    match q {
+        QWord::parts(mut p) => p.data = QImmediate::u(data),
+        _ => {}
+    };
 }
 
 pub fn write_ivory_world_file_next_Q(w: &mut World, q: QWord) {}
