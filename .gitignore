@@ -15,5 +15,9 @@ Cargo.lock
 ## VScode
 .vscode
 
+## IntelliJ
+.idea
+
+
 # Backup files
 *ods#

@@ -18,10 +18,9 @@ use crate::common::constants::{
 use crate::common::types::QWord;
 
 use crate::emulator::emulator::GlobalContext;
-use crate::hardware::memory::make_lisp_obj_u;
 
 /// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Eq)]
 pub struct LoadMapEntry {
     pub address: u32, // VMA to be filled in by this load map entry
     // NOTE: opcount and opcode are field of a struct op{} in the C code
@@ -70,9 +69,20 @@ pub enum LoadMapEntryOpcode {
 
 impl fmt::Display for LoadMapEntryOpcode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
+
+impl PartialEq for LoadMapEntry {
+    fn eq(&self, other: &Self) -> bool {
+        return self.address == other.address && self.count == other.count;
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+}
+
 
 // Ord and PartialOrd are implemented to have ordered sets
 // Ordered by address then count
@@ -490,7 +500,7 @@ pub fn merge_a_map<'a>(
 //     world.current_page_number = page_number;
 // }
 
-pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadMapEntry> {
+pub fn read_load_map(w: World, map_selector: MapEntrySelector) -> Set<LoadMapEntry> {
     let map = match map_selector {
         MapEntrySelector::Wired => w.wired_map_entries.data.clone(),
         MapEntrySelector::MergedWired => w.merged_wired_map_entries.data.clone(),
@@ -545,22 +555,22 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadM
 //     }
 // }
 
-pub fn read_ivory_world_file_Q(w: &World, address: u32) -> QWord {
+pub fn read_ivory_world_file_Q(w: World, address: u32) -> QWord {
     if address >= IVORY_PAGE_SIZE_BYTES {
         panic_exit(format!(
             "Invalid word number {} for world file {}",
             address,
-            &w.pathname.display().to_string()
+            w.pathname.display().to_string()
         ));
     }
 
     return w.ivory_data_page[address as usize];
 }
 
-pub fn read_ivory_world_file_next_Q(w: &mut World) -> QWord {
+pub fn read_ivory_world_file_next_Q(mut w: World) -> QWord {
     // If the the current address is too high, load the next page (several time if needed)
     while w.current_Q_number >= IVORY_PAGE_SIZE_BYTES {
-        read_ivory_world_file_page(w, w.current_page_number + 1);
+        read_ivory_world_file_page(&mut w, w.current_page_number + 1);
         w.current_Q_number -= IVORY_PAGE_SIZE_BYTES;
     }
 

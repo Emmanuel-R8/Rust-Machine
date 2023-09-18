@@ -1,5 +1,5 @@
 use num_derive::FromPrimitive;
-use std::fmt::{self};
+use std::fmt::{self, Display};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -90,7 +90,7 @@ pub enum QTag {
 
 impl fmt::Display for QTag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -110,7 +110,7 @@ pub enum CDR {
 
 impl fmt::Display for CDR {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -131,7 +131,7 @@ pub enum SEQ {
 
 impl fmt::Display for SEQ {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -151,7 +151,7 @@ pub enum ArrayElement {
 
 impl fmt::Display for ArrayElement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -172,7 +172,7 @@ pub enum ArrayElementType {
 
 impl fmt::Display for ArrayElementType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -217,7 +217,7 @@ pub enum ValueDisposition {
 
 impl fmt::Display for ValueDisposition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -457,7 +457,7 @@ pub enum OpCode {
 
 impl fmt::Display for OpCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -574,7 +574,7 @@ pub enum InternalRegister {
 
 impl fmt::Display for InternalRegister {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -616,7 +616,7 @@ pub enum CoprocessorRegister {
 
 impl fmt::Display for CoprocessorRegister {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -657,7 +657,7 @@ pub enum ALUCondition {
 
 impl fmt::Display for ALUCondition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -672,7 +672,7 @@ pub enum ALUAdderOP2 {
 
 impl fmt::Display for ALUAdderOP2 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -685,7 +685,7 @@ pub enum ALUByteFunction {
 
 impl fmt::Display for ALUByteFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -699,7 +699,7 @@ pub enum ALUByteBackground {
 
 impl fmt::Display for ALUByteBackground {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -726,7 +726,7 @@ pub enum Boole {
 
 impl fmt::Display for Boole {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -741,7 +741,7 @@ pub enum ALUFunction {
 
 impl fmt::Display for ALUFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -759,7 +759,7 @@ pub enum TrapReason {
 
 impl fmt::Display for TrapReason {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -774,7 +774,7 @@ pub enum TrapMode {
 
 impl fmt::Display for TrapMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -810,7 +810,7 @@ pub enum TrapVectors {
 
 impl fmt::Display for TrapVectors {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -829,7 +829,7 @@ pub enum ReturnValue {
 
 impl fmt::Display for ReturnValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -845,7 +845,7 @@ pub enum HaltReason {
 
 impl fmt::Display for HaltReason {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -858,9 +858,9 @@ pub enum DoubleFloatOp {
     Divide = 3,
 }
 
-impl fmt::Display for DoubleFloatOp {
+impl Display for DoubleFloatOp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -886,16 +886,16 @@ pub const PROT_GROWSDOWN: u32 = 0x0100_0000; // Extend change to start of growsd
 pub const PROT_GROWSUP: u32 = 0x02000000; // Extend change to start of growsup vma (mprotect only).
 
 // Possible world file formats */
-#[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
+#[derive(Default, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum LoadFileFormat {
     #[default] // Default constructor
     VLMWorldFormat, // VLM world file (.VLOD)
     IvoryWorldFormat, // Ivory world file (.ILOD)
 }
 
-impl fmt::Display for LoadFileFormat {
+impl Display for LoadFileFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -1065,7 +1065,7 @@ pub enum SystemCommAreaSlot {
 pub const ADDRESS_FEPCOMM_AREA: u32 = 0xF804_1000;
 pub const FEPCOMM_AREA_SIZE: u32 = 256;
 pub const ADDRESS_FEPMODETRAPVECADDRESS: u32 = 0xF804_0A47;
-pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
+pub const WADEXISTSMASK: u64 = 0x4040_4040_4040_4040;
 
 // // Genera version of FEP Communications area */
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
@@ -1173,7 +1173,7 @@ pub enum MemoryCycleTypes {
 
 impl fmt::Display for MemoryCycleTypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -1194,7 +1194,7 @@ pub enum VMOpcode {
 
 impl fmt::Display for VMOpcode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -1207,7 +1207,7 @@ pub enum VMResultCode {
 
 impl fmt::Display for VMResultCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -1224,7 +1224,7 @@ pub enum VMRegisterNumber {
 
 impl fmt::Display for VMRegisterNumber {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -1959,7 +1959,7 @@ pub enum IvoryDispatch {
 
 impl fmt::Display for IvoryDispatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -2695,6 +2695,6 @@ pub enum IvoryDispatch2 {
 
 impl fmt::Display for IvoryDispatch2 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }

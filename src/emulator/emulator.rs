@@ -33,9 +33,9 @@ use crate::hardware::memory::{
 };
 use crate::utils::{byte_swap_32, pack_8_to_32};
 use crate::world::world::{
-    clone, merge_a_map, panic_exit, read_ivory_world_file_Q, read_ivory_world_file_next_Q,
-    read_load_map, virtual_memory_read, virtual_memory_write, virtual_memory_write_block_constant,
-    LoadMapEntry, LoadMapEntryOpcode, MapEntrySelector, World,
+    merge_a_map, panic_exit, read_ivory_world_file_Q, read_ivory_world_file_next_Q, read_load_map,
+    virtual_memory_read, virtual_memory_write, virtual_memory_write_block_constant, LoadMapEntry,
+    LoadMapEntryOpcode, MapEntrySelector, World,
 };
 
 #[derive()]
@@ -126,7 +126,7 @@ impl<'a> GlobalContext<'a> {
 
     /// Push one empty frame
     /// See IMAS p 242 for frame format
-    pub fn push_one_fake_frame(&mut self) {
+    pub unsafe fn push_one_fake_frame(&mut self) {
         // Push continuation
         let mut q = self.cpu.continuation.clone();
         q.parts.cdr = CDR::Jump;
@@ -349,8 +349,10 @@ impl<'a> GlobalContext<'a> {
         // continuation and control for the running frame are NIL and 0,
         // respectively, thus returning from that frame will not adjust the FP
         // and the sequencer will know to halt on seeing NIL as a PC.
-        gc.push_one_fake_frame();
-        gc.push_one_fake_frame();
+        unsafe {
+            gc.push_one_fake_frame();
+            gc.push_one_fake_frame();
+        }
 
         // EnsureVirtualAddressRange(0xf8000100, 0xf00, false);
         // EnsureVirtualAddressRange(0xf8062000, 0x9e000, false);
@@ -366,12 +368,14 @@ impl<'a> GlobalContext<'a> {
 
         let mut w = World::new();
 
-        let path = &w.pathname;
-        w.fd = Some(File::open(path).expect("Could not open file"));
+        w.fd = Some(File::open(&w.pathname).expect("Could not open file"));
 
         let mut cookie: [u8; 4] = [0 as u8; 4];
         if w.fd.unwrap().read_exact(&mut cookie).is_err() && puntOnErrors {
-            panic_exit(format!("Reading world file {} cookie.", path.display()));
+            panic_exit(format!(
+                "Reading world file {} cookie.",
+                &w.pathname.display()
+            ));
         } else {
             return false;
         }
@@ -398,8 +402,8 @@ impl<'a> GlobalContext<'a> {
             _ => {
                 if puntOnErrors {
                     panic_exit(format!(
-                        "Format of world file {} is unrecognized",
-                        path.display()
+                        "Format of world file {} is unrecognized. Cookie (Magic number) is not one of VLMWORLD_FILE_COOKIE, VLMWORLD_FILE_COOKIE_SWAPPED or IVORY_WORLD_FILE_COOKIE.",
+                        &w.pathname.display()
                     ));
                 }
             }
@@ -410,7 +414,7 @@ impl<'a> GlobalContext<'a> {
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
         if w.format == LoadFileFormat::VLMWorldFormat {
-            match unsafe { lisp_obj_data(read_ivory_world_file_Q(&w, 0)).u } {
+            match unsafe { lisp_obj_data(read_ivory_world_file_Q(w, 0)).u } {
                 VLMVERSION1_AND_ARCHITECTURE => {
                     wired_count_Q = 1;
                     unwired_count_Q = 0;
@@ -428,14 +432,15 @@ impl<'a> GlobalContext<'a> {
                 _ => {
                     panic_exit(format!(
                         "Format magic code of world file {} is unrecognized",
-                        path.display()
+                        &w.pathname.display()
                     ));
                 }
             }
         }
 
+        let f = w.format;
         if w.format == LoadFileFormat::VLMWorldFormat {
-            page_bases = read_ivory_world_file_Q(&w, pages_base_Q);
+            page_bases = read_ivory_world_file_Q(w, pages_base_Q);
             w.data_page_base = unsafe { page_bases.parts.data.u };
             w.tags_page_base = unsafe { page_bases.parts.tag as u32 };
         }
@@ -443,11 +448,11 @@ impl<'a> GlobalContext<'a> {
         if first_sysout_Q != 0 {
             w.current_Q_number = first_sysout_Q;
 
-            w.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.parent_timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
-            w.parent_timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).u };
+            w.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
+            w.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
+            w.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
+            w.parent_timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
+            w.parent_timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(w)).u };
         } else {
             w.generation = 0;
             w.timestamp_2 = 0;
@@ -456,8 +461,8 @@ impl<'a> GlobalContext<'a> {
             w.parent_timestamp_1 = 0;
         }
         w.current_Q_number = first_map_Q;
-        w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
-        w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
+        w.wired_map_entries = read_load_map(w, MapEntrySelector::Wired);
+        w.unwired_map_entries = read_load_map(w, MapEntrySelector::Unwired);
 
         let key = self.world;
         self.worlds.insert(key, &w);

@@ -42,6 +42,7 @@ mod utils;
 // EXTERNAL IMPORTS
 //
 use simplelog::{Config, LevelFilter, WriteLogger};
+use world::world::World;
 use std::fs::File;
 
 //
@@ -49,6 +50,12 @@ use std::fs::File;
 //
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
+
+///
+/// Global state
+///
+
+// NOTHING YET
 
 
 
