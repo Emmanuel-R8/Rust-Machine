@@ -6,7 +6,7 @@ use crate::common::constants::{
     QTag, TrapMode, CDR, IVORY_PAGE_SIZE_QS, IVORY_STACK_CACHE_SIZE, MEMORY_STACK_CACHE_BASE,
 };
 use crate::common::types::{
-    Bar, InstructionCacheLine, QCDRTagData, QImmediate, QWord, INSTRUCTION_CACHE_SIZE,
+    Bar, InstructionCacheLine, QCDRTagData, QData, QImmediate, QWord, INSTRUCTION_CACHE_SIZE,
 };
 use crate::utils::{dpb, ldb};
 
@@ -371,7 +371,6 @@ impl CPU {
             tag: QTag::NIL,
             data: QImmediate::u(0),
         });
-
     }
 
     pub fn running_p(&self) -> bool {
@@ -388,5 +387,78 @@ impl CPU {
 
     pub fn start_machine(&mut self, resume_p: bool) {
         self.suspend = false;
+    }
+
+    pub fn fp_inc(&mut self, addr: u32) {
+        match self.fp {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(mut val) => {
+                    val += addr;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    pub fn fp_dec(&mut self, addr: u32) {
+        match self.fp {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(mut val) => {
+                    val -= addr;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    pub fn fp_jump(&mut self, addr: i32) {
+        if addr >= 0 {
+            return self.fp_inc(addr as u32);
+        } else {
+            return self.fp_dec(addr.abs() as u32);
+        };
+    }
+
+    pub fn lp_inc(&mut self, addr: u32) {
+        match self.lp {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(mut val) => {
+                    val += addr;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    pub fn lp_dec(&mut self, addr: u32) {
+        match self.lp {
+            QWord::parts(p) => match p.data {
+                QImmediate::a(mut val) => {
+                    val -= addr;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    pub fn lp_jump(&mut self, addr: i32) {
+        if addr >= 0 {
+            return self.lp_inc(addr as u32);
+        } else {
+            return self.lp_dec(addr.abs() as u32);
+        };
+    }
+
+    pub fn set_control(&mut self, ctrl: u32) {
+        match self.control {
+            QWord::parts(p) => {
+                p.data.set_u(ctrl);
+            }
+            _ => {}
+        }
     }
 }

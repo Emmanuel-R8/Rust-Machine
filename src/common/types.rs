@@ -88,6 +88,34 @@ impl QImmediate {
             _ => None,
         }
     }
+
+    pub fn set_u(self, u: u32) {
+        match self {
+            QImmediate::u(mut val) => val = u,
+            _ => {}
+        }
+    }
+
+    pub fn set_s(self, s: i32) {
+        match self {
+            QImmediate::s(mut val) => val = s,
+            _ => {}
+        }
+    }
+
+    pub fn set_f(self, f: f32) {
+        match self {
+            QImmediate::f(mut val) => val = f,
+            _ => {}
+        }
+    }
+
+    pub fn set_a(self, a: u32) {
+        match self {
+            QImmediate::a(mut val) => val = a,
+            _ => {}
+        }
+    }
 }
 
 impl Default for QImmediate {
@@ -492,6 +520,23 @@ impl QWord {
                 }
                 _ => {}
             },
+            _ => {}
+        }
+    }
+
+    pub fn set_cdr(&mut self, cdr: CDR) {
+        match self {
+            QWord::parts(p) => {
+                p.cdr = cdr;
+            }
+            _ => {}
+        }
+    }
+    pub fn set_tag(&mut self, tag: QTag) {
+        match self {
+            QWord::parts(p) => {
+                p.tag = tag;
+            }
             _ => {}
         }
     }

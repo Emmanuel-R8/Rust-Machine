@@ -22,7 +22,7 @@ use crate::common::constants::{
     VLMWORLD_FILE_V2_FIRST_MAP_Q, VLMWORLD_SUFFIX, VMATTRIBUTE_CREATED_DEFAULT, VMATTRIBUTE_EMPTY,
     VMATTRIBUTE_EXISTS,
 };
-use crate::common::types::{QCDRTagData, QImmediate, QWord};
+use crate::common::types::{QCDRTagData, QData, QImmediate, QWord};
 use crate::hardware::cpu::{
     read_control_argument_size, read_control_caller_frame_size, write_control_argument_size,
     write_control_caller_frame_size, CPU,
@@ -110,8 +110,8 @@ impl<'a> GlobalContext<'a> {
         return addr.inc();
     }
 
-    pub fn read_at(&mut self, addr: QWord) -> QWord {
-        return self.mem[unsafe { addr.a().unwrap() } as usize];
+    pub fn read_at(self, addr: QWord) -> QWord {
+        return self.mem[addr.a().unwrap() as usize];
     }
 
     pub fn inc_and_read_at(&mut self, addr: QWord) -> (QWord, QWord) {
@@ -129,7 +129,7 @@ impl<'a> GlobalContext<'a> {
     pub fn push_one_fake_frame(&mut self) {
         // Push continuation
         let mut q = self.cpu.continuation.clone();
-        q.parts.cdr = CDR::Jump;
+        q.set_cdr(CDR::Jump);
 
         self.cpu.sp = self.inc_and_write_at(self.cpu.sp, q);
 
@@ -137,14 +137,15 @@ impl<'a> GlobalContext<'a> {
         self.cpu.fp = self.cpu.sp;
 
         // Push the control register
-        let mut q = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, self.cpu.control.u().unwrap() );
+        let mut q = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, self.cpu.control.u().unwrap());
         self.cpu.sp = self.inc_and_write_at(self.cpu.sp, q);
 
         // Create a new control register
         self.cpu.control = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, 0);
         write_control_argument_size(&mut self.cpu.control, 2);
-        write_control_caller_frame_size(&mut self.cpu.control,
-            (self.cpu.sp - self.cpu.fp).u().unwrap()
+        write_control_caller_frame_size(
+            &mut self.cpu.control,
+            (self.cpu.sp - self.cpu.fp).u().unwrap(),
         );
 
         self.cpu.continuation = self.cpu.pc;
@@ -155,18 +156,20 @@ impl<'a> GlobalContext<'a> {
         // Set the stack pointer at the address of the current frame
         self.cpu.sp = self.cpu.fp;
 
-        // Determine the next frame pointer by decreasing by the frmae size
-        unsafe { self.cpu.fp.parts.data.a -= read_control_caller_frame_size(self.cpu.control) };
+        // Determine the next frame pointer by decreasing by the frame size
+        self.cpu
+            .fp_inc(read_control_caller_frame_size(self.cpu.control).unwrap());
 
         // Restore the PC using the stored continuation
         self.cpu.pc = self.cpu.continuation;
 
         // Temporary copy of FP
         (self.cpu.continuation, self.cpu.fp) = self.read_at_and_inc(self.cpu.fp);
-        self.cpu.control.parts.data.u = unsafe { self.read_at(self.cpu.fp).u().unwrap() };
+        self.cpu.set_control(self.read_at(self.cpu.fp).u().unwrap());
 
         self.cpu.lp = self.cpu.fp.clone();
-        unsafe { self.cpu.lp.parts.data.a += read_control_argument_size(self.cpu.control) };
+        self.cpu
+            .lp_inc(read_control_argument_size(self.cpu.control).unwrap());
     }
 
     #[inline]
@@ -401,7 +404,11 @@ impl<'a> GlobalContext<'a> {
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
         if w.format == LoadFileFormat::VLMWorldFormat {
-            match lisp_obj_data(read_ivory_world_file_Q(&w, 0)).unwrap().u().unwrap() {
+            match lisp_obj_data(read_ivory_world_file_Q(&w, 0))
+                .unwrap()
+                .u()
+                .unwrap()
+            {
                 VLMVERSION1_AND_ARCHITECTURE => {
                     wired_count_Q = 1;
                     unwired_count_Q = 0;
@@ -427,18 +434,43 @@ impl<'a> GlobalContext<'a> {
 
         if w.format == LoadFileFormat::VLMWorldFormat {
             page_bases = read_ivory_world_file_Q(&w, pages_base_Q);
-            w.data_page_base =  page_bases.u().unwrap();
+            w.data_page_base = page_bases.u().unwrap();
             w.tags_page_base = unsafe { page_bases.tag().unwrap() as u32 };
         }
 
         if first_sysout_Q != 0 {
             w.current_Q_number = first_sysout_Q;
 
-            w.generation = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap() };
-            w.timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
-            w.timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
-            w.parent_timestamp_1 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
-            w.parent_timestamp_2 = unsafe { lisp_obj_data(read_ivory_world_file_next_Q(&mut w)).unwrap().u().unwrap()  };
+            w.generation = unsafe {
+                lisp_obj_data(read_ivory_world_file_next_Q(&mut w))
+                    .unwrap()
+                    .u()
+                    .unwrap()
+            };
+            w.timestamp_1 = unsafe {
+                lisp_obj_data(read_ivory_world_file_next_Q(&mut w))
+                    .unwrap()
+                    .u()
+                    .unwrap()
+            };
+            w.timestamp_2 = unsafe {
+                lisp_obj_data(read_ivory_world_file_next_Q(&mut w))
+                    .unwrap()
+                    .u()
+                    .unwrap()
+            };
+            w.parent_timestamp_1 = unsafe {
+                lisp_obj_data(read_ivory_world_file_next_Q(&mut w))
+                    .unwrap()
+                    .u()
+                    .unwrap()
+            };
+            w.parent_timestamp_2 = unsafe {
+                lisp_obj_data(read_ivory_world_file_next_Q(&mut w))
+                    .unwrap()
+                    .u()
+                    .unwrap()
+            };
         } else {
             w.generation = 0;
             w.timestamp_2 = 0;
@@ -772,8 +804,8 @@ impl<'a> GlobalContext<'a> {
 
         let world_id = self.world;
 
-        let mut world: &World = match self.worlds.get(&world_id) {
-            Some(&w) => w,
+        let world: &mut World = match self.worlds.get_mut(&world_id) {
+            Some(&mut w) => w,
 
             None => return new_wired_map_entries,
         };
@@ -818,15 +850,17 @@ impl<'a> GlobalContext<'a> {
         let block_count = (page_count * IVORY_PAGE_SIZE_BYTES - 1).div(VLMPAGE_SIZE_QS);
 
         if block_count > VLMMAXIMUM_HEADER_BLOCKS {
-            world.close(true);
+            // FIXME: world.close(true);
             panic_exit(format!(
                 "Unable to store data map in space reserved for same in world file {}",
                 world.pathname.display().to_string()
             ));
         }
+
         world.tags_page_base = block_count;
         world.data_page_base = (world.tags_page_base + 1) * page_number;
 
         return new_wired_map_entries;
     }
+
 }
