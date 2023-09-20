@@ -1,24 +1,19 @@
 // #![feature(use_extern_macros, prox_macro_non_items)]
 use log::warn;
-use num::Integer;
 
 use sets::Set;
-use std::borrow::BorrowMut;
 use std::cmp::Ordering;
 use std::fs::{DirEntry, File};
-use std::ops::Div;
 use std::path::{Path, PathBuf};
 use std::{fmt, process};
 use uuid::Uuid;
 
 use crate::common::constants::{
-    LoadFileFormat, QTag, CDR, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, VLMMAXIMUM_HEADER_BLOCKS,
-    VLMPAGE_SIZE_QS, VLMWORLD_FILE_V2_FIRST_MAP_Q,
+    LoadFileFormat, QTag, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, VLMPAGE_SIZE_QS,
 };
 use crate::common::types::{QImmediate, QWord};
 
 use crate::emulator::emulator::GlobalContext;
-use crate::hardware::memory::make_lisp_obj_u;
 
 /// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -120,7 +115,7 @@ pub struct World {
     pub ivory_data_page: Vec<QWord>, // [QWord; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page. TODO: rename to current_data-page
     // Size is 0x500 = 0x100 for tags + 0x400 for data
     pub current_page_number: u32, // Page number of the page in the buffer, if any. -1 means not pointing yet
-    pub current_Q_number: u32,    // Q number within the page to be read
+    pub current_q_number: u32,    // Q number within the page to be read
 
     pub timestamp_1: u32, // Unique ID of this world, part 1 ...
     pub timestamp_2: u32, // ... part 2
@@ -155,7 +150,7 @@ impl World {
             ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
 
             current_page_number: 0,
-            current_Q_number: 0,
+            current_q_number: 0,
 
             timestamp_1: 0,
             timestamp_2: 0,
@@ -212,7 +207,7 @@ impl Default for World {
             page: vec![],
             ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
             current_page_number: 0,
-            current_Q_number: 0,
+            current_q_number: 0,
             parent_world: Uuid::nil(),
             generation: 0,
             timestamp_1: 0,
@@ -243,7 +238,7 @@ impl Clone for World {
             tags_page: self.tags_page.clone(),
             ivory_data_page: self.ivory_data_page.clone(),
             current_page_number: self.current_page_number.clone(),
-            current_Q_number: self.current_Q_number.clone(),
+            current_q_number: self.current_q_number.clone(),
             timestamp_1: self.timestamp_1.clone(),
             timestamp_2: self.timestamp_2.clone(),
             generation: self.generation.clone(),
@@ -349,7 +344,7 @@ pub fn merge_a_map<'a>(
         return new_map_entries;
     }
 
-    let page_size_Qs = match world.format {
+    let page_size_qs = match world.format {
         LoadFileFormat::VLMWorldFormat => VLMPAGE_SIZE_QS,
         _ => IVORY_PAGE_SIZE_QS,
     };
@@ -503,10 +498,10 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadM
     for e in map {
         let mut new_entry = e.clone();
 
-        let q = read_ivory_world_file_next_Q(w);
+        let q = read_ivory_world_file_next_q(w);
         new_entry.address = q.a().unwrap();
 
-        let q = read_ivory_world_file_next_Q(w);
+        let q = read_ivory_world_file_next_q(w);
         let op = q.u().unwrap();
         new_entry.count = op & 0x00FF_FFFF;
         new_entry.map_code = match (op & 0xFF00_0000) >> 24 {
@@ -517,7 +512,7 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadM
             _ => LoadMapEntryOpcode::default(),
         };
 
-        new_entry.data = read_ivory_world_file_next_Q(w);
+        new_entry.data = read_ivory_world_file_next_q(w);
 
         res.insert(new_entry);
     }
@@ -545,7 +540,7 @@ pub fn read_load_map(w: &mut World, map_selector: MapEntrySelector) -> Set<LoadM
 //     }
 // }
 
-pub fn read_ivory_world_file_Q(w: &World, address: u32) -> QWord {
+pub fn read_ivory_world_file_q(w: &World, address: u32) -> QWord {
     if address >= IVORY_PAGE_SIZE_BYTES {
         panic_exit(format!(
             "Invalid word number {} for world file {}",
@@ -557,15 +552,15 @@ pub fn read_ivory_world_file_Q(w: &World, address: u32) -> QWord {
     return w.ivory_data_page[address as usize];
 }
 
-pub fn read_ivory_world_file_next_Q(w: &mut World) -> QWord {
+pub fn read_ivory_world_file_next_q(w: &mut World) -> QWord {
     // If the the current address is too high, load the next page (several time if needed)
-    while w.current_Q_number >= IVORY_PAGE_SIZE_BYTES {
+    while w.current_q_number >= IVORY_PAGE_SIZE_BYTES {
         read_ivory_world_file_page(w, w.current_page_number + 1);
-        w.current_Q_number -= IVORY_PAGE_SIZE_BYTES;
+        w.current_q_number -= IVORY_PAGE_SIZE_BYTES;
     }
 
-    let q = read_ivory_world_file_Q(w, w.current_Q_number);
-    w.current_Q_number += 1;
+    let q = read_ivory_world_file_q(w, w.current_q_number);
+    w.current_q_number += 1;
 
     return q;
 }
@@ -587,12 +582,12 @@ pub fn world_p(candidate_world: DirEntry) -> bool {
 
 pub fn write_lisp_obj_data_u(q: &mut QWord, data: u32) {
     match q {
-        QWord::parts(mut p) => p.data = QImmediate::u(data),
+        QWord::CdrTagData(mut p) => p.data = QImmediate::Unsigned(data),
         _ => {}
     };
 }
 
-pub fn write_ivory_world_file_next_Q(w: &mut World, q: QWord) {}
+pub fn write_ivory_world_file_next_q(w: &mut World, q: QWord) {}
 // fn write_ivory_world_file_next_Q(mut world: *mut World, mut q: QWord) {
 //     let mut pointerOffset: u32 = 0;
 //     let mut tagOffset: u32 = 0;
@@ -615,9 +610,9 @@ pub fn write_ivory_world_file_next_Q(w: &mut World, q: QWord) {}
 pub fn virtual_memory_read(addr: u32) -> QWord {
     todo!();
 }
-pub fn copy_ivory_world_file_next_Q(world: &mut World, from: u32) {
+pub fn copy_ivory_world_file_next_q(world: &mut World, from: u32) {
     let q = virtual_memory_read(from);
-    write_ivory_world_file_next_Q(world, q);
+    write_ivory_world_file_next_q(world, q);
 }
 
 fn write_vlmworld_file_header(world: &mut World) {
@@ -678,7 +673,7 @@ pub fn map_virtual_address_tag(addr: u32) -> u32 {
 }
 
 impl World {
-    pub fn write_VLM_world_file_pages(&self) {
+    pub fn write_vlm_world_file_pages(&self) {
         let mut page_number: u32 = 0;
         let mut word_count: u32 = 0;
         let mut byte_count: u32 = 0;
@@ -720,12 +715,12 @@ impl World {
 
 fn prepare_to_write_ivory_world_file_page(w: &mut World, page_number: u32) {
     w.current_page_number = page_number;
-    w.current_Q_number = 0;
+    w.current_q_number = 0;
     w.ivory_data_page = vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize];
 }
 
 fn write_ivory_world_file_page(world: &mut World) {
-    if 0 == world.current_Q_number {
+    if 0 == world.current_q_number {
         return;
     }
 
@@ -774,7 +769,7 @@ pub fn byte_swap_world(mut world_pathname: &str, mut search_path: &str) {
     // }
 }
 
-fn ByteSwapOneWorld(world: &mut World) {
+fn byte_swap_one_world(world: &mut World) {
     // let mut bakPathname =  Path::new("") ;
     // let mut block: Vec<u32>  = vec![0; VLMPAGE_SIZE_QS / 4];
     // let mut dataStart: usize = 0;

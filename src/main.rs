@@ -3,8 +3,6 @@
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
 
-
-#[macro_use()]
 extern crate num;
 extern crate num_derive;
 
@@ -80,7 +78,7 @@ pub fn main() {
     // let reason: u32 = 0;
 
     let mut config = VLMConfig::default();
-    let mut enable_IDS_p = config.enableIDS;
+    let mut enable_ids_p = config.enableIDS;
     let mut trace_p = config.tracing.tracePOST;
 
 

@@ -26,27 +26,27 @@ pub trait Memory {
 }
 
 // Constants
-const OBJECT_T: QWord = QWord::parts(QCDRTagData {
+const OBJECT_T: QWord = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::Symbol,
-            data: QImmediate::a(ADDRESS_T),
+            data: QImmediate::Addr(ADDRESS_T),
         });
 
-const OBJECT_NIL: QWord = QWord::parts(QCDRTagData {
+const OBJECT_NIL: QWord = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::Symbol,
-            data: QImmediate::a(ADDRESS_NIL),
+            data: QImmediate::Addr(ADDRESS_NIL),
         });
 
-const OBJECT_CDR_MASK: QWord = QWord::parts(QCDRTagData {
+const OBJECT_CDR_MASK: QWord = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::TagCdrMask,
-            data: QImmediate::u(0),
+            data: QImmediate::Unsigned(0),
         });
 
 
 pub fn make_lisp_obj(c: CDR, t: QTag, d: QImmediate) -> QWord {
-    return QWord::parts(QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
             data: d,
@@ -54,66 +54,66 @@ pub fn make_lisp_obj(c: CDR, t: QTag, d: QImmediate) -> QWord {
 }
 
 pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> QWord {
-    return QWord::parts(QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate::u(val),
+            data: QImmediate::Unsigned(val),
         });
 }
 
 pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> QWord {
-    return QWord::parts(QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate::s(val),
+            data: QImmediate::Signed(val),
         });
 }
 
 pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> QWord {
-    return QWord::parts(QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate::f(val),
+            data: QImmediate::Float(val),
         });
 }
 
 pub fn lisp_obj_cdr(q: QWord) -> Option<CDR> {
     return match q {
-        QWord::parts(p) => Some(p.cdr),
+        QWord::CdrTagData(p) => Some(p.cdr),
         _ => None,
     } ;
 }
 
 pub fn lisp_obj_tag(q: QWord) -> Option<QTag> {
     return match q {
-        QWord::parts(p) => Some(p.tag),
+        QWord::CdrTagData(p) => Some(p.tag),
         _ => None,
     } ;}
 
 pub fn lisp_obj_data(q: QWord) -> Option<QImmediate> {
     return match q {
-        QWord::parts(p) => Some(p.data),
+        QWord::CdrTagData(p) => Some(p.data),
         _ => None,
     } ;
 }
 
 pub fn write_lisp_obj_cdr(q: &mut QWord, newcdr: CDR) {
     match q {
-        QWord::parts(mut p) => { p.cdr = newcdr},
+        QWord::CdrTagData(mut p) => { p.cdr = newcdr},
         _ => {},
     } ;
 }
 
 pub fn write_lisp_obj_tag(q: &mut QWord, newtag: QTag) {
     match q {
-        QWord::parts(mut p) => { p.tag = newtag},
+        QWord::CdrTagData(mut p) => { p.tag = newtag},
         _ => {},
     } ;
 }
 
 pub fn write_lisp_obj_data(q: &mut QWord, newdata: u32) {
     match q {
-        QWord::parts(mut p) => { p.data = QImmediate::u(newdata)},
+        QWord::CdrTagData(mut p) => { p.data = QImmediate::Unsigned(newdata)},
         _ => {},
     } ;
 }
@@ -196,13 +196,13 @@ pub fn clear_vmexists(mut vma: VMAttribute) {
 
 #[derive(Debug)]
 pub struct VMMemory {
-    pub Space: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
+    pub space: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
     pub attribute: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 }
 
 impl VMMemory {
     pub fn map_virtual_address_data(&self, start: usize, count: usize) -> Option<Vec<QWord>> {
-        let s = self.Space;
+        let s = self.space;
 
         if count == 0 {
             None

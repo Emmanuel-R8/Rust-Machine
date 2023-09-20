@@ -1,12 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::{array, default};
 
 use crate::common::constants::{
     QTag, TrapMode, CDR, IVORY_PAGE_SIZE_QS, IVORY_STACK_CACHE_SIZE, MEMORY_STACK_CACHE_BASE,
 };
 use crate::common::types::{
-    Bar, InstructionCacheLine, QCDRTagData, QData, QImmediate, QWord, INSTRUCTION_CACHE_SIZE,
+    Bar, InstructionCacheLine, QCDRTagData, QImmediate, QWord, INSTRUCTION_CACHE_SIZE,
 };
 use crate::utils::{dpb, ldb};
 
@@ -81,8 +80,8 @@ pub fn read_control_trace_pending(c: QWord) -> Option<u32> {
 
 pub fn read_control_bits(c: QWord, ss: u8, pp: u8) -> Option<u32> {
     match c {
-        QWord::parts(p) => match p.data {
-            QImmediate::u(val) => return Some(ldb(ss, pp, val)),
+        QWord::CdrTagData(p) => match p.data {
+            QImmediate::Unsigned(val) => return Some(ldb(ss, pp, val)),
             _ => return None,
         },
         _ => return None,
@@ -151,8 +150,8 @@ pub fn write_control_trace_pending(c: &mut QWord, x: u32) {
 
 pub fn write_control_bits(c: &mut QWord, x: u32, ss: u8, pp: u8) {
     match c {
-        QWord::parts(p) => match p.data {
-            QImmediate::u(mut val) => {
+        QWord::CdrTagData(p) => match p.data {
+            QImmediate::Unsigned(mut val) => {
                 val = dpb(x, ss, pp, val);
             }
             _ => {}
@@ -221,17 +220,17 @@ impl Default for CPU {
             restarts_p: QWord::default(),
             fp: QWord::default(),
             lp: QWord::default(),
-            pc: QWord::parts(QCDRTagData {
+            pc: QWord::CdrTagData(QCDRTagData {
                 cdr: CDR::Normal,
                 tag: QTag::EvenPC, // See IMAS p. 59
-                data: QImmediate::a(PROGRAM_COUNTER_INIT),
+                data: QImmediate::Addr(PROGRAM_COUNTER_INIT),
             }),
             continuation: QWord::default(),
             instruction_cache: vec![
                 InstructionCacheLine::default();
                 INSTRUCTION_CACHE_SIZE as usize
             ],
-            stack_cache: [QWord::whole(0); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize],
+            stack_cache: [QWord::Whole(0); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize],
             stack_cache_limit: QWord::default(),
             allocated_caches: false,
 
@@ -283,10 +282,10 @@ impl CPU {
             self.stack_cache =
                 [QWord::default(); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize];
 
-            self.stack_cache_limit = QWord::parts(QCDRTagData {
+            self.stack_cache_limit = QWord::CdrTagData(QCDRTagData {
                 cdr: CDR::Jump,
                 tag: QTag::Fixnum,
-                data: QImmediate::u(IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128),
+                data: QImmediate::Unsigned(IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128),
             });
 
             self.allocated_caches = true;
@@ -297,10 +296,10 @@ impl CPU {
 
         for i in 0..INSTRUCTION_CACHE_SIZE / 2 {
             self.instruction_cache[2 * i as usize] = InstructionCacheLine {
-                pc: QWord::parts(QCDRTagData {
+                pc: QWord::CdrTagData(QCDRTagData {
                     cdr: CDR::Jump,
                     tag: QTag::EvenPC,
-                    data: QImmediate::u(0),
+                    data: QImmediate::Unsigned(0),
                 }),
                 next_pc: QWord::default(),
                 code: 0,
@@ -310,10 +309,10 @@ impl CPU {
             };
 
             self.instruction_cache[2 * i as usize + 1] = InstructionCacheLine {
-                pc: QWord::parts(QCDRTagData {
+                pc: QWord::CdrTagData(QCDRTagData {
                     cdr: CDR::Jump,
                     tag: QTag::OddPC,
-                    data: QImmediate::u(0),
+                    data: QImmediate::Unsigned(0),
                 }),
                 next_pc: QWord::default(),
                 code: 0,
@@ -325,51 +324,51 @@ impl CPU {
 
         self.stack_cache_base = MEMORY_STACK_CACHE_BASE;
         for i in 0..IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE {
-            self.stack_cache[i as usize] = QWord::parts(QCDRTagData {
+            self.stack_cache[i as usize] = QWord::CdrTagData(QCDRTagData {
                 cdr: CDR::Jump,
                 tag: QTag::Null,
-                data: QImmediate::u(i),
+                data: QImmediate::Unsigned(i),
             });
         }
 
-        self.fp = QWord::parts(QCDRTagData {
+        self.fp = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::OddPC,
-            data: QImmediate::a(4),
+            data: QImmediate::Addr(4),
         });
 
-        self.sp = QWord::parts(QCDRTagData {
+        self.sp = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::OddPC,
-            data: QImmediate::a(5),
+            data: QImmediate::Addr(5),
         });
 
-        self.lp = QWord::parts(QCDRTagData {
+        self.lp = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::OddPC,
-            data: QImmediate::a(6),
+            data: QImmediate::Addr(6),
         });
 
-        self.control = QWord::parts(QCDRTagData {
+        self.control = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::Fixnum,
-            data: QImmediate::u(0),
+            data: QImmediate::Unsigned(0),
         });
 
         write_control_argument_size(&mut self.control, 2);
         write_control_caller_frame_size(&mut self.control, 2);
         write_control_trap_mode(&mut self.control, TrapMode::FEP as u32);
 
-        self.pc = QWord::parts(QCDRTagData {
+        self.pc = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::NIL,
-            data: QImmediate::u(0),
+            data: QImmediate::Unsigned(0),
         });
 
-        self.continuation = QWord::parts(QCDRTagData {
+        self.continuation = QWord::CdrTagData(QCDRTagData {
             cdr: CDR::Jump,
             tag: QTag::NIL,
-            data: QImmediate::u(0),
+            data: QImmediate::Unsigned(0),
         });
     }
 
@@ -391,8 +390,8 @@ impl CPU {
 
     pub fn fp_inc(&mut self, addr: u32) {
         match self.fp {
-            QWord::parts(p) => match p.data {
-                QImmediate::a(mut val) => {
+            QWord::CdrTagData(p) => match p.data {
+                QImmediate::Addr(mut val) => {
                     val += addr;
                 }
                 _ => {}
@@ -403,8 +402,8 @@ impl CPU {
 
     pub fn fp_dec(&mut self, addr: u32) {
         match self.fp {
-            QWord::parts(p) => match p.data {
-                QImmediate::a(mut val) => {
+            QWord::CdrTagData(p) => match p.data {
+                QImmediate::Addr(mut val) => {
                     val -= addr;
                 }
                 _ => {}
@@ -423,8 +422,8 @@ impl CPU {
 
     pub fn lp_inc(&mut self, addr: u32) {
         match self.lp {
-            QWord::parts(p) => match p.data {
-                QImmediate::a(mut val) => {
+            QWord::CdrTagData(p) => match p.data {
+                QImmediate::Addr(mut val) => {
                     val += addr;
                 }
                 _ => {}
@@ -435,8 +434,8 @@ impl CPU {
 
     pub fn lp_dec(&mut self, addr: u32) {
         match self.lp {
-            QWord::parts(p) => match p.data {
-                QImmediate::a(mut val) => {
+            QWord::CdrTagData(p) => match p.data {
+                QImmediate::Addr(mut val) => {
                     val -= addr;
                 }
                 _ => {}
@@ -455,7 +454,7 @@ impl CPU {
 
     pub fn set_control(&mut self, ctrl: u32) {
         match self.control {
-            QWord::parts(p) => {
+            QWord::CdrTagData(p) => {
                 p.data.set_u(ctrl);
             }
             _ => {}
