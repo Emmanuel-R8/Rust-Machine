@@ -7,6 +7,7 @@ use std::ops::Div;
 use std::path::{ Path, PathBuf };
 
 use memmap::Mmap;
+use num::Integer;
 use sets::Set;
 use uuid::Uuid;
 
@@ -54,8 +55,8 @@ use crate::world::world::{
     merge_a_map,
     panic_exit,
     read_ivory_world_file_q,
-    read_ivory_world_file_next_q,
-    read_load_map,
+    // read_ivory_world_file_next_q,
+    // read_load_map,
     virtual_memory_read,
     virtual_memory_write,
     virtual_memory_write_block_constant,
@@ -426,7 +427,7 @@ impl<'a> GlobalContext<'a> {
         }
 
         w.ivory_data_page = vec![QWord::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
-        w.current_page_number = 0;
+        // w.current_page_number = 0;
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
         if w.format == LoadFileFormat::VLMWorldFormat {
@@ -463,23 +464,23 @@ impl<'a> GlobalContext<'a> {
         }
 
         if first_sysout_q != 0 {
-            w.current_q_number = first_sysout_q;
+            // w.current_q_number = first_sysout_q;
 
-            w.generation = unsafe {
-                lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            };
-            w.timestamp_1 = unsafe {
-                lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            };
-            w.timestamp_2 = unsafe {
-                lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            };
-            w.parent_timestamp_1 = unsafe {
-                lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            };
-            w.parent_timestamp_2 = unsafe {
-                lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            };
+            // w.generation = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.timestamp_1 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.timestamp_2 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.parent_timestamp_1 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.parent_timestamp_2 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
         } else {
             w.generation = 0;
             w.timestamp_2 = 0;
@@ -487,9 +488,9 @@ impl<'a> GlobalContext<'a> {
             w.parent_timestamp_2 = 0;
             w.parent_timestamp_1 = 0;
         }
-        w.current_q_number = first_map_q;
-        w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
-        w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
+        // w.current_q_number = first_map_q;
+        // w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
+        // w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
 
         let key = self.world;
         self.worlds.insert(key, &w);
@@ -657,79 +658,79 @@ impl<'a> GlobalContext<'a> {
         // let mut words: u32 = 0;
     }
 
-    pub fn vlm_load_map_data(&mut self, map_selector: MapEntrySelector, index: usize) -> u32 {
-        let mut w = self.worlds.get(&self.world).unwrap();
-        let mut entry = (*w).select_entries(map_selector).data[index];
+    // pub fn vlm_load_map_data(&mut self, map_selector: MapEntrySelector, index: usize) -> u32 {
+    //     let mut w = self.worlds.get(&self.world).unwrap();
+    //     let mut entry = (*w).select_entries(map_selector).data[index];
 
-        match entry.map_code {
-            LoadMapEntryOpcode::DataPages => {
-                // let map_world = map_entry.world;
-                let page_number = entry.data.u().unwrap();
-                if w.byte_swapped {
-                    // ensure_virtual_address_range(entry.address, entry.count, false);
-                    self.read_swapped_vlm_world_file_page(page_number);
+    //     match entry.map_code {
+    //         LoadMapEntryOpcode::DataPages => {
+    //             // let map_world = map_entry.world;
+    //             let page_number = entry.data.u().unwrap();
+    //             if w.byte_swapped {
+    //                 // ensure_virtual_address_range(entry.address, entry.count, false);
+    //                 self.read_swapped_vlm_world_file_page(page_number);
 
-                    let mut the_address = entry.address;
-                    w.current_q_number = 0;
-                    println!("LoadMapDataPages @ {}, count {}", the_address, entry.count);
+    //                 let mut the_address = entry.addr;
+    //                 w.current_q_number = 0;
+    //                 println!("LoadMapDataPages @ {}, count {}", the_address, entry.count);
 
-                    for _ in 0..entry.count {
-                        virtual_memory_write(
-                            the_address,
-                            self.read_swapped_vlm_world_file_next_q()
-                        );
-                        the_address += 1;
-                    }
-                } else {
-                    let file_offset = 8192 * (w.data_page_base + page_number * 4);
-                    // let tag_offset = 8192 * (&w.vlm_data_page_base + page_number * 1);
+    //                 for _ in 0..entry.count {
+    //                     virtual_memory_write(
+    //                         the_address,
+    //                         self.read_swapped_vlm_world_file_next_q()
+    //                     );
+    //                     the_address += 1;
+    //                 }
+    //             } else {
+    //                 let file_offset = 8192 * (w.data_page_base + page_number * 4);
+    //                 // let tag_offset = 8192 * (&w.vlm_data_page_base + page_number * 1);
 
-                    self.map_world_load(entry.address, entry.count, file_offset);
-                }
-            }
-            LoadMapEntryOpcode::ConstantIncremented => {
-                // ensure_virtual_address_range(entry.address, entry.count, false);
-                virtual_memory_write_block_constant(
-                    entry.address,
-                    &mut entry.data,
-                    entry.count,
-                    true
-                );
-            }
-            LoadMapEntryOpcode::Constant => {
-                // ensure_virtual_address_range(entry.address, entry.count, false);
-                virtual_memory_write_block_constant(
-                    entry.address,
-                    &mut entry.data,
-                    entry.count,
-                    false
-                );
-            }
-            LoadMapEntryOpcode::Copy => {
-                // ensure_virtual_address_range(entry.address, entry.count, false);
-                let mut the_address = entry.address;
-                let mut the_source_address = unsafe { entry.data.u().unwrap() };
+    //                 self.map_world_load(entry.addr, entry.count, file_offset);
+    //             }
+    //         }
+    //         LoadMapEntryOpcode::ConstantIncremented => {
+    //             // ensure_virtual_address_range(entry.address, entry.count, false);
+    //             virtual_memory_write_block_constant(
+    //                 entry.addr,
+    //                 &mut entry.data,
+    //                 entry.count,
+    //                 true
+    //             );
+    //         }
+    //         LoadMapEntryOpcode::Constant => {
+    //             // ensure_virtual_address_range(entry.address, entry.count, false);
+    //             virtual_memory_write_block_constant(
+    //                 entry.addr,
+    //                 &mut entry.data,
+    //                 entry.count,
+    //                 false
+    //             );
+    //         }
+    //         LoadMapEntryOpcode::Copy => {
+    //             // ensure_virtual_address_range(entry.address, entry.count, false);
+    //             let mut the_address = entry.addr;
+    //             let mut the_source_address = unsafe { entry.data.u().unwrap() };
 
-                for i in 0..entry.count {
-                    virtual_memory_write(the_address, virtual_memory_read(the_source_address));
-                    the_address += 1;
-                    the_source_address += 1;
-                }
-            }
-            _ => {
-                self.close(true);
-                panic_exit(
-                    format!(
-                        "Unknown load map opcode {} in world file {}",
-                        entry.map_code,
-                        w.pathname.display().to_string()
-                    )
-                );
-            }
-        }
+    //             for i in 0..entry.count {
+    //                 virtual_memory_write(the_address, virtual_memory_read(the_source_address));
+    //                 the_address += 1;
+    //                 the_source_address += 1;
+    //             }
+    //         }
+    //         _ => {
+    //             self.close(true);
+    //             panic_exit(
+    //                 format!(
+    //                     "Unknown load map opcode {} in world file {}",
+    //                     entry.map_code,
+    //                     w.pathname.display().to_string()
+    //                 )
+    //             );
+    //         }
+    //     }
 
-        return entry.count;
-    }
+    //     return entry.count;
+    // }
 
     fn read_swapped_vlm_world_file_page(&self, mut page_number: u32) {
         unimplemented!()
@@ -778,7 +779,7 @@ impl<'a> GlobalContext<'a> {
         let mut datum: u32 = 0;
 
         if q_number < 0 || q_number >= VLMPAGE_SIZE_QS {
-            self.close(true);
+            // self.close(true);
             panic_exit(
                 format!(
                     "Invalid word number {} for world file {}",
@@ -796,14 +797,15 @@ impl<'a> GlobalContext<'a> {
     fn read_swapped_vlm_world_file_next_q(&self) -> QWord {
         let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
 
-        while w.current_q_number >= VLMPAGE_SIZE_QS {
-            self.read_swapped_vlm_world_file_page(w.current_page_number + 1);
-            w.current_q_number -= VLMPAGE_SIZE_QS;
-        }
-        let q = self.read_swapped_vlm_world_file_q(w.current_q_number);
-        w.current_q_number += 1;
+        // while w.current_q_number >= VLMPAGE_SIZE_QS {
+        //     self.read_swapped_vlm_world_file_page(w.current_page_number + 1);
+        //     w.current_q_number -= VLMPAGE_SIZE_QS;
+        // }
+        // let q = self.read_swapped_vlm_world_file_q(w.current_q_number);
+        // w.current_q_number += 1;
 
-        return q;
+        // return q;
+        return QWord::Whole(0);
     }
 
     //  Canonicalize the load map entries for a VLM world:  Look for load map entries
@@ -819,7 +821,7 @@ impl<'a> GlobalContext<'a> {
 
         let world_id = self.world;
 
-        let world: &mut World = match self.worlds.get_mut(&world_id) {
+        let world: &World = match self.worlds.get_mut(&world_id) {
             Some(&mut w) => w,
 
             None => {
@@ -834,7 +836,7 @@ impl<'a> GlobalContext<'a> {
         while i < n_wired_entries {
             let current_map_entry = &world.wired_map_entries.data[i as usize];
 
-            let (page_count, r) = current_map_entry.address.div_rem(&VLMPAGE_SIZE_QS);
+            let (page_count, r) = current_map_entry.addr.div_rem(&VLMPAGE_SIZE_QS);
 
             if r == 0 {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
@@ -849,11 +851,11 @@ impl<'a> GlobalContext<'a> {
                 for j in 0..current_map_entry.count {
                     let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
 
-                    new_wired_map_entry.address =
-                        world.wired_map_entries.data[i as usize].address + j;
+                    new_wired_map_entry.addr =
+                        world.wired_map_entries.data[i as usize].addr + j;
                     new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
                     new_wired_map_entry.count = 1;
-                    new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.address);
+                    new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.addr);
                     new_wired_map_entries.insert(new_wired_map_entry);
                 }
 

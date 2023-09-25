@@ -1,24 +1,24 @@
 use c2rust_bitfields::BitfieldStruct;
 
-use std::fmt::{Debug, Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Sub, SubAssign};
-use std::{cell::RefCell, rc::Rc};
+use std::fmt::{ Debug, Display, Formatter, Result };
+use std::ops::{ Add, AddAssign, Sub, SubAssign };
+use std::{ cell::RefCell, rc::Rc };
 
 // Representation of lisp objects
-use super::constants::{QTag, CDR, VLMPAGE_SIZE_QS};
+use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS };
 use crate::common::types::QWord::Whole;
 
 // See I-Machine specs p. 4
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub enum QList {
-    Cons(u32),  // Conses TODO: decline
-    CompactList(u32),  // Compact list TODO: decline
+    Cons(u32), // Conses TODO: decline
+    CompactList(u32), // Compact list TODO: decline
     Closure(u32), // Closure
-    BigRatio(u32),  // Big ratio
-    DoubleFloat(f32),  // f64 - Double precision floating point
+    BigRatio(u32), // Big ratio
+    DoubleFloat(f32), // f64 - Double precision floating point
     Complex(u32), // Complex number
-    Generic(u32),  // Generic function
+    Generic(u32), // Generic function
 }
 
 impl Default for QList {
@@ -91,28 +91,36 @@ impl QImmediate {
 
     pub fn set_u(self, u: u32) {
         match self {
-            QImmediate::Unsigned(mut val) => val = u,
+            QImmediate::Unsigned(mut val) => {
+                val = u;
+            }
             _ => {}
         }
     }
 
     pub fn set_s(self, s: i32) {
         match self {
-            QImmediate::Signed(mut val) => val = s,
+            QImmediate::Signed(mut val) => {
+                val = s;
+            }
             _ => {}
         }
     }
 
     pub fn set_f(self, f: f32) {
         match self {
-            QImmediate::Float(mut val) => val = f,
+            QImmediate::Float(mut val) => {
+                val = f;
+            }
             _ => {}
         }
     }
 
     pub fn set_a(self, a: u32) {
         match self {
-            QImmediate::Addr(mut val) => val = a,
+            QImmediate::Addr(mut val) => {
+                val = a;
+            }
             _ => {}
         }
     }
@@ -127,22 +135,26 @@ impl Default for QImmediate {
 impl PartialEq for QImmediate {
     fn eq(&self, other: &Self) -> bool {
         match self {
-            QImmediate::Unsigned(val1) => match other {
-                QImmediate::Unsigned(val2) => val1 == val2,
-                _ => false,
-            },
-            QImmediate::Signed(val1) => match other {
-                QImmediate::Signed(val2) => val1 == val2,
-                _ => false,
-            },
-            QImmediate::Float(val1) => match other {
-                QImmediate::Float(val2) => val1 == val2,
-                _ => false,
-            },
-            QImmediate::Float(val1) => match other {
-                QImmediate::Float(val2) => val1 == val2,
-                _ => false,
-            },
+            QImmediate::Unsigned(val1) =>
+                match other {
+                    QImmediate::Unsigned(val2) => val1 == val2,
+                    _ => false,
+                }
+            QImmediate::Signed(val1) =>
+                match other {
+                    QImmediate::Signed(val2) => val1 == val2,
+                    _ => false,
+                }
+            QImmediate::Float(val1) =>
+                match other {
+                    QImmediate::Float(val2) => val1 == val2,
+                    _ => false,
+                }
+            QImmediate::Float(val1) =>
+                match other {
+                    QImmediate::Float(val2) => val1 == val2,
+                    _ => false,
+                }
             _ => false,
         }
     }
@@ -180,22 +192,34 @@ impl Add for QImmediate {
         let mut q = self;
 
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => val1 += val2,
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => val1 += val2,
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => val1 += val2,
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => val1 += val2,
-                _ => {}
-            },
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
             _ => {}
         }
 
@@ -210,22 +234,34 @@ impl Sub for QImmediate {
         let mut q = self;
 
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => val1 -= val2,
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => val1 -= val2,
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => val1 -= val2,
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => val1 -= val2,
-                _ => {}
-            },
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
             _ => {}
         }
 
@@ -236,22 +272,34 @@ impl Sub for QImmediate {
 impl AddAssign for QImmediate {
     fn add_assign(&mut self, rhs: Self) {
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => val1 += val2,
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => val1 += val2,
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => val1 += val2,
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => val1 += val2,
-                _ => {}
-            },
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
             _ => {}
         }
     }
@@ -260,22 +308,34 @@ impl AddAssign for QImmediate {
 impl SubAssign for QImmediate {
     fn sub_assign(&mut self, rhs: Self) {
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => val1 -= val2,
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => val1 -= val2,
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => val1 -= val2,
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => val1 -= val2,
-                _ => {}
-            },
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
             _ => {}
         }
     }
@@ -284,8 +344,8 @@ impl SubAssign for QImmediate {
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
 pub struct QData {
     pub i: QImmediate, // Immediate data type
-                       // pub l: QList,      // List objects
-                       // pub s: QStructure, // Structures objects
+    // pub l: QList,      // List objects
+    // pub s: QStructure, // Structures objects
 }
 
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
@@ -310,24 +370,26 @@ impl Default for QWord {
 
 impl Clone for QWord {
     fn clone(&self) -> Self {
-        let QWord::Whole(val) = self;
-        return QWord::Whole(*val); // easier to copy the u64
+        return match self {
+            QWord::Whole(val) => QWord::Whole(*val),
+            QWord::CdrTagData(val) => QWord::CdrTagData(*val),
+        };
     }
 }
 
 impl PartialEq for QWord {
     fn eq(&self, other: &Self) -> bool {
         match self {
-            QWord::Whole(mut val1) => match other {
-                QWord::Whole(val2) => val1 == *val2,
-                _ => false,
-            },
-            _ => false,
-            QWord::CdrTagData(val1) => match other {
-                QWord::CdrTagData(val2) => val1 == val2,
-                _ => false,
-            },
-            _ => false,
+            QWord::Whole(val1) =>
+                match other {
+                    QWord::Whole(val2) => val1 == val2,
+                    _ => false,
+                }
+            QWord::CdrTagData(val1) =>
+                match other {
+                    QWord::CdrTagData(val2) => val1 == val2,
+                    _ => false,
+                }
         }
     }
 }
@@ -338,11 +400,8 @@ impl Display for QWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             QWord::Whole(val) => write!(f, "QWord u64: {}", val),
-            QWord::CdrTagData(val) => write!(
-                f,
-                "QWord cdr: {}, tag: {}, data: {}",
-                val.cdr, val.tag, val.data
-            ),
+            QWord::CdrTagData(val) =>
+                write!(f, "QWord cdr: {}, tag: {}, data: {}", val.cdr, val.tag, val.data),
         }
     }
 }
@@ -351,34 +410,59 @@ impl Debug for QWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             QWord::Whole(val) => write!(f, "QWord u64: {}", val),
-            QWord::CdrTagData(val) => write!(
-                f,
-                "QWord cdr: {}, tag: {}, data: {}",
-                val.cdr, val.tag, val.data
-            ),
+            QWord::CdrTagData(val) =>
+                write!(f, "QWord cdr: {}, tag: {}, data: {}", val.cdr, val.tag, val.data),
         }
     }
 }
 
 impl Add for QWord {
-    type Output = Self;
+    type Output = Option<Self>;
 
-    fn add(self, rhs: Self) -> Self {
-        let QWord::Whole(val_lhs) = self;
-        let QWord::Whole(val_rhs) = rhs;
+    fn add(self, rhs: Self) -> Option<Self> {
+        return match self {
+            QWord::Whole(val_lhs) =>
+                match rhs {
+                    QWord::Whole(val_rhs) => Some(QWord::Whole(val_lhs + val_rhs)),
+                    _ => None,
+                }
 
-        return self::Whole(val_lhs + val_rhs);
+            QWord::CdrTagData(p_lhs) =>
+                match rhs {
+                    QWord::Whole(val_rhs) => None,
+                    QWord::CdrTagData(p_rhs) =>{
+                        let d = QImmediate::Unsigned(0);
+                        let mut q = QWord::CdrTagData({self.cdr().unwrap(); self.tag().unwrap(); d; });
+                        Some(
+                            QWord::CdrTagData({
+                                self.cdr().unwrap();
+                                self.tag().unwrap();
+                                p_lhs.data + p_rhs.data
+                            })
+                        )},
+                }
+        };
     }
 }
 
 impl Sub for QWord {
-    type Output = Self;
+    type Output = Option<Self>;
 
-    fn sub(self, rhs: Self) -> Self {
-        let QWord::Whole(val_lhs) = self;
-        let QWord::Whole(val_rhs) = rhs;
-
-        return self::Whole(val_lhs - val_rhs);
+    fn sub(self, rhs: Self) -> Option<Self> {
+        match self {
+            QWord::Whole(val_lhs) =>
+                match rhs {
+                    QWord::Whole(val_rhs) => {
+                        return Some(self::Whole(val_lhs - val_rhs));
+                    }
+                    _ => {
+                        return None;
+                    }
+                }
+            _ => {
+                return None;
+            }
+        }
     }
 }
 
@@ -404,76 +488,103 @@ impl QWord {
     pub fn cdr(self) -> Option<CDR> {
         match self {
             QWord::CdrTagData(p) => Some(p.cdr),
-            _ => return None,
+            _ => {
+                return None;
+            }
         }
     }
 
     pub fn tag(self) -> Option<QTag> {
         match self {
             QWord::CdrTagData(p) => Some(p.tag),
-            _ => return None,
+            _ => {
+                return None;
+            }
         }
     }
 
     pub fn data(self) -> Option<QImmediate> {
         match self {
             QWord::CdrTagData(p) => Some(p.data),
-            _ => return None,
+            _ => {
+                return None;
+            }
         }
     }
 
     pub fn u(self) -> Option<u32> {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Unsigned(val) => return Some(val),
-                _ => None,
-            },
-            _ => return None,
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Unsigned(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
         }
     }
 
     pub fn s(self) -> Option<i32> {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Signed(val) => return Some(val),
-                _ => None,
-            },
-            _ => return None,
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Signed(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
         }
     }
     pub fn f(self) -> Option<f32> {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Float(val) => return Some(val),
-                _ => None,
-            },
-            _ => return None,
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Float(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
         }
     }
     pub fn a(self) -> Option<u32> {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Addr(val) => return Some(val),
-                _ => None,
-            },
-            _ => return None,
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
         }
     }
 
     pub fn inc(self) -> Self {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Addr(addr) => {
-                    return QWord::CdrTagData(QCDRTagData {
-                        cdr: p.cdr,
-                        tag: p.tag,
-                        data: QImmediate::Addr(addr + 1),
-                    });
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        return QWord::CdrTagData(QCDRTagData {
+                            cdr: p.cdr,
+                            tag: p.tag,
+                            data: QImmediate::Addr(addr + 1),
+                        });
+                    }
+                    _ => {
+                        return self.clone();
+                    }
                 }
-                _ => {
-                    return self.clone();
-                }
-            },
             _ => {
                 return self.clone();
             }
@@ -482,18 +593,19 @@ impl QWord {
 
     pub fn dec(self) -> Self {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Addr(addr) => {
-                    return QWord::CdrTagData(QCDRTagData {
-                        cdr: p.cdr,
-                        tag: p.tag,
-                        data: QImmediate::Addr(addr - 1),
-                    });
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        return QWord::CdrTagData(QCDRTagData {
+                            cdr: p.cdr,
+                            tag: p.tag,
+                            data: QImmediate::Addr(addr - 1),
+                        });
+                    }
+                    _ => {
+                        return self.clone();
+                    }
                 }
-                _ => {
-                    return self.clone();
-                }
-            },
             _ => {
                 return self.clone();
             }
@@ -502,24 +614,26 @@ impl QWord {
 
     pub fn inc_mut(&mut self) {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Addr(addr) => {
-                    p.data = QImmediate::Addr(addr + 1);
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        p.data = QImmediate::Addr(addr + 1);
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
             _ => {}
         }
     }
 
     pub fn dec_mut(&mut self) {
         match self {
-            QWord::CdrTagData(p) => match p.data {
-                QImmediate::Addr(addr) => {
-                    p.data = QImmediate::Addr(addr - 1);
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        p.data = QImmediate::Addr(addr - 1);
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
             _ => {}
         }
     }
