@@ -1,0 +1,730 @@
+
+[index]
+## Index
+
+%p-store-contents instruction 226
+%%bignum-length 19 `%p-tag-dpb` instruction 153
+*bignum-sign 19 ep-tag-Idb instruction «152
+%%BYTE-OFFSET field 36 Ypointer-difference instruction 218
+%BYTE-PACKING field .36 %pointer-increment instruction 219
+%VCHAR-BITS 17 %pointer-plus instruction 217
+%YCHAR-CHAR-SET . 17 %read-internal-register. instruction - 220
+%RCHAR-STYLE 17 %restore-binding-stack instruction 190
+%%CHAR-SUBINDEX. 17 %set-cdr-code-n instruction 228
+%%DOUBLE-EXPONENT 22 `%set-tag` instruction 225
+Ye%eDOUBLE-FRACTION-HIGH 22 %sub-bignunrstep instruction. 136
+*.%%DOUBLE-SIGN 22 %tag instruction’ 224
+%%ELEMENT-TYPE field 36 Yunsigned-lessp instruction 213
+%YEVENT-COUNT field 36 ‘write-internal-register instruction _ 220
+%YSINGLE-EXPONENT 22 add instruction 113
+%YSINGLE-FRACTION 22 aloc-1. instruction 155
+RSINGLE-SIGN . 22 aloc-leader instruction 162
+%array-prefix-long 30 aref-1 instruction 154
+array-prefixshort 30 array-leader instruction. 161
+%header-lype-array 30 aset-1 instruction 154
+%header-type-bignum 19 ash instruction 131
+Yeheader-type-leader 30 agsoc instruction 100
+%wired-physical-address-low 59 bind-locative instruction 188
+%*wired-virtual-address-high 59 bind-locative-to-value instruction 188
+
+branch instruction 164
+10-bit-immediate Instructions 319 branch-false { -else} { -and}{-no-pop}{ -extra-pop} 164
+
+branch-true { -else} { -and}{ -no-pop} { -extra-pop)
+%32-bit-difference instruction 134 instruction 164
+%32-bii-pius instruction 133 car instruction 92
+%add-bignum-step instruction 135 `catch-close` instruction 196
+%allocate-list-block. instruction 214 `catch-open` instruction 195
+%allocate-structure-block instruction 216 cdr instruction 92
+%block-n-read instruction 169 ceiling instruction 120
+%block-n-read-alu instruction 171 : char-dpb instruction 151
+block-n-read-shift. instruction 170 char-ldb instruction 150
+%block-n-read-test instruction 172 decrement instruction 117
+%biock-n-write instruction 174 dpb instruction 149
+%check-preempi-request instruction 232 dip-array 30
+%coprocessor-read instruction 221 atp-array-Instance 17
+%coprocessor-write instruction 222 dip-big-ratio 22
+%divide-bignum-step instruction 138 `dtp-bignum` = 19
+%ephemeraip instruction 213 `dtp-call-compiled-even` instruction 175
+`%generic-dispatch` instruction 229 . dtp-call-compiled-evern-prefetch 175
+%hait instruction 233 `dtp-call-compiled-odd` instruction 175
+%header-type-instance 14 dtp-call-compifed-odd-prefetch 175
+%instance-loc instruction 211 atp-call-generic instruction | 177
+%instance-ref instruction 209 `dtp-call-indirect` instruction 176
+%instance-set instruction 210 `dtp-call-indirect-prefetch` 176
+%jump instruction 231 `dtp-character` 17
+%lshe-bignum-step instruction 139 dtp-complled-function 40
+%memory-read instruction 222 dip-complex 24
+%memory-read-address instruction 223 `dtp-double-float` 22
+%memory-write instruction 227 `dtp-dynamic-closure` 43
+Yemerge-cdr-no-pop instruction 229 `dtp-element-forward` 6, 8
+%messagé-dispatch instruction 230 dip-even-pe 46
+%muitiply-bignum-step instruction 137. dtp-oxternal-value-cell-pointer - 8
+Ymultiply-double instruction 134 `dtp-fixnum` 19
+%p-dpb instruction 152 `dtp-generic-function` 43
+%p-idb instruction 151 `dtp-header-forward` 6, &
+
+325
+dtp-header-| 6
+`dtp-header-p` 6
+`dtp-instance` 14
+`dtp-lexical-closure`
+`dtp-list` 24
+dtp-list-instance
+`dtp-locative`. 46
+`dtp-monitor-forward`
+`dtp-null` 10
+dip-odd-pe 46
+dip-one-q-forward 8
+`dtp-physical-address` 47
+`dtp-single-float` 22
+`dtp-small-ratio` 20
+- `dtp-spare-number`
+`dtp-string` 30
+`dtp-string-instance`
+endp instruction 108
+entry-rest-accepted instruction
+entry-rest-not-accepted 181
+eq instruction 102
+eq-no-pop 102
+
+eql instruction 102
+egt-no-pop 102
+equal-number instruction
+equal-number-no-pop
+fast-aref-1 instruction
+fast-aset-1 instruction
+finish-call-n_ instruction
+finish-call-tos instruction
+floor instruction 121°
+greaterp instruction . 104
+greaterp-no-pop 104
+increment instruction
+idb instruction 149
+lessp instruction 105
+fessp-no-pop 105
+focate-locats. instruction
+logand instniction 128
+logior instruction 129
+jogtest instruction 106
+logtest-no-pop 106
+jogxor instruction 130
+joop-decrement-tos instruction 166
+loop-inerement-tos-less-than instruction
+{sh instruction | 133
+
+max instruction 126
+
+member instruction 99
+
+min instruction 127
+
+minusp instruction 110
+
+movem instruction 142
+movem-instance-variable instruction 203
+
+43
+17
+
+10
+
+24
+17
+
+181
+
+103
+103
+158
+159
+179
+
+180
+
+116
+
+182
+
+167
+
+movenrinstance-variable-ordered instruction 207
+mover-lexical-var-n instruction 199
+
+multiply instruction 118 .
+
+ho-op instruction 227
+
+plusp instruction 109
+
+pop instruction 144
+
+pop-instance-variable instruction 202
+pop-instance-variable-ordered instruction 206
+
+pop-lexical-var-n instruction 198
+
+push instruction 141
+
+326
+
+push-address instruction 144
+push-address-instance-variable instruction 204
+push-address-instance-variable-ordered instruction
+push-address-sp-relative instruction 145
+push-Instance-variable instruction 201
+push-instance-variable-ordered instruction
+push-lexical-var-n instruction 198
+push-n-nils. instruction 143
+quotient instruction 119
+rational-quotient instruction
+remainder instruction 124
+`return-kludge` instruction
+`return-multiple` instruction
+`return-single` instruction
+rgetf instruction 98
+
+rot instruction 132
+round instruction
+rplaca instruction 96
+
+`rplacd` instruction 97
+set-sp-to-address instruction 144
+set-sp-to-address-save-tos instruction
+set-to-car instruction 93
+set-to-cdr instruction 94
+`set-to-cdr-push-car` instruction
+setup-td-array instruction 156
+setup-force-1d-array instruction
+Stack-bit instruction 146
+stack-bit-address instruction
+start-call instruction 178
+store-array-leader instruction
+store-conditional instruction
+sub instruction 114
+take-values instruction 186
+truncate instruction 122
+type-member-n instruction
+type-member-n-no-pop
+unary-minus instruction
+unbind-n instruction 189
+unsigned-lessp-no-pop 213
+zerop instruction 111
+
+208
+
+205
+
+125
+
+185
+184
+183
+
+123
+
+145
+
+95
+157
+147
+
+161
+225
+
+107
+107
+115
+
+Aborting Calls 257
+
+Accesses to Arbitrary Instances 209
+
+Accessing Instance Variables 278
+
+Address or immediate data 2
+
+Address Space 57
+
+Address Translation 60
+
+Address width 57
+
+Appendix: Comparison of 3600-Family and I-Machine Data
+
+: Representations 52
+
+Appendix: Comparison of 3600-Family and I-Machine
+Exception Handling: 295
+
+Appendix. Comparison of 3600-Family and 1-Machine
+Function-Calling 282
+
+Appendix: Comparison of 3600-Family and [-Machine
+Instruction Sets 233
+
+Appendix: Comparison of 3600-family and |-machine
+Memory Layout and Addressing 69
+
+Architecturatly defined fields of a flavor 14
+
+Areas 57 «
+
+Arguments: the Data Types Accepted 84
+
+Arithmetic Traps 287 .
+Array Differences 54
+
+Array Instances 17
+
+Array Operations 154
+Array.register 30
+
+Array register: array length 36
+Array register: base address. 36
+Array register: control word - 36
+
+Base Registers 242
+Big-Ratio Representation 22
+Bignum Representation 19
+Bind-Read Operations 87
+Bind-Write Operations. 88
+Binding Instructions. 188
+
+- Binding Stack 244
+Block Instructions 169
+Branch and Loop instructions 164
+
+Calling a Generic Function 277
+
+Catch Blocks 192
+
+Catch Instructions 192
+
+Catch, Throw. and Unwind-Protect 271
+`catch-block-binding-stack-pointer` 192
+`catch-block-continuation` | 192
+`catch-block-pc` 192
+
+`catch-block-pointer` 192
+`catch-block-previous` 192
+`catch-block-tag` 192
+
+Cdr code 24
+
+Cdr code tag 2
+
+Cdr Codes of Values. Retumed 90
+CDR-Read Operations 87
+
+Classes of Stored Object Representations 3
+Collision-count mechanism 63
+
+Compiled Function Differences 56
+Complex-Number Representation 24
+Components of Stored Representations 6
+Constant Formats 80
+
+Constants 43
+
+Continuation register 245
+
+Control register 245
+
+Control register Apply field 245
+
+Control register Arg-size field 245
+Control register Call-started field 245
+Control register Cleanup-bits field 245
+Control register Extra-argument field 245
+Control register Frame-size-of-callar field 245
+Control register Instruction-state field 245
+Control register Trap-mode field . 245
+Control register Value-disposition field 245
+Control. Stack 241
+
+Control Stack Addressing Modes 83
+Control Stack Frames 241
+
+Data Stack 245
+
+Data type tag 2
+
+Data Types for Program Counter Values 50
+Data-Movement Instructions 144
+Data-Read Operations 86
+
+Data-Type Code Assignments 48
+Data-Type Descriptions 13
+
+Data-Write Operations 86
+
+327
+
+Division Operations That Return Two: Values 120
+Double-Precision Floating-Point Representation 22
+Dip-nil 13
+
+`dtp-symbol` 13
+
+Emulator trap mode 285
+Encadings 321
+End-collision-chain bit 63
+Entry instruction 40
+Entry-instruction Format 80
+Entry-rest-not-accepted 181
+Ephemeral Addresses 58
+Ephemeral level number ‘58
+Ephemeral-oldspace register
+Enor Traps 286
+
+Event count 36
+
+Exception Handling 283
+Exceptions 286
+Explanation of instruction Definitions 75
+Extra-stack trap mode 285
+
+59, 60
+
+Fep trap mode 285
+
+FEP-made Traps 293
+Field-Extraction instructions 149
+Fields 2
+
+Finish-call--tos-apply 180
+Finish-call-n-apply 179
+
+Finishing the Call 253
+
+Fixnum Representation 19
+
+Flavor 276
+
+Flavor instances 14
+Ftavor-description structure 14
+Flavors 14
+
+Format for 10-Bit immediate Operand 82
+Format for Branch instructions 82
+Format for Field Extraction 82
+Format for Operand From Stack 83
+
+‘Formats 317
+
+Forwarding (Invisible) Pointers 8
+
+Frame Cleanup 270
+
+Frame pointer 245
+
+Full-Word Instruction Data Types 51
+
+Fuli-Word instruction Formats 75
+
+Full-word instructions 43
+
+Function Calling 249
+
+Function Calling, Massage Passing, Stack-Group. Switching
+241
+
+Function cell 40
+
+Function Entry 257
+
+Function Return instructions 266
+
+Function Returning 266
+
+Funetion-Calling Data Types 175
+
+Function-Calling Instruction Formats 75
+
+Funetion-Calling Instructions 175
+
+Garbage-Collection Operations 89
+
+GC Support §9
+
+Generic function 14
+
+Generic Functions 43
+
+Generic Functions and Message Passing 275
+
+Half-Word Instruction Datla Types 51
+328
+
+Handler table 14, 276
+
+Handler table key 14
+
+Handler table parameter 14
+
+Header-Read Operations 88
+
+Headers 6
+
+Headers, Special Markers, and Forwarding Pointers 48
+High-speed I/O trap mode 285
+
+Hints for Software Developers 309
+
+|-Machine Array Registers 36
+lliegal instruction Formats 80
+Immediate object 3.
+immediate abject references 6
+Instance Data Types 49
+- Instance descriptor’. .14
+Instance Variable Accessors 201
+Instance variables 14
+Instances 14
+Instruction Classifications for Packed Instructions 317
+Instruction Exceptions 287
+Instruction Formats 75
+Instruction Representation 43
+Instruction Sequencing 73
+Instructions for Accessing Array Leaders 161
+Instructions for Accessing One-Dimensional Arrays
+Instructions for Creating Array Registers 156
+Instructions for Fast. Access of Arrays 158
+Instructions for Starting and Finishing Calls
+Internal Registers 75
+Interrupt levels 285
+Interruptible instructions 98
+introduction 73
+introduction to Lisp-Machine Objects 2
+
+154
+
+178
+
+Length and Format 2
+Lexical Variable Accessors
+Lisp-Machine Data Types i
+List instances 17
+
+List object 3
+
+List-Function Operations 92
+Local pointer 245
+
+198
+
+Macroinstruction Set 73
+
+Mapped Accesses to Self 201
+Memory cycle types 85
+
+Memory Exceptions 289
+
+Memory Layout and Addressing 57.
+Memory Words 2
+
+Message name 14
+
+Message passing 14
+
+Method 14
+
+Notes on Future implementations of the Ivory Chip 315
+Notes. on i-Machine Architecture History 305
+
+Number Data Types 49
+
+Numeric Operations 113
+
+Object References 6
+
+Object references by address 6
+Operand specifier 83
+Operand-from-stack instructions 317
+Operand-Reference Classification 12
+
+Packed data 30
+
+Packed Half-Word Instruction Formats
+Packed instructions 43
+Page access attributes
+Page Hash Table 60
+Page size 59
+
+Pages 59
+
+PHT age field 60
+
+PHT ephemeral-reference field 60
+PHT fault-request bit . 60
+
+PHT hash function 63
+
+PHT Lookup Algorithm 63
+
+PHT modified field 60
+
+PHT transport-trap bit
+PHT write-protect bit
+PHT-BASE register
+PHT-MASK register
+Pname 13
+
+Pointers 6
+Predicate Instructions
+Preempt-pending bit
+Preempt-request bit
+Preemption 291
+Primitive Data Types “49
+Processor Faults 293
+Program-Counter Representations
+`pull-apply-args` 261
+`pull-apply-args` Exception
+`push-apply-args` 259
+
+Pushing the Arguments 253
+
+80
+
+60
+
+60
+60
+60
+60
+
+102
+291
+291
+
+46
+
+293
+
+Quanta 57
+
+Regions 57
+Registers Important to Function Calling and Returning
+245
+Representation of Characters 17
+Representation of Compiled Functions 40
+Representation of Dynamic Closures 43
+Representation of Lexical Closures 43
+Representation of Locatives 46
+Representation of Physical Addresses 47
+Representations of Arrays and Strings 30
+Representations of Functions and Closures 40
+Representations of Instances and Related Data Types
+Representations of Lists 24
+Representations of Numbers
+Representations of Symbols
+Reset and Init 285
+Restoring stack 141
+Revision 0 %Allocate-list-block 298
+Revision 0 %Allocate-structure-block
+Revision 0 %Block-n-read-alu 298
+Revision 0 %Block-n-read-shift .298
+
+19
+13
+
+298
+
+Revision 0 %Block-n-read-test 299
+Revision 0 Aset-1 298
+Revision 0 Binding instructions 298
+
+Revision 0 Branch and Loop Insiructions 299
+Revision 0 Entry-rest-accepted 299
+Revision 0 Fast-aset-1 299
+
+Revision 0 implemeritation Exception Handling Features
+
+14
+329
+
+300 Valid array types 36
+Revision 0. Implementation Features 297 Vaiue Cell Contents 80
+Revision 0 Implementation Function-Calling Features 300 Value Matchup 271
+Revision 0. tmplementation instruction Features 298 Virtual Addresses — 57
+Revision 0 Implementation Memory Features~ 297 Virtualz physical region - 58
+Revision 0 Init PC. 301
+Revision 0 Loop-decrement-tos 299 Wired Addresses 59
+Revision 0 Loop-increment-tes-less-than 299
+Revision 0 Memory. Exceptions 300 Zone-oldspace register 59, 60
+Revision 0 Numeric Operations 299 Zones. 57 :
+
+Revision 0 Opcode 57. 299
+Revision 0 `return-kludge` 300
+Revision 0 `return-single`’ 299
+Revision 0 Sequence Breaks 301
+~ Revision 0 Stack-bit _ 300
+Revision 0-Stack-bit-address 300
+Revision 0 Traps for Processor Faults 301
+Revision 0 Unbind-n . 300
+Ravision. 0 Unbinding 301
+
+Sending a Message 278
+
+Sequence Breaks 290
+
+Single-Precision Floating-Point Representation 22
+Smail-Ratio Representation 20
+
+Special Marker for Garbage Collector 50
+Special Markers 10
+
+Spread arguments 242
+
+Stack Groups on the | Machine 310
+Stack Overflow 290
+
+Stack pointer 245
+
+Stack-Group Switching 280
+
+Stacks 241
+
+Starting a Function Call 249
+
+String Instances 17
+
+Structure object 3
+
+Structure-Offset Operations 88
+Subprimitive tnstructions 213
+
+Summary of Omitted 3600 Instructions. 308
+SYMBOL-FUNCTION-CELL 13
+SYMBOL-PACKAGE-CELL 13
+SYMBOL-PROPERTY-CELL 13
+SYMBOL-VALUE-CELL 13
+
+The Extra Stack 285
+
+The Instructions 91
+
+The Spare-Number Type 24
+
+Top-of-Stack Register Effects 89
+
+Trace Traps 292
+
+Translation Algorithm 66
+
+Trap Modes 285
+
+Trap Vector .286 .
+
+Trap Vector:Layout 294
+
+Trapping Out of Entry and Restarting 266
+Trapping Out of Finish-call.and Restarting - 257
+Traps in General 283
+
+Types of instruction Exceptions 84
+Types of Memory References 85
+
+Unchecked Operands 89
+Unmapped Accesses to Self 205
+Unmapped Addresses 58

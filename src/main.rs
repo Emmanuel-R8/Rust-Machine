@@ -3,7 +3,6 @@
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
 
-
 #[macro_use()]
 extern crate num;
 extern crate num_derive;
@@ -22,6 +21,7 @@ mod world {
 }
 mod hardware {
     pub mod cpu;
+    pub mod instructions;
     pub mod machine;
     pub mod memory;
     pub mod network;
@@ -33,6 +33,7 @@ mod life_support {
 
 mod emulator {
     pub mod config;
+    pub mod disassembly;
     pub mod emulator;
 }
 
@@ -50,11 +51,9 @@ use std::fs::File;
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 
-
-
 pub fn main() {
     // Global state
-    let mut ctx : GlobalContext = GlobalContext::new();
+    let mut ctx: GlobalContext = GlobalContext::new();
     ctx.cpu.initialise();
 
     let mut args: Vec<String> = Vec::new();
@@ -82,7 +81,6 @@ pub fn main() {
     let mut config = VLMConfig::default();
     let mut enable_IDS_p = config.enableIDS;
     let mut trace_p = config.tracing.tracePOST;
-
 
     // let TestFunction = config.testFunction;
 

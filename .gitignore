@@ -1,10 +1,13 @@
 # Rust
 Cargo.lock
 
+# R
+.Rhistory
+.Rdata
+
 # Project
 /target
 /data/*
-/docs/*
 /src/generated/*
 
 # Editors
