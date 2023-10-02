@@ -1,0 +1,1490 @@
+# Revision 0 Implementation Features
+
+## Revision 0 Implementation Memory Features
+
+Revision 0 of the Ivory chip implements the following fields for ephemeral address:
+
+Position Meaning
+
+<31:27> @@08@ => ephemeral, otherwise non-ephemeral
+<26:22> ephemeral level number
+
+<26:25> ephemeral }evel group number
+
+<2t> which half of the ephemeral level
+
+<28:8> word address within an-ephemeral level
+
+The comparison used Revision 0 in the inner loop of the PHT search is
+
+```
+(and (= (ldb %%pht0-vpn entry) vpn)
+(= (ldb %%pht0-fault-request entry) 0))
+```
+
+A page-fault-request trap will not be taken if the %%pht0-fault-request bit is 1;
+this simply causes the entry not to match, eventually resulting in a page-not-
+resident trap instead.
+
+The Revision 0 implementation. always traps when executing an.instruction from a
+page with transport-trap=l. Later implementations may.be able to do an actual
+oldspace check in this case.
+
+The Revision 0 implementation of Ivory does update a PHT entry by ORing the
+new bits in, but it does not use an interlocked bus read/write cycle. .
+
+Revision 0 of the Ivory chip sets the PC to VMA=PMA address 0 on receiving
+INIT.
+
+The actual pht lookup algorithm for Revision 0 of the Ivory chip is:
+
+```
+(defun pht-lookup (vpn)
+  (flet ((search-bucket (pht-offset)
+           (loop repeat 4
+              initially (setf (%block-address) (+ pht-base pht-offset))
+              for entry = (%block-read)
+              do (if (and (= (ldb %%pht@-vpn entry) vpn)
+                          (= (ldb %%pht@-fault-request entry) 0))
+                     (return-from pht-lookup
+                       (values entry (%block-read)))
+                     (%block-read))
+              finally
+              ;; If at-end of collision chain, fail.
+                (when (= (ldb %%pht0-collision-chain entry) 1)
+                  (return-from pht-lookup ()))))))
+  (search-bucket (logand (pht-hash vpn) pht-mask))
+  (loop for state = (pht-next vpn)
+     then (pht-next state)
+     do (search-bucket (logand (lsh state 3) pht-~mask))))
+```
+
+
+## Revision 0 implementation Instruction Features
+
+The following text describes characteristics of the Revision 0 implementation of
+the I-machine architecture.
+
+Revision 0 `%Allocate-list-block` Takes an instruction exception if `arg1` is nil.
+
+Revision 0 `%Allocate-structure-block` Takes an instruction exception if `arg1` is nil.
+
+Revision 0 `Aset-1` does not check for the high-order 24 (16) bits of `dtp-character` arguments being
+0 when storing such arguments into 8(16)-bit arrays.
+
+Revision 0 Binding Instructions `%restore-binding-stack`, `unbind-n`, and the return instructions performing
+unbindings when the cleanup bit is set do not check for binding-stack underflow in
+Revision 0.
+
+Revision 0 `%Block-n-read-alu`  performs overflow detection for exceptions but does not allow the memory
+operand to be in the stack cache. User programs must be sure that that the
+operands are not in the stack cache to insure proper operation. Does not take the
+shift mask specification from the DP OP register.
+
+Revision 0 `%Block-n-read-shift` will not work with ECC errors.
+
+Revision 0 `%Block-n-read-test` only implements the eq condition.and the true sense. The alu-op field of the
+DP Op register must be loaded with ".subtrac". in order to-use the instruction.
+Needs to have the oldspace condition added.
+
+Revision 0 Branch and Loop Instructions
+
+Revision: 0 conditional branch instructions take an exception if the bottom eight
+bits of the offset are all 0. (as opposed to all 10 bits being 0). This effectively
+limits the branch distance to plus or minus 128, but the compiler could be smart
+about this. branch to the next instruction is the fastest no-op, except for skipping
+an instruction entirely via. cdr-code sequencing.
+
+Revision 0 `Entry-rest-accepted` and `entry-rest-not-accepted` do not perform correctly when doing a
+`pull-apply-args` operation when. the rest argument (or tail) is an item of type
+`dtp-list-instance` in the stack cache.
+
+Revision 0 `Fast-aset-1` does not check for the high-order 24 (16) bits of `dtp-character` arguments being
+0 when storing such arguments into 8(16)-bit arrays.
+
+Revision 0 `Loop-decrement-tos`  does not check overfiow conditions. Uses zerop for the check rather than plusp.
+
+Revision 0 `Loop-increment-tos-less-than` does not check overflow conditions.
+
+Revision 0 Opcode 57 jumps to a totally random address after pushing D.PC.on the stack.
+
+Revision 0 Numeric Operations There will be no floating-point support in the Revision 0 chip.
+
+Revision 0 `return-single` When the value disposition is “for value". the cdr code is the cdr code of the top
+of stack or it is `cdr-next` for t or nil.
+
+
+Revision 0 Return-kludge Sets the cdr codes.of all values to `cdr-next`.
+
+Revision 0 Stack-bit ' », sets the cdr code of the operand to `cdr-next`.
+
+Revision 0 `Stack-bit-address` sets the cdr code of the operand to `cdr-next`.
+
+Revision 0 Unbind-n
+
+Revision 0 of the Ivory chip, when unbinding, only checks the preempt-request bit
+when the trap mode is zero.
+
+## Revision 0 implementation Function-Calling Features
+
+The Ivory chip uses a scratchpad register to hold the value of
+`%stack-frame-maximum` size, which, with `stack-cache-size` being 128, is
+currently 119.
+
+In Revision 0, if control-register.trace-pending would be set upon normal
+completion of an instruction, but the instruction pre-traps instead, control-
+register.trace-pending will incorrectly be set in the saved control-register
+image of the pre-trap handler.
+
+In Revision 0, if control-register instruction-trace is 1 at the beginning of a
+return instruction, and the return instruction restores a control-register with
+the trace-pending bit 0, control-registe .trace-pending (and the corresponding
+trace-trap) may or may not be set at the completion of the return instruction.
+
+In Revision 0, when a return instruction with value disposition return restores a
+control-register with trace-pending set, the trace-trap will be lost. Only the trace-
+pending bit of the last control-register restored is significant.
+
+Revision 0 of the Ivory chip cannot handle faults during stack cache refill,
+
+## Revision 0 Implementation Exception Handling Features
+
+The following text describes characteristics of the Revision 0 implementation of
+the I-machine architecture.
+
+Revision 0 Memory Exceptions
+
+The revision 0 implementation of the Ivory chip takes an uncorrectable-memory-
+error trap when it should take a bus-error trap. :
+
+Revision 0 Sequence Breaks
+
+Sequence breaks vector through only one place in microcode. That microcode then
+examines a register to decide whether the sequence break is high-priority or low-
+priority. This is only visible to the user if a high-priority sequence break. is
+requested and, before the microcode can exectite the start of the sequence break
+microcode, the high-priority sequence break goes away. In this case, because of the
+order of polling in the microcode; the chip will take a low-priority. sequence break
+(although the low-priority bit might not be set in the preempt register).
+
+Revision 0 Traps for Processor Faults
+
+The Revision 0 chip only halts for a stack overflow while using extra-stack mode.
+It does not halt for any of the other reasons listed in the Processor Faults section
+in the Exceptions chapter. The architectural issues of processor-fault handling
+have not yet been resolved.
+
+The Revision 0 chip does not resporid to reset when halted.
+
+Page faults currently do not work, since it is not possible for an instruction.
+to look like it has finished without actually transferring control to the next
+instruction’s microcode. This means that either the entire control stack must be
+wired down and scavenged, or that the trap-on-exit bit must be used to cause a
+trap when more stack must be wired down. At the same time that the stack is
+wired down, it must be transported for proper operation.
+
+Revision 0 Unbinding
+
+See the section".Revision 0 Unbind-"..
+
+Revision 0 Init PC
+
+Revision 0 Init sets the PC to VMA=PMA 0.
+
+# Summary of Omitted 3600 Instructions
+
+sa; These are supported only if the floating point chip supports them
+ZCONVERT-SINGLE-TO-F IXNUM ZDOUBLE-~FLOATING-ABS, ZDOUBLE-~FLOATING-ADD, ZOQUBLE-FLOATING-COMPARE ,
+ZDOUBLE-FLOATING-DIVIDE, 2DOUBLE-FLOATING-MINUS,
+ZDOUBLE-FLOATING-MULTIPLY, ZDOUBLE-FLOATING-SCALE, ZDQUBLE-FLOATING-SUB
+FLOAT-OPERATING-MODE , FLOAT-DPERATION-STATUS, SET~FLOAT-OPERATING-MODE, SET-FLOAT-OPERATION-STATUS
+
+Will not be implemented:
+
+FOLLOW-CELL-FORWARDING %memory-read-address data-read or bind-read
+FOLLOW-STRUCTURE-FORWARDING %memory-read-address struct-offset
+LOCATION-BOUNDP (/= (%data-type (%memory-read bind-read) `dtp-null`)
+ZP-STRUCTURE-OFFSET. %memory-read-address followed by %pointer-plus
+ZP-CONTENTS-~AS-LOCATIVE -Yomemory-read-address followed by `%set-tag`
+ZP-CONTENTS-OFFSET (cdr (%p-structure-offset ...)
+
+Unclassified:
+
+NOT -. Implemented by type-member
+
+LONG-BRANCH-IMMED
+
+PUSH-MICROCODE~ESCAPE-CONSTANT
+
+ZDRAW-STRING-STEP, ZBITBIT-DECODE-ARRAYS, ZBITBIT-LONG,
+ZBITBIT-LONG-ROW, ZBITBIT-LONG-ROW-BACKWARDS , ZBITBIT-SHORT,
+ZBITBIT-SHORT-ROW, ZORAW-LINE-LOOP, ZORAW-STRING-LOOP,
+ZDRAW-TRIANGLE-~SEGMENT, SOFT-MATTE-—DECODE-ARRAYS, SOFT-MATTE~INTERNAL
+
+Lisp Instructions:
+ZSAVE-BINDING-STACK-LEVEL
+
+- Implemented as an internal register
+CONS
+NCONS
+
+Function-Calling instructions:
+
+TAKE-ARG, TAKE-M~REQUIRED-N-OPTIONAL-ARGS,
+TAKE-M—REQUIRED-N-OPTIONAL-ARGS-REST., TAKE-N-ARGS, TAKE-N-ARGS-REST,
+TAKE-N-OPTIONAL~ARGS, TAKE-N-OPTIONAL-ARGS-REST, TAKE-REST-ARG,
+
+Fortran Array Instructions: (This might make it in, but I think we will
+be too tight on".B” memory locations and microcode)
+
+FTIN~ALOC-1,. FTN-AREF-1, FTN-ASET~1
+
+FTN-DOUBLE~ALOC-1, FTN-DOUBLE-AREF~1, FTN-OOUBLE-ASET-1
+FTN-LOAD-ARRAY-REGISTER
+
+Low-Level Hardware:
+
+ZAUDIO-START, ZCHECK-PREEMPT-PENDING, ZCLEAR-CACHES,
+ZCLEAR-INSTRUCTION-CACHE , ZDISK-START,
+ZRESUME~MAIN-STACK-BUFFER, ZFUNCALL=IN-AUXILIARY-STACK-BUFFER,
+ZFEP—DOORBELL ,
+
+ZFIXNUM, ZFLONUM
+
+ZGC-MAP-WRITE, ZGC-TAG-READ, ZGC~TAG-WRITE,
+
+2MAP-CACHE-WRITE
+
+A@METER-OFF, %METER-ON
+
+ZMICROSECOND~CLOCK
+
+ZNET~WAKEUP
+
+ZNUMERIC-DISPATCH-INDEX
+
+ZPHTC-READ, ZPHTC-SETUP, ZPHTC-WRITE
+
+ZPHYS ICAL-ADDRESS-CACHE ,
+
+ZREFERENCE-TAG-READ, ZREFERENCE-TAG-WRITE
+ZSCAN~FOR-ECC-ERROR, ZSCAN-FOR-EPHEMERAL~SPACE, 2SCAN~FOR-OLDSPACE
+ZSCAN~GE-TAGS, ZSCAN-REFERENCE-TAGS, ZSET-PREEMPT-PENDING,
+ZTAPE~WAKEUP, ZUNSYNCHRONI ZED-DEVICE-READ
+
+333 Replaced by Bars
+ZBLOCK-GC-COPY, ZBLOCK-TRANSPORT
+ZBLOCK-STORE-COR-AND-CONTENTS, ZBLOCK-STORE-TAG-AND-POINTER
+
+333; Open coded
+
+POP-MULTIPLE, POP-MULTIPLE-SAVE-1, POP-MULTIPLE-SAVE-N,°
+POP-MULTIPLE~SAVE—MULTIPLE
+
+POP-N-SAVE-MULTIPLE, APPEND-MULTIPLE-GROUPS, PUSH-FROM-BEYOND-MUL TIPLE
+FIXUP-TOS (MOVEM SP|@)
+
+ZMAKE-POINTER- IMMED-OFFSET
+
+# Notes on I-Machine Architecture History
+
+Data-Types Chapter -- Representations of Arrays
+
+A prototype of the precise algorithm to be used when accessing an indirect
+array, using the 3600 array format instead of this array format, can be found in
+the file V:>Moon>IMach>3600>array.lisp. This was translated from the existing,
+working 3600 microcode.
+
+Some static analysis of arrays, in a system 311 world that been used for a week:
+
+99.65% of all arrays. are one-dimensional.
+
+2-dimensional and 3-dimensional arrays exist; no higher-dimensional or
+O-dim arrays.
+
+The average size of an array is 38 words.
+
+There is no category of arrays whose average size is larger than will
+
+fit in 15 bits; unfortunately I didn’t measure the size distribution
+
+of arrays directly, so.I don’t know the percentage of arrays whose
+
+size will not fit in 15 bits, but it must be very small.
+
+All array types are used at least once.
+
+The maximum leader length seen is 38-elements.
+
+Unfortunately I didn’t measure what fraction of arrays are displaced.
+--Moon
+
+The longest array-leader observed was 38 elements, so a maximum limit of 255
+elements should not be restrictive. The maximum on the 3600 is 1023.
+
+The leader header uses `dtp-header-p` rather than `dtp-header-i` because there were
+more spare header-type codes available for that type of header.
+
+More information from Rel 6.1
+
+99.54% of the arrays are one-dimensional, of which 99.54 are direct (not
+displaced). . Totals: 453049 arrays, 450961 one-dim, 448900 direct one-dim, 2061
+indirect one-dim. The distribution of the LOG2(LENGTH) is as follows:
+
+12493;
+16181;
+35781;
+130128;
+93681 ;
+85788;
+44853;
+
+Quon o
+
+
+7: 26594 ;
+8: 2447;
+9: 873;
+78: 615;
+41: 324;
+42: 48;
+43: 25;
+44: 28;
+15: 42;
+16: &;
+47: 3;
+19: 41;
+
+3
+
+20:
+
+28.33% of those arrays have a leader
+The distribution of the LOG2(LEADER-LENGTH) is as follows:
+@: 2;
+7962;
+5878;
+3428;
+73835,
+181;
+1,
+
+Oar wr ss
+
+Data-Types Chapter -- Representations of Compiled Functions
+
+Not only does this (using the cdr code 1 as-a fence) avoid loading the
+instruction cache with extraneous words from functions other than the one being
+‘executed, but more importantly it avoids a subtle bug involving fetchahead past
+the free- pointer for allocation of compiled code, after a sequence of timing
+coincidences has left words there containing valid data types for instructions,
+The bug is that obsolete data could get into the instruction eache and not get
+cleared out when a new function was created at the same address. :
+
+Note that the design is intended to put the function cell and the entry
+instruction both on the same page and in the same cache line, minimizing
+the.cost of indirecting through a function cell. The loader may want to insert
+extra words to keep compiled functions aligned on appropriate boundaries so that
+the function ceil and entry instruction always fall into the same cache line, if
+we have a cache.
+
+Data-Types Chapter -- Instruction Representation
+
+This scheme, different from the 3600, is. designed to eliminate the
+constants/external-reference table in a compiled function and thereby to enable
+prefetching of such data through the normal instruction pipeline. This saves
+time and simplifies the hardware by eliminating an addressing mode. H says the
+average number of references per constant is small enough that’this actually
+saves space, compared to the 3600. In cases. where there are many. calls to the
+same function or references to the same constant, the compiler can attempt.to
+encache it in a local variable.
+
+Data-Types Chapter -- Representation of Physical Addresses:
+
+BARs need to store 33 bits, the 33rd bit being the `dtp-physical-address`’ness of the
+pointer field.
+
+The BAR incrementer only increments the pointer field; it leaves the dtp-physical-
+address’ness alone.
+
+The FAST-AREF/ASET-1 ucode/hardware adds the offset to the pointer field of the
+array register base address slot and preserves the `dtp-physical-address`’ness on the
+way to the BAR.
+
+The input to the map cache now has three possibilities instead of two:
+
+- mapped virtual address
+- VMA=PMA virtual address
+- `dtp-physical-address` physical address
+
+The possibilities for cache-control output lines/signals/meanings for each of the
+above should be discussed separately. The thing I think we all agree on is that
+data referenced with `dtp-physical-address`es are never cached.
+
+Memory Chapter -- Wired Addresses:
+
+The 3600-family feature where some portion of virtual address space defined by a
+control register (%wired-virtual-address-high) is mapped to a contiguous portion
+of unmapped address space defined by another control register(%wired-physical-
+address-low) is eliminated, to simplify the hardware. This reduces configuration
+flexibility by requiring that some portion of unmapped address space starting at
+a fixed physical address, presumably 0, must always contain working memory; this
+is not a problem if that memory is packaged right on the CPU board. The
+permanently-wired programs and data that on the 3600 are stored in virtual
+address space below %wired-virtual-address-high will instead be stored at
+physical addresses.
+
+Memory Chapter -- Pages:
+There has been a lot of discussion. about increasing the page size. There are a lot
+of variables involved, including:
+
+- Page tables (PHT and MMPT, not SMPT or ESRT) can be smaller for larger page
+sizes. This isn’t that large an effect -- 256 word pages yield about 1.9%
+overhead, 512 yields 1.0%, and 1024 yields 0.4%. All of these figures are
+tolerable, and well below a number of comparable (sic) systems.
+
+- Overhead of managing page tables is lower with larger page sizes. The only
+place where this is significant is in creating new pages.. However,
+reorganization of the code and algorithms can compensate. In fact, there is very
+significant progress to be made here before the effect: of page size gets out of
+the noise.
+
+- Larger page sizes mean there are more untranslated bits available (presumably
+the processor can spit these out 1/2 cycle earlier) for data caches and clever
+dynamic ram organizations to take advantage of.
+
+- A given size map cache describes more storage if the page size is larger.
+However, according to the literature, the primary contributors to map cache
+performance are number of entries, associativity, and replacement algorithm
+
+- Gin roughly that order), with page size a distant fourth.
+
+e The instruction prefetcher faults crossing page boundaries.
+That’s about it for the pros. On the con side are:
+« Larger page sizes reduce primary memory utilization.
+
+- Larger page sizes reduce the ability of the EGC to isolate ephemeral
+references. The EGC keeps track of ephemeral references on a ‘per-page basis --
+any page thought to contain such references needs to be scanned, If there is
+poor locality of such references, the amount of scanning required per garbage
+collection will increase proportional to the page size. This is an important
+effect, since as main memory sizes increase the amount of EGC scanning
+increases, but the memory bandwidth and processor speed will stay relatively
+const nt. °
+
+Some perfunctory analysis indicated that the reduced primary memory utilization
+of larger page sizes was a very significant effect, and on that evidence (and
+conservatism in general) the page size was left at 256 words.
+
+In Release 6.0, the function with the largest number of required+optional
+varguments is TV:DRAW-TRIANGLE-SETUP, which takes 15 arguments.
+
+
+# Hints for Software Developers
+
+Data-Types. Chapter
+
+Double-precision Floating-point Representation: Similar to the 3600, except that a
+cons is used instead of a structure to eliminate the overhead of a header word.
+
+Note that the two halves of the number are being stored in arguably the wrong
+order, since. the least-significant bits of the fraction should be first. This is
+consistent with the 3600. The real basis for deciding should be the order that
+data are fed into the double-precision floating-point processor chip, if there is one.
+
+Memory Chapter
+
+The system must ensure, or arrange, that there are never any safeguarded objects
+in about-to-be oldspace. The 3600 solves this by simply not flipping that region,
+but that might not be easy on this machine, especially ephemeral space.
+
+Memory Chapter
+The fields in an MMPT entry are: (these fields aren’t known to hardware)
+
+bits 31:8 -- VPN -- the virtual page number now in this physical
+page, -1 if invalid.
+- bit 7 -- FLUSHING --.1 => VPN will. change when disk write completes.
+- bit 6 -- WRITE LOCK -- 1 => don’t reassign the page (being written
+to disk?).
+- bit 5 -- STACK -- 1 => this page is held in main memory because
+| it’s a stack.
+bit 4 -~ spare
+bits 3:8 -- status code, defined by software (3688 uses 18 codes)
+
+Explanation of PHT.PENDING: Hardware does not look at the PHT.PENDING
+bit. If it is set, PHT.FAULT-REQUEST is also set, by software convention.
+PENDING is set when a page is being read in from disk, but first another page
+has to be written out from the memory page frame the new page is going to
+occupy. In this situation, there are two PHT entries pointing to the same physical
+page. Each of them has FAULT REQUEST set, and one of them also has
+PENDING set. The MMPT entry for that physical page contains the information
+needed by the page-fault trap-handling software to figure out what is going on.
+
+Compromises: AGE bits would really rather be in the MMPT. Setting of
+EPHEMERAL REFERENCE bits would really rather be in parallel with memory
+access. I don’t think either of these will have a significant effect on performance,
+in practice. ©
+
+
+
+Instruction Chapter -- rgetf
+
+Additional instructions can be used. together with rgetf to implement the -zl:get,
+zi:putprop, ckget, and cl:getf functions and to implement &key arguments. rgetf
+is often followed by either an instruction to pop the second value or a branch
+instruction that tests the second value and if it is nil pops both values and goes to
+code to substitute a default value.
+
+(get loc arg2)
+should be
+(getf (location-contents
+..) arg2)
+ckget is
+push. arg2
+push symbol
+type~-member-n—-no-pop ;symbolp -
+branch-false .
+Zpointér-plus 4
+Zmemory-read data-read
+rgetf sp-pop
+set-sp-to-address SPi-1
+
+rgetf stands for".reverse getf” because the argument order is reversed from
+ckgetf.
+
+Instruction Chapter - logtest
+
+logtest is commutative, so that if there is a small integer, logtest should commute
+it to the second argument. -- DCP The hardware has no idea about commutativity.
+Software probably has to do this. -- BEE
+
+Instruction Chapter -= pop
+
+The file V:>moon>imach>pop.text has more information about stack-popping
+instructions, including stack-bit.
+
+## Stack Groups en the | Machine
+
+A stack group is the object of computation. It contains the memory image of a
+process, This includes many things, all of which eventually need to be
+enumerated. For now, the list includes the following:
+
+@ Control Stack
+
+Instruction Chapter -- Mapped Access to Self
+
+The instructions for mapped accesses to self check that the argument I is within
+the bounds of the mapping table. If it is not, a trap occurs. The bounds check
+is performed by fetching the array header of the mapping table, assuming it is a
+short-prefix array, and comparing J against the array-short-length field.
+
+Implementation note: it is useful to cache the array header to avoid making a
+memory reference to get it every time. For an example of how to do this using
+- two scratchpad locations and one cycle of overhead, see the 3600 microcode.
+
+Instruction Chapter -- rgetf
+
+Additional instructions can be used together with rgetf to implement the zl:get,
+zi:putprop, cl:get, and cl:getf functions and to implement &key arguments. rgetf
+is often followed by either an instruction to pop the second value or a branch
+instruction that tests the second value and if it is nil pops both values and
+goes to code to substitute a default value. ,
+
+(get loc arg2)
+should. be
+
+(gett. (location- contents
+..) arg2)
+el.get is_
+
+push arg2-
+push symbol | |
+type-member-n-no-pop | -3symbolp
+' branch-false . . . .
+Zpointer-plus 4
+amemory-read data-read
+rgetf sp-pop
+set-sp-to-address SP|-1
+
+“y
+
+rgetf stands for".reverse getf” because the argument order 1s reversed from
+el:getf,
+
+Instruction Chapter -- logtest |
+
+logtest is commutative, so that if there is a small integer, logtest should commute
+it to the second argument. -- DcP The hardware has no idea about commutativity.
+Software probably has to do this. -- BEE
+
+Instruction Chapter -- pop |
+
+The file V:>moon>imach>pop.text has more information about stack-popping
+instructions, including stack-bit. -
+
+° Control Stack Base
+° Control Stack Pointer
+° Control Stack Limit
+° Control Stack Extra Limit
+° Control Stack Wired Low
+¢ Frame Pointer
+© Local. Pointer
+* Binding Stack
+° Binding Stack Base
+° Binding Stack Pointer
+° Binding Stack Limit
+« Data Stack
+° Data Stack Base
+° Data Stack Pointer
+° Data Stack Limit
+Catch Block Pointer
+* PC
+* Control Register
+¢ `Continuation` Register
+* Floating Point State
+° Mode - rounding, underflow-to-0, ...
+° Status - sticky-over/underfiow, ...
+
+Several of the stack group registers are not hardware registers, just software slots
+in the stack group.
+'Function-Calling Chapter
+
+Because the handling of Multiple and Return value dispositions is similar, the
+`return-single` and. `return-multiple` instructions can be implemented by
+starting with a four-way dispatch to these cases:
+
+1. Cleanup Bits non-zero — Perform the cleanup and then retry the instruction.
+- 2. Value Disposition = Effect — Just return without worrying about the values.
+
+8. Value Disposition = Value — Just return the first value.
+
+4, Value Disposition = Multiple or Return - Take complex actions.
+
+(But KHS doesn’t believe it is actually implemented that way.)
+Function-Calling Chapter -- Stack-Group Switching
+
+Existing instructions have the following capabilities:
+* ability to do appropriate special memory references, using block-read/write
+* ability to do necessary cdr-code hacking
+o ability to dump the entire stack cache into memory
+« ability to load a new stack into an empty stack cache
+@ ability to read and write all internal processor and coprocessor registers
+* that are part of the stack group context
+
+* ability to inhibit all traps and interrupts while the stack cache control
+registers are in an inconsistent state
+
+® ability to inhibit process preemption during the whole operation this is done
+by ‘setting a software flag respected by the preempt
+
+Other instruction assumptions:
+® bind_read_no_monitor bit in block-read instruction
+¢ no_increment bit in block-read instruction prevents incrementing BAR
+
+® preserve_cdr bit in block-read instruction inhibits setting cdr of result to 0
+(this is already in the rev -2 spec)
+
+« when block-read follows an invisible pointer, it updates the BAR
+
+@ merge-cdr-nopop instruction: cdr(operand) < cdr(top-of-stack), no change to
+
+SP this could be done with %p-tag-Idb and `%p-tag-dpb` but it would be
+much slower.
+
+Note that it is possible for the cdr code of the bound location to change while
+it is bound, which is why.the merge-cdr-nopop instruction is required instead of
+simply rewriting all 40 bits with the value saved in the binding stack.
+
+Alternatively, to the assumption that memory locations in the stack write
+through to main memory, a specific instruction could be provided to dump the
+entire stack cache, since the processor already. knows how to dump parts of the
+stack cache when it fills up.
+
+Exceptions. Chapter
+
+Floating exceptions need to be covered as well. Floating overflow and underflow
+always trap. Floating inexact needs a software writable enable to stop it from
+trapping, since it occurs so frequently. Floating divide by 0 always traps.
+Floating invalid operation always traps. The trap handlers can maintain sticky
+bits for all these exceptions.
+
+Be especially careful about non-commutative instructions with pop-stack address
+mode [for traps]. :
+
+Exceptions Chapter
+There are four kinds of recursive traps to fear:
+
+Page fault on a stack page. This is avoided by requiring that all pages of the
+control stack of a stack group, up to the extra-stack limit, be resident in main
+memory before control can enter the stack group. The Revision 0 chip does not do
+this, so stack get completely wired. Other implementations do this, ‘so page
+faults on running stacks cause the pages to get wired, but are otherwise pretty
+normal. (Just the structure defining the stack group would be stored, not the
+actual stacks). The paging system has to be careful about evicting stack pages
+or clearing their write-permission bits. It may not do this to the current stack
+group, and if it does it to another stack group it must set a bit in the SG that
+will cause a trap if control attempts to enter it. Note that the stack-limit
+register values in a stack group can be set to less than their maximum values,
+to save on main memory. Then if the limited stack available overflows the stack
+overflow handler can wire down additional pages and increase the stack. limits.
+
+Virtual address translation failure on a resident stack page. On the 3600 if a
+virtual reference is ‘satisfied by neither the map cache nor the PHTC, it traps
+to macrocode, Occasionally a trap to macrocode will occur for a resident page,
+merely to translate its virtual address. This cannot be tolerated on the IMach,
+so the page translation tables must be-designed so that the hardware and
+microcode can always find the physical address of a resident page. This has the
+additional advantage that spilling of a cache into main memory can never cause a
+page fault (assuming of course that when a page is evicted its contents are
+first removed from any caches that may still contain them.) 
+
+Page fault while dumping the contents of a cache to make room for new
+data. This cannot happen as explained just above.
+
+If uncorrectable ECC error is.a trap, then this can also be recursive.
+
+It is not actually necessary to wire down an entire stack, just the top part of
+the stack that is being used: When control unwinds to earlier frames in the
+stack, a page fault will oceur while trying to reload the stack cache from
+virtual memory. it should be easy to arrange for this page fault to be handled
+in the part of the stack that is still resident. The
+control-register.trap-on-exit bit could also be set in the bottommost frame in
+the resident portion of the stack, so that the trap would occur before the page
+fault. In this way main memory would be used in the same way that A-memory is
+used for a stack buffer in the 3600.
+
+
+# Notes on Future Implementations of the Ivory Chip
+
+Data-Types Chapter -- Array Representations
+
+Non-word-aligned array registers can be optimized by an. additional 5-bit adder and
+a special carry input to the main adder.
+
+Instruction Chapter -- minusp
+
+Small ratios might also. be handled by microcode since they can be compared on
+the same basis. as fixnums -- if ratios are canonicalized to have the sign bit
+in the numerator. Same test for all of them, bitwise? except for floating point,
+not-a- numbers. -0.0 is not minusp, so bit test fails.
+
+Instruction Chapter -- Instance Variable Accessors
+
+All of the instance-variable accessing instructions could take an sp-pop
+argument as an alternative to an immediate. This issue needs to be reviewed.when
+the microcode is written. %instance-loc, %instance-ref, %instance-set could be
+flushed. Removing them would slow the specific kinds of instance-variable
+accesses that use these instructions by a factor of 2 or 3. Most
+instance-variable accesses use the mapped or ordéred instruction described
+earlier.
+
+Function-Calling Chapter
+This is not done in Revision 0 of the chip, but might ought to be:
+
+"The first thing finish-call does is to check for Apply =1 but the top word. on
+the stack is nil (an empty list). In this case it pops the stack and clears its
+copy of the Apply bit, turning into a normal cali. This canonicalization
+simplifies the argument match-up procedure described later".
+
+Function-Calling Chapter -- Calling a Generic Function
+
+A reasonable optimization would be to avoid the memory references to fetch the
+trap-vector element and to fetch the `%generic-dispatch` instruction, since
+calling of generic functions is so common. (It would save 2 memory references
+out of 5, and avoid perturbing the I cache.) The `%generic-dispatch` instruction
+could be fed magically into the instruction pipeline, and the PC could be set to
+a constant value that is architecturally required to be the address of a memory
+location containing a `%generic-dispatch` instruction; this location will be
+referenced if the `%generic-dispatch` traps (for example, for a page fault) and
+has to be retried.
+
+Future hardware might contain a special-purpose cache used by the generic-
+dispatch instruction to speed repeated lookups with the. same generic function and
+instance. :
+
+oo | “
+
+# Instruction Classifications for Packed Instructions
+
+## Formats
+
+The two major classifications of packed instructions are operand-from-stack
+format and 10-bit-immediate format. These are further broken down into various
+subclasses. Additional information in the opcode field is indicated with a "."..
+‘Instructions in the operand-from-stack format always have an operand-specifier
+in their lower 10 bits. Instructions in the 10-bit-immediate format have
+different uses for their lower 10 bits. Fields in the 10-bit immediate are.
+indicated by a-”"..
+
+## Operand-from-stack Instructions
+
+* Unary Instruction (otherwise 22 args)
+* Signed Immediate (otherwise unsigned)
+
+_ unary/signed (14 opcodes) .
+_ car, cdr, endp, plusp?, minusp', zerop' , setup-id-array, setup- -
+'. foree-id-array, start-call; bind-locative, ‘restore-binding-stack,
+Zephemeralp, Jotag, 7ejamp
+
+unary/unsigned (12 opcodes)
+unary-minus’, push, push-n-nils, push-address- -Sp- -relative, return:
+multiple, `return-kludge`, take-values®, unbind-n?,
+push-instance-variable* ; push- address-instance-variable?,
+push-instance-variable-ordered®,
+push-addre ss-instance-variable-ordered*.
+
+unary/address (11 opcodes)
+set-to-car, set-to-cdr, `set-to-cdr-push-car`, increment, decrement,
+push-address*, ‘set-sp-to- address”, set-sp-to- address-save-tos®,
+Ypointer-increment, %set-cdr-code-1, %set-cdr-code-2
+
+
+
+“arithmetic dispatching, —
+
+3 instructions which < are only defined for an | immediate argument could be in either operand-frorn-stack or
+10-bit-immediate format.
+
+4Not all address-operand instructions modify their argument.
+
+not-unary/signed (31 opcodes)
+
+rplaca, `rplacd`, rgetf, member, assoc, multiply’, quotien".,
+ceiling’, floor’, truncate’, round, remainder’, rational-quotient',
+max’, min’, logand’, logior', logxor', ash’, rot, Ish, %multiply-
+double, %ishc-bignum-step, stack-bit, bind-locative-to-value,
+%pointer-plus, %pointer-difference, store-conditional, %memory-
+write, %p-store-contents
+
+not-unary/unsigned (24 opcodes)
+
+add’, sub’, %32-bit-plus, %32-bit-difference, %add-bignum-step,
+%sub-bignum-step, %multiply-bignum-step, %divide-bignum-step,
+aref-1, aset-1, aloc-1, array-leader, store-array-leader, aloc-leader,
+pop-instance-variable®, movem-instance-variable®,
+pop-instance-variable-ordered®, movem-instance-variable-ordered’,
+%instance-ref, %instance-set, %instance-loc, %allocate-list-block,
+%allocate-structure-block, `%set-tag`
+
+not-unary/address (6 opcodes)
+
+pop, movem, stack-bit-address*, fast-aref-1°, fast-aset-1°, Yomerge-
+cdr-no-pop
+
+Binary-Predicate Subformat
+
+* no-pop argl
+
+not-unary/signed (12 opcodes)
+
+eq, eq-no-pop, eql', eqi-no-pop', equal-number',
+equal-number-no-pop', greaterp , greaterp-no-pop’, lessp’,
+lessp-no-pop', logtest', logtest-no-pop'
+
+not-unary/unsigned (2 opcodes)
+
+BAR Subformat
+* BAR number
+
+unary/signed
+
+Yunsigned-lessp, %unsigned-lessp-no-pop
+
+(4 opcodes)
+%block-n-write
+
+unary/address (4 opcodes)
+
+%@block-n-read-alu
+
+Lexical Subformat
+* variable number
+
+unary/signed
+
+_ (& opcodes)
+push-lexical-var-n
+
+not-unary/signed (6 opcodes)
+pop-lexical-var-n, movem-lexical-var-n
+
+F.3 10-bit-immediate Instructions
+
+Type-member Subformat
+* pop arg
+* field number (2 bits)
+- field. number (2 bits) <9:8>.
+- type set.<7:0>
+
+unary (8 opeades)
+type-member-n, type-member-n-no-pop
+
+Branch Subformat
+* condition false
+* no-pop condition
+* and extra pop
+* else extra pop
+- branch offset <9:0>
+
+(16 opcodes) branch-true, branch-false, branch-true-no-pop, branch-false-no-
+pop, branch-true-else-no-pop, branch-false-else-no-pop, branch-
+true-and-no-pop, branch-false-and-no-pop, branch-true-and-extra-
+pop, branch-false-and-extra-pop, branch-true-else-extra-pop,
+branch-false-else-extra-pop, branch-true-and-no-pop-else-nopop,
+branch-false-and-no-pop-else-nopop, branch-true-extra-pop, branch-
+false-extra-pop
+
+Loop Subformat
+- branch offset <9:0>
+
+(8 opeodes) branch, loop-decrement-tos, Joop-increment-tos-less-than
+
+Byte-field Subformat
++ field width <9:5>
+- field starting position <4:0>
+
+. unary (4 opcodes)
+db, char-ldb, %p-Idb, %p-tag-ldb
+not-unary (4 opcodes) .
+
+dpb, char-dpb, %p-dpb, `%p-tag-dpb`
+
+
+BAR Subformat
+* BAR number
+- memory cycle type. <9:6>
+- fixnum only <5>
+- set `cdr-next` or invert test <4>
++ last word <8>
+- no increment <2>
+- test select <1:0>
+
+(12 opcodes) %block-n-read, %block-n-read-shift, %block-n-read-test
+
+Finish-call Subformat
+
+* apply
+~ value disposition <9:8>
+- number of arguments <7:0>
+
+(4 opcodes) finish-call-n, finish-call-n-apply, finish-call-tos, finish-call-tos-
+apply
+
+Entry Subformat
+* rest accepted
+> min args <7:0>
+ = max args <25:18>
+
+(2 opcodes) entry-rest-not-accepted, entry-rest-dccepted
+
+Return Subformat
+- return value select <1:0>
+
+(opcode) _`return-single`
+
+`catch-open` Subformat
++ value disposition <7:6>
+> catch/unwind-protect. <0>
+
+(1 opeode) `catch-open`
+Memory-read Subformat
+» memory cycle type <9:6>
+- fixnum only <5>
+- set `cdr-next` <4>
+
+(2 opcodes) %memory-read, %memory-read-address
+
+Internal-Register Subformat
+
+- internal register address <9:0>
+
+
+
+(2 opcodes) %read-internai-register, %write-internal-register
+
+Coprocessor Subformat
+
+(2 opcodes)
+
+- coprocessor address <9:0>
+
+(2. opcodes). Ycoprocessor-read, %coprocessor-write
+
+Unused-Immediate Subformat
+
+(6 opcodes)
+
+locate-locals, `catch-close`, `%generic-dispatch`, `%message-dispatch`,
+%check-preempt-request, no-op, %halt
+
+## Encodings
+
+unary 68 8 98
+signed a1
+@2
+83
+a4
+as
+a6
+
+a7
+
+28
+21
+22
+23
+24
+25
+26
+27
+oe 1 60
+a1
+62
+83
+4
+a5
+86
+a7
+
+28
+
+car
+cdr
+
+endp
+
+setup-1d-array
+setup~force-td-array
+bind-locative
+Zrestore-binding-stack
+Zephemeral-p
+
+push-lexical-var-@
+push-lexical-var-1
+push-lexical-var-2
+push-1lexical-var-3
+push-lexical-var-4
+push-lexical-var-5
+push-lexical-var-6
+push+lexical-var-7
+
+type-member-8
+type-member-1
+type-member-2
+type-member-3
+type-member-@~no-pop
+type-member-1-no-pop
+type-member-2-no-pop
+type-member-3-no-pop
+
+branch-true
+321
+
+18
+44
+12
+13
+14
+15
+16
+17
+
+38
+31
+32
+33
+34
+35
+36
+37
+
+18
+"
+12
+13
+14
+15
+16
+47
+
+38
+
+start-call
+Zjump —
+Ztag
+
+2b] ock~8-write
+Abt ock-1-write
+Zbl ock-2-write
+Zb1 ock-3-write
+zerop*
+minusp*
+pluspx
+
+Tocate-locals
+`catch-close`
+Zgeneric-dispatch
+Zmessage-dispatch
+Zcheck-preempt-request
+
+no-op
+halt
+
+branch-false
+
+
+21 .branch-true-else-extra-pop 31 branch-false-else-extra-pop
+
+22 branch-true-and-extra-pop . 32 branch-false-and-extra-pop — .
+23 branch-true-extra-pop 33 branch-false-extra-pop |
+
+- 24 branch-true-no-pop _ 34 branch-false-no-pop
+25 branch-true-and-no-pop | 35 branch-false-and-no-pop
+26 branch-true-~else-no-pop 36 branch-false~else-no-pop
+
+27 branch-true-no-pop-extra-pop 37 branch-false-no-pop-extra-pop
+
+unary #1 4 88 push 48 push-instance-variable -
+
+unsigned 81 push-n-nils . ' 41 push-address-instance-var
+- 82 push-address-sp-relative 12 push-instance-var-ordered
+QB 0 . 13 push-address-instance~var-or
+94 `return-multiple` 14 unary-minus*
+@5 `return-kludge` 95 `return-single` |
+ @6 take-values -. 16 Zmemory-read
+87 unbind-n 17 Zmemory-read-address
+28 %block-B-read | 38 Zblock-9-read-test
+et Zblock+1-read , 31 Zblock-1-read-test
+22 Zblock-2-read 32 Zblock-2-read-test
+23 Zblock-3-read | 33 Zblock-3-read~test
+24 Zblock-8-read-shift 34 finish-call-n
+25 Zblock-i-read-shift | 35 finish-call-n-apply
+26 Zblock=2-read-shift 36 finish-cal}-tos
+27 Zblock-3-read-shift 37 finish-call-tos-apply
+unary 61 1. 88 set-to-car . - 10 push-address
+address. 81 set~to-cdr . 41 set-sp-to-address.
+82 set-to-cdr=push-car 12 set-sp-to-address-save-tos
+@3 increment 13
+04 decrement — 14 Zread-internal-register
+85 Zpointer~increment 15 Zwrite-internal-register
+@6 Z%set-—cdr-code-1 16 Zcoprocessor-read ©
+Q@7 Zset-cdr-code-2 1? Zcoprocessor-write
+28 Zblock-@-read-alu 38 db
+21 Zblock-1-read-alu 31 char-Tdb
+22 Zhlock-2-read-alu . 32 %p-ldb
+23 Zblock-3-read-alu 33 Zp-tag-idb
+24 | 34 branch
+25 35 loop-decrement-tos
+26 . . - 36 entry-rest-accepted
+
+27 | 37 entry-rest-not-accepted
+
+322
+
+
+
+
+not- 18 Bo
+unary signed
+
+18 4
+
+not- 11 @_
+unary unsigned
+
+6a
+81
+82
+
+, 83
+
+04
+a5
+86
+a7
+
+28
+21
+22
+23
+24
+25
+26
+27
+
+aa
+a1
+a2
+83
+64
+a5
+a6
+a7
+
+28
+21
+22
+23
+24
+25
+26
+27.
+
+a1
+G2
+a3
+84
+as
+
+rplaca
+`rplacd`
+multiplyx
+quotientx
+ceilingx
+floorx
+truncatex
+roundx
+
+rot
+
+ish
+amuttipty-double
+Zishc-bignum-step
+stack-bit
+
+roetf
+
+member
+
+assoc
+
+pop-lexical-var-@
+pop-lexical-var-~1
+pop-lexical—var-2
+pop-1exical-var-3
+pop-lexical-var-4
+pop-]exical-var-5
+pop-7exical-var-6
+pop-lexical-var-7
+
+equal-numberx
+Tesspx
+
+greaterp*
+
+eqix
+
+equal -number—no-popx
+Jessp-no-popx
+greaterp-no-popx
+
+eq] -no-popx
+
+addx
+
+subx
+
+2432-bit-plus
+232-bit-difference
+Zadd-bignum-step
+Zsub-bignum-step
+
+323
+
+10
+"1
+12
+13
+14
+15
+16
+7
+
+38
+31
+32
+33
+34
+35
+36
+37
+
+18
+1
+12
+13
+14
+15
+16
+17
+
+38
+31
+32
+33
+34
+35
+36
+37
+
+18
+
+4
+12
+13
+14
+15
+
+
+
+remainderx
+rational -quotientx
+minx
+
+maxx
+
+Jogand«
+Togxorx
+logiorx
+
+Zpointer-plus
+Zpointer-difference
+ashx
+
+store-conditional
+Zmemory-write
+4p-store-contents
+bind-locative-to-value
+
+movemn-lexical-var-@
+
+movem-Texical-var-1
+
+movemn-lexical~var-2
+movem-1exical-var-3
+movem-1exical-var-4
+moven—lexical—var-5
+movem-1exical-var-6
+movem-lexical-var-7
+
+eq
+
+logtestx
+€q-no-pop
+
+lagtest~no-popx
+aset-1
+
+Zal locate-list-block
+aref-1
+
+aloc-1
+
+store-array-leader
+Zal Locate-structure-block
+
+
+not- MW 1
+unary address
+
+86
+87
+
+28
+21
+22
+23
+24
+25
+26
+27
+
+@1
+a2
+a3
+a4
+a5
+66
+a7
+
+28
+21
+22
+23
+24
+25
+26
+27
+
+Zmultipty-bignum-sti
+2d ivide-bignum-step
+
+pop-instance-variab
+
+movem- instance-variable
+pop- instance-var-ordered
+movem-instance-var-ordered
+
+Zinstance-ref
+Zinstance-set
+Zinstance-loc
+Zset-tag
+
+pop
+movem
+a’merge-cdr-no-pop
+
+ep
+
+Te
+
+324
+
+16
+17
+
+3e
+31
+32
+33
+34
+35
+36
+37
+
+4B
+"1
+12
+13
+14
+15
+16
+17
+
+38
+31
+32
+33
+34
+35
+36
+37.
+
+array-leader
+aloc-leader
+
+Zunsigned-lessp
+
+Zunsigned-1 essp-no-pap
+
+fast-aref-1
+fast~aset-1
+stack-b] t-address
+
+dpb
+char-dpb
+%p-dpb
+Zp-tag-dpb
+
+loop-increment-tos-<
+`catch-open`

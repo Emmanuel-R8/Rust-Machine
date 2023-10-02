@@ -1,0 +1,612 @@
+
+# Exception Handling
+
+## Traps in-General
+
+It-is occasionally necessary to escape from a situation that the
+hardware/microcode cannot handle and give control to some Lisp code. This escape
+action is known as a trap, and the Lisp code invoked is known as the trap
+handler. The trap handler rectifies the situation and returns to the interrupted
+program, which never knows that the trap occurred. Applications for traps
+include page faults, stack overflows, arithmetic overflows, arithmetic
+instructions applied to types of numbers that are not built into the hardware,
+I/O interrupts, execution of instructions that are not. implemented by the
+hardware, and several others.
+
+All trap handlers are functions called in the ordinary way; when an exception
+occurs the hardware forces a function call to a function found in a".trap
+vector". with arguments describing the exception and a return PC pointing to the
+appropriate instruction. Trap handlers written directly as instructions that
+execute in the stack frame of the function that trapped, as on the 3600, are
+never used. All trap handlers are Lisp functions.
+
+There are two major categories of traps: pre-traps and post-traps. A pre-trap is
+used when the trap handler will rectify some condition, such as a non-resident
+page, and then the trapped instruction is to be retried. A post-trap is used
+when the trap handler will emulate the desired effect of the trapped instruction
+and then return to the next instruction in sequence. Most out-and-out errors are
+pre- traps, simply for the convenience of the hardware and the debugger; in this
+case the trap handler will never return.
+
+The. value disposition for the values produced by a trap handler is undefined,
+All traps must. return their values via `return-kludge`.
+
+Trap handlers are stored in the trap vector. See the section".Trap Vecto"., page
+283 :
+
+
+The trap vector is wired to avoid recursive page faults, All trap. handlers
+
+receive the trap vector index and the. PO of the ‘rapped instruction as: 5 the first
+two arguments. | , .
+
+The. sequence of events for a . pre-trap is as follows: |
+
+oO.
+
+2,
+
+Restore the stack to’ its condition at the start of the instruction.
+
+‘Push the continuation and control registers onto the stack with cdr code set
+
+to 3, set continuation to the contents of the trap vector entry, clear the
+'. control-register.extra-argument bit, set the control-register.trace-bits to 0,
+
+and set the control-register.trap-mode field to the maximum of the cdr code
+of the trap vector entry and the current trap mode.
+
+. Push the trap vector index.
+. Push the PC of the trapped instruction.
+. Push the trap arguments.
+
+. Do a finish-call operation to invoke the trap handler, using the current PC
+
+as the return address. The value disposition is undefined.
+
+The sequence of events for a post-trap is as follows: .
+
+1
+
+2,
+
+. Save the arguments to the trapped instruction and pop them off the stack,
+
+Push the continuation and control registers onto the stack setting the cdr
+code to 3, set continuation to the contents of the trap vector entry, clear the
+
+_ control-register.extra-argument bit and control-register.trace-bits, and set the
+
+control-register.trap-mode field to the maximum of the cdr code of the trap
+vector entry and the current trap-mode. Oo
+
+. Push the trap vector index.
+
+Push the PC of the trapped instruction.
+Push the arguments to the trapped instruction.
+
+Do a finish-call operation to invoke the trap handler, using the incremented
+
+_ PC as the return address. The value disposition is undefined.
+
+## The Extra Stack
+
+Certain traps, such as page faults and disk-wakeup sequence breaks, have to be
+handled on a stack that is guaranteed to be in main memory and guaranteed to be
+large enough. These traps cannot tolerate another trap, such as a page fault on
+the stack, occurring during their handling. Such traps are handled on the user
+stack and the architecture and storage system are designed to treat stack pages
+specially so that no fault can occur while a trap is being handled. This has the
+advantage that there is no need for special hardware to deal-with multiple
+stacks and context switching.
+
+Two. stack-limit registers are provided, one for normal execution and the other
+for trap handiers. When the second stack-limit register is being used, the
+machine is said to be “executing on the extra stack". This is not a different
+stack from the normal control stack, but just extra space reserved at the end of
+the normal stack for use only by trap handlers. Only the control stack needs
+extra space; the binding and data stacks are not used by page-fault. processing.
+
+The extra space is not. actually used by a trap handler unless the stack
+happened to be close to overflowing at the time of the trap. The trap handler
+just uses the space starting at the current top of the. stack in the user
+program. If a normal program attempts.to use the extra space, it takes a stack
+overflow trap and software grows the stack before allowing the program to
+proceed, (The initial handling of the stack overflow trap occurs on the extra
+stack.) If a trap handler overflows the extra stack, the machine halts. This
+fatal error indicates either a bug in the trap handler or failure to allocate
+enough extra space when building the stack-group.
+
+The stack-limit register'in use is specified by the processor trap mode.
+
+## Trap Modes
+
+There are four interrupt levels or modes the processor can be in. The mode the
+processor is in specifies what can interrupt it, what control stack limit to
+use, and in one case, how traps work. The current mode is specified by the
+trap-mode field in the control register.
+
+Level 0, Emulator This is where most code gets run. Low-priority sequence break
+requests, high-priority sequence break requests, and preempt pending will
+interrupt the processor.
+
+Level 1, Extra-Stack ‘ This is where the paging system runs, clock sequence
+breaks, other low-speed I/O, and certain critical routines (such as just after a
+%allocate-xyz-block). Only high-priority sequence break requests can. interrupt
+this.
+
+Level 2, High-Speed I/O This is where time-critical device service is done.
+Nothing can interrupt it.
+
+Level 3, FEP mode FEP code runs in here. Nothing can interrupt it. Additionally,
+when: a trap occurs, it goes through a single trap vector. See the
+section".FEP-mode Trap"., page 293.
+
+Unless the processor is in the emulator mode (the trap mode is nonzero), the
+machine is allowed to use the extra stack. (Level 1 is called".extra-stack,” but
+levels 2 and 3 also imply the use of the extra stack.)
+
+The trap mode is set to the maximum of the current trap mode and the cdr-code
+field of the trap-vector entry when a trap is taken. This allows the processor
+to change mode atomically when entering trap handlers. Restoration of the
+control register on completion of the trap handler will restore the trap mode to
+its pre- exception state.
+
+The trap mode is set to 3-by INIT. The trap vector entry for RESET should
+spécify level 3. Note that RESET is not inhibited by the trep| mode, in that
+respect it could be called Non-Maskable-Interrupt.
+
+## Trap Vector
+
+The trap vector is a table whose elements specify the functions to be called
+when various exceptional conditions occur. Each entry is a PC
+(`dtp-even-pc`/`dtp-odd-pc`) that points to the first instruction of the trap
+handling function. Byte <39:38> (the cdr-code) of the entry is the minimum
+initial trap mode for the handler. This table is stored at physical addresses
+1000000 through 1007777; the trap vector index always supplied as the first
+argument toa trap handler is relative to the base of this table.
+
+See the section".Trap Vector Layou"., page 294.
+
+## Exceptions
+
+### Error Traps
+
+When an instruction receives legal operands, references memory and receives a
+bad data type, or encounters an instruction-specific error condition, it takes
+an error pre-trap. The error trap handler takes two arguments (in addition to
+the trap index and. PC): a micro-state, and a VMA. The micro-state is a unique
+identifier that is looked-up in a table to determine the cause of the error. If
+appropriate, the second argument is the contents of the BAR that caused the
+error, otherwise it is ignored.
+
+### Instruction Exceptions
+
+An instruction. exception occurs when an instruction needs to perform some
+operation that is not an error, but is not directly supported by the hardware
+(taking the car of a list instance, for.example). Instruction exceptions are
+post- traps, called with whatever arguments the instruction takes. The contract
+of the trap handler is to emulate the behavior of the particular instruction.
+Occasionally exceptional conditions will arise during emulation, such as the
+need to redecode an array register or refill a cons cache.
+
+The instruction exception trap handlers are contained in the instruction
+exception vector, which is indexed by the opcode of the faulting instruction.
+Note, though, that some instructions are emulated by dispatching through the
+arithmetic dispatch. vector. See the section".Arithmetic Trap"., page 287.
+
+A special case of instruction exception occurs when the processor attempts to
+execute an undefined instruction. In this case, a post-trap is taken, using the
+trap handler obtained by indexing into the instruction exception vector with the
+opcode. However, since the number’ of arguments is not known, ‘the trap
+microcode presumes that the instruction takes zero arguments, and the trap
+handler must compensate.
+
+%halt (opcode 377) is guaranteed to be. an undefined instruction and: will
+ always take an exception.
+
+### Arithmetic Traps
+
+To improve the efficiency of simple arithmetic on non-fixnum numbers,
+instruction exceptions for a number of instructions fetch the trap handler from
+the arithmetic dispatch vector instead of from the instruction-exception vector.
+The particular handler fetched depends on the types of the arguments. This
+reduces the overhead of dispatching on the types of the arguments by moving it
+into microcode.
+
+All of the instructions that use the arithmetic dispatch vector accept numeric
+arguments only; if any argument is non-numeric, .an error trap will occur. (eql
+is a slight exception to this rule -- it accepts nonnumeric arguments, but will
+only trap out for numeric arguments), The normal instruction exception vector
+for these instructions is not used in any circumstances.
+
+There are two different categories of arithmetic traps. Traps in the first
+category occur when an arithmetic instruction is applied to operands that are
+numeric types which the hardware does not support for the particular
+instruction. (Hardware support for certain types may depend on the presence of a
+coprocessor.) . Traps in the second category occur when an exceptional condition
+(such as arithmetic overflow) results from attempting to perform the arithmetic
+operation.
+
+In general, information about why a particular arithmetic trap was taken is not
+available -- the trap handler is expected to check the operands, emulate the
+operation, check the results for exceptional conditions, and return. In certain
+circumstances more specific processing is allowed. For example, the only
+possible exception that can occur while adding two fixnums is an integer
+overflow, and the trap handler for add of fixnum arguments may take advantage of
+this.
+
+The arithmetic dispatch vector contains sixty-four trap handlers (eight numeric
+types for up to two arguments) for each instruction that uses it. These trap
+handlers are invoked via post-traps, in the same manner as normal instruction
+exceptions. The dispatching trap computes a trap-vector index from bits out of
+the opcode field of the instruction and bits out of the data types of the
+arguments. Specifically, for a binary arithmetic trap, the index into the
+arithmetic dispatch vector is
+
+OPCODE<4:8> | ARG1<34:32> | ARG2<34:32>
+
+For a unary instruction, the dispatch acts as though arg2 were a fixnum; that
+is, the low three bits of the index will always be zero.
+
+When the two operands are not of the same type, the trap handler may. be a
+shared “coercion functio". that simply coerces one of the operands to be
+compatible with the other, then jumps into the correct trap handler to perform
+the desired operation for the given type of (coerced) operands. The coercion
+function does not have to know what the operation is; the appropriate trap
+handler is fetched from the trap vector indexed by the original trap vector
+index plus a constant that accounts for the coercion that was performed. It is
+also possible to have a special-case function for a mixed-type operation (fixnum
+times bignum is always popular) just by filling in the trap vector
+asymmetrically.
+
+The following instructions post trap through the arithmetic dispatch vector:
+
+eql (263), eql-no-pop (267)
+
+equal-number (260), equal-number-no-pop (264)
+
+greaterp (262), greaterp-no-pop (266)
+
+lessp (261), lessp-no-pop (265)
+
+plusp (36), minusp (85), zerop (34)
+
+add (300), sub (301), unary-minus (114)
+
+multiply (202), quotient (203), remainder (210), rational-quotient (211)
+ceiling (204), floor (205), truncate (206), round (207)
+
+max (213), min (212)
+
+logand (215), logior (217), logxor (216),
+logtest (273), logtest-no-pop. (277)
+ash (232)
+
+### Memory Exceptions
+
+Memory exceptions occur when referencing the contents of a given location in
+memory. There are three classes of memory exceptions:
+
+- The memory operation could not be performed due to some. property of the
+location. For example, the page might not be. resident in main memory.
+
+- The memory operation was performed, but further processing is required due to
+some property of the contents of the location. For example, the contents might.
+be a pointer to a condemned object.
+
+- A hardware error occurred during the memory operation.
+
+Correctable memory errors are not fatal. They are corrected by the memory
+interface. The occurrence of a correctable error will be recorded by a flag, and
+the address and syndrome of the cell in error will be stored in a register.
+Software should periodically poll this register and log any-errors.
+
+An-uncorrectable memory error is more serious. It causes an un-correctable
+memory error page fault. The trap handler can do. whatever is appropriate after
+the error. It is possible to recover from some uncorrectable errors, and others
+are fatal.
+
+Memory exceptions are pre-traps that take one argument, the address of the
+referenced location, in-addition to the usual trap-vector-index and fault-pe
+arguments. The argument type can be either locative (a virtual address), or
+`dtp-physical-address` (a physical address, not always meaningful). The memory
+exceptions are:
+
+- Page not resident -- PHT search failed.
+
+- Page fault request -- PHT search succeeded but pht.fault-request is set. See
+the section".Revision 0 Implementation Memory Feature"., page 297.
+
+- Write protect violation -- attempted to write into a page with pht.write-
+  protect set.
+
+- Transport trap -- read pointer to oldspace from a page with pht.transport-
+  trap set.
+
+- Uncorrectable ECC error -- location contains an uncorrectable error. See the
+section <<_revision_0_memory_exception>>, page 300.
+
+- Bus error -- processor received a negative acknowledgement of a read. See the
+section <_revision_0_memory_exception>>, page 300.
+
+- Monitor trap -- read a reference of type `dtp-monitor-forward`.
+
+### Stack Overflow
+
+Control stack overflow occurs when the finish-call instruction (or the
+equivalent operation when a trap is taken) detects the frame pointer is greater
+than stack limit. The limit register used depends on the trap mode of the
+processor. The stack limit is set lower than the real limit by the maximum size
+of a stack frame plus the amount of extra space needed to process the
+stack-overflow trap.
+
+Control stack overflow invokes a special trap handler found.in a dedicated trap
+vector. The trap handler takes no arguments other than the trap-vector index and
+the fault PC. :
+
+Binding stack overflow occurs when a bind-locative instruction tries to advance
+the `binding-stack-pointer` beyond the binding-stack-limit. Binding stack
+overflow signals an error trap. The error trap handler must be careful not to
+bind anything until it has considered the possibility that the error is a
+binding stack overflow.
+
+The return instructions that return multiple values check for stack frame
+overflow. If + cr.frame-size-of-caller values-being-returned) is greater than
+stack- frame-maximum-size (an internal register), an error trap is taken.
+
+### Sequence Breaks
+
+A sequence break is an asynchronous interruption of the currently executing
+program. A sequence break causes control to be transferred to one of two PCs
+found in the trap vector. (Most other computers call this an interrupt, but we
+cannot use that word without confusion because of the without-interrupts special
+form in Zetalisp, which only prevents preemption, not sequence breaks.) Sequence
+breaks are requested by the high-priority and low-priority sequence break
+request pins on the processor.
+
+A high-priority sequence break trap will be taken at the completion of any
+macroinstruction where the high-priority sequence break request pin is asserted
+and the trap mode is either 0 or 1.. A low-priority sequence break trap will be
+taken at the completion of any macroinstruction where the low-priority sequence
+break request pin is asserted and the trap mode is 0. See the section".Revision
+0 Sequence Break"., page 301.
+
+Like. other traps, the sequence-break handling functions execute in the context
+of the interrupted process. They are essentially pre-traps, called with no
+arguments (other than the standard ones). These interruptions are intended to be
+transparent to normal Lisp programs, and therefore the handling functions must
+be careful what they do.
+
+There are two. sources of external sequence breaks: low-speed I/O (for example,
+disk completion) and ‘high-speed I/O. (for example, 56Kb serial. line).
+Low-speed 1/O routines may spend a moderately long time executing, if needed.
+High-speed I/O must by programmer design. spend a very small: amount of time
+executing, especially if there is more than one device. that needs service.
+
+Programs. may synchronize with sequence-break handling functions either by
+raising the trap mode, or using the store-conditional instruction.
+
+All indefinite-duration microcode loops are interruptible by sequence breaks,
+causing the instruction to be aborted. This includes invisible pointer
+following, method table searching, indirection through symbols in start-call,
+and rgetf/member/assoc. An indefinite-duration microcode loop will of course
+only be interrupted by a sequence break if the current trap mode permits
+sequence breaks.
+
+### Preemption
+
+Preemption is switching from the current.process to the scheduler. .This is.a
+software operation, which has hardware support. for its initiation.
+
+Preempt-request and preempt-pending are bits in a global register, not in the
+`Control` register. These bits are set at the same time by software, such as a
+clock sequence break handler, that. wants to preempt the current process. If
+preempt- pending is'set, and the processor is in emulator mode, then.a
+preempt-request trap occurs after the current instruction completes. The trap
+handler clears the preempt-pending bit and then checks whether the process can
+be preempted. If so, it clears preempt-request and passes control to the
+scheduler. If not, it leaves preempt-request set and returns.
+
+The priority of preempt-pending relative to. other traps is:
+
+High -reset
+stack-overflow (in finish-call)
+high-priority-sequence-break
+low-priority-sequence-break and emulator-mode
+preempt-pending and emulator-mode
+
+Low. trace-pending
+
+The check-preempt-request operation sets the preempt-pending flag if the
+preempt- request flag is set. This causes a trap at the end of the current
+instruction if the processor is in emulator mode, otherwise the trap is
+taken as. soon as the processor returns to emulator mode.
+
+Anything that unbinds a special variable (whether the unbind instruction or an
+implicit unbind caused by the return instruction. encountering a cleanup bit)
+does a check-preempt-request operation. This is the reason why preempt-request
+is a hardware flag instead of just being a software variable. See the
+section".Revision 0 Unbindin".”, page 301.
+
+The %check-preempt-request instruction (called %check-preempt-pending. on the
+3600) does a check-preempt-request operation. Those extra-stack trap handlers
+that wish to check for a pending preempt when they return to the user must do a
+%check-preempt-request instruction; if this sets preempt-pending the trap will
+go off when the trap handler returns.. The %check-preempt-request instruction is
+also used.in a couple of places in the garbage collector. This could be
+open-coded using %read-internal-register and %write-internal-register, rather
+than being a real instruction, but is probably easy to implement as an
+instruction since the logic has to be present already for unbind.
+
+Note that function return does not do a check-preempt-request operation unless
+it unbinds special variables, and instructions that change the processor trap
+mode do not do a check-preempt-request operation, but may provoke a trap if
+preempt- pending is already set.
+
+Details on stack-group switching can be found in the function calling chapter.
+See the section".Stack-Group Switching”, page 280.
+
+### Trace Traps
+
+Instruction-trace, call-trace, and trace-pending are three bits in the `Control`
+register, set and cleared by software in saved copies of the `Control` register
+in memory. Trace-pending can also be set by hardware.’ Reset and Init clear all
+three of these bits. The hardware clears all three of these bits whenever a trap
+oceurs, after saving the Control register on the stack.
+
+If trace-pending is 1, a trap occurs before executing the next instruction. Note
+that a sequence break can intervene before the trap actually goes off. There is
+only one trap vector location for trace-pending, regardless of the semantic
+significance of the trap to the software. If a return instruction restores a
+Control- register value with the trace-pending bit set, the trap occurs after
+completion of the return instruction and before execution of the instruction
+returned to.
+
+When a return instruction is executed repeatedly. because of Value-disposition
+Return, and trace-pending is set by restoring a Control-register value, the trap
+either occurs immediately or after the repeated Return operations finish; the
+architecture doesn’t specify which. The trace-pending values in the several
+`Control` register values that are restored are effectively ORed together, so
+the trap is not: lost.
+
+If instruction-trace is 1 at the beginning of an instruction, completion of the
+instruction sets trace-pending and causes a trap before the next instruction
+executes. Hf a post-trap occurs when instruction-trace is 1, trace-pending is.
+set in the `Control` register saved as part of taking the trap. This is not true
+of a pre- trap. If a return instruction restores a `Control` register value with
+the instruction- trace bit set, the instruction returned to, is, executed before
+the trap occurs.
+
+If call-trace is 1,-the finish-call instruction sets trace-pending and causes a
+trap before the first instruction of the called function executes. If stack
+overflow occurs simultaneously, trace-pending is set but the stack overflow trap
+occurs first. When: the stack overflow handler returns, the trace trap occurs. .
+Call-trace does not effect the implicit finish-cali performed when a trap
+occurs, because call-trace gets cleared first.
+
+### `pull-apply-args` Exception
+
+See the section".Pull-apply-arg"., page 261.
+
+A `pull-apply-args` pre-trap is taken from a function entry instruction to
+extract additional arguments from an apply argument that the microcode is not
+capable of doing. The trap handler takes two arguments, the number of arguments
+to pull, ‘and the apply argument, which is popped off the stack before the trap
+is taken. The trap handler extracts. the arguments, updates the saved `Control`
+register to reflect the new state of the previous frame, and `return-kludge`s
+the extracted arguments and the remaining apply argument, if any, directly into
+the correct place in the previous frame.
+
+###  FEP-mode Traps 0
+
+With few exceptions, traps are. not supposed to happen while the FEP code is
+running. To give the FEP a chance to examine each trap and decide whether or not
+it is meaningful, all traps while in FEP mode go through a single trap vector.
+Any given trap will be taken in exactly the same manner, with the same arguments
+and the same continuation, whether or not the processor is in FEP mode; the only
+difference is where the trap handler. PC comes from.
+
+###  Processor Faults
+
+A processor fault occurs when the processor encounters a situation from which it
+cannot proceed. The occurrence of a processor fault halts the processor and
+indicates the error on an external pin. The causes of a processor fault are:
+
+¢ Stack overflow while using extra stack.
+
+¢ Other than `dtp-even-pc`/`dtp-odd-pc` in the trap vector.
+
+¢ Uncorrectable ECC error when reading trap vector.
+
+« Recursive uncorrectable ECC error.
+
+* Page fault while dumping stack cache.
+
+The processor will not respond to anything other than reset and init when
+halted. See the section “Revision 0 Traps for Prpepssor Fault"., page 301.
+
+## Trap Vector Layout
+
+The trap vector is stored at physical addresses 1000000 through 1007777, and is
+basically partitioned as follows:
+
+0000..3777 Arithmetic dispatch vector
+4000..4377 Instruction exception vector
+4400..4477 Interpreter function table
+4500..4777 Reserved
+
+5000..5077 Generic dispatch table
+5100..5177 Miscellaneous exceptions
+5200..7777 (Reserved for future expansion)
+
+The arithmetic dispatch vector contains the exception handlers for those
+instructions defined to use the arithmetic dispatch. See the section “Arithmetic
+Trap"., page 287.
+
+The instruction exception vector contains the exception handlers for
+instructions that do not use the arithmetic dispatch vector. See the
+section".Instruction Exception"., page 287. .
+
+The interpreter function table contains one entry per data type. When a
+start-eall is given a data type not. directly understood by the hardware, the
+contents of this table, indexed. by the data type, are placed in the
+continuation register. See the section".Starting a Function Cal"., page 249.
+
+The: generic dispatch table contains one entry. per data type. When
+the".instanc". argument to `%message-dispatch` or `%generic-dispatch` is not an
+instance, the address of the flavor hash mask needed to do the method search is
+found by indexing into this table. See the section".Calling a Generic Function”,
+page 277.
+
+The miscellaneous exceptions are assigned as follows:
+
+5100 Error trap
+
+5101. Reset
+
+5102 _— `pull-apply-args`
+5103 Stack overflow
+5104 ‘Trace trap
+
+5105 Preempt request
+5106 Transport trap
+5107 FEP-mode trap
+
+5110 ~~‘ Lew priority sequence break
+5111 High priority sequence break
+5112 Monitor trap
+
+51138 Reserved for future use
+
+5114 = Generic-dispatch instruction
+5115 Reserved for a.fence word.
+5116. Message-dispatch instruction
+5117... Reserved for a fence word
+
+5120 | Page not resident
+5121. Page fault request
+5122 Page write fault
+5123 . Uncorrectable memory error
+5124 Bus error .
+5125-5177. ~~ Reserved for future use
+
+## Reset and Init
+
+Reset and Init are exceptions invoked by pins of the same names on the processor
+chip. Reset is similar to a sequence break, and is used to return the processor
+to the FEP. - Init is.a no-holds-barred initialization of the machine, usually
+performed after power on.
+
+Reset forces the processor to take an exception to fetch.a new PC from the trap
+vector. It is up to software to save the machine state if it is desired to
+resume execution at the point the reset occurred.
+
+Init initializes the processor hardware, and may abort outstanding memory
+accesses without completion, and soon. The PC is set to a fixed VMA=PMA address,
+77400100, from which execution proceeds. See the section".Revision 0 Init PC”,
+page 301.
+
+## Appendix: Comparison of 3600-Family and I-Machine Exception Handling
+
+To be supplied with the next revision of this document.
