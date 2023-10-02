@@ -1,0 +1,26 @@
+project:
+  type: book
+
+book:
+  title: "Ivory Machine Architecture Specification"
+  author: "Symbolics Inc."
+  date: "10/24/2022"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - 1_Data_Types.qmd
+    - 2_Memory_Layout.qmd
+    - 3_Macroinstruction_Set.qmd
+    - 4_Function_Calling.qmd
+    - 5_Exception_Handling.qmd
+    - 6_Appendices.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+  pdf:
+    documentclass: scrreprt
