@@ -1,93 +1,161 @@
 use c2rust_bitfields::BitfieldStruct;
 
-use std::fmt::{Debug, Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Sub, SubAssign};
-use std::{cell::RefCell, rc::Rc};
+use std::fmt::{ Debug, Display, Formatter, Result };
+use std::ops::{ Add, AddAssign, Sub, SubAssign };
+use std::{ cell::RefCell, rc::Rc };
 
 // Representation of lisp objects
-use super::constants::{QTag, CDR, VLMPAGE_SIZE_QS};
+use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS };
+use crate::common::types::QWord::Whole;
 
 // See I-Machine specs p. 4
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union QList {
-    pub c: u32,  // Conses TODO: decline
-    pub l: u32,  // Compact list TODO: decline
-    pub cl: u32, // Closure
-    pub r: u32,  // Big ratio
-    pub f: u32,  // f64 - Double precision floating point
-    pub cx: u32, // Complex number
-    pub g: u32,  // Generic function
+pub enum QList {
+    Cons(u32), // Conses TODO: decline
+    CompactList(u32), // Compact list TODO: decline
+    Closure(u32), // Closure
+    BigRatio(u32), // Big ratio
+    DoubleFloat(f32), // f64 - Double precision floating point
+    Complex(u32), // Complex number
+    Generic(u32), // Generic function
 }
 
 impl Default for QList {
     fn default() -> Self {
-        Self { r: 0 }
+        Self::BigRatio(0)
     }
 }
 
 // See I-Machine specs p. 4
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union QStructure {
-    pub c: u32, // Compiled function
-    pub i: u32, // Instances
-    pub s: u32, // Symbols
-    pub b: u32, // Bignums
+pub enum QStructure {
+    CompiledFunc(u32), // Compiled function
+    Instance(u32), // Instances
+    Symbol(u32), // Symbols
+    Bignum(u32), // Bignums
 }
 
 impl Default for QStructure {
     fn default() -> Self {
-        Self { b: 0 }
+        Self::Bignum(0)
     }
 }
 
 // See I-Machine specs p. 15
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union QImmediate {
-    pub u: u32, // Fixnum
-    pub s: i32, // Signed fixed num
-    pub f: f32, // 32-bit floating point (single precision)
+pub enum QImmediate {
+    Unsigned(u32), // Fixnum
+    Signed(i32), // Signed fixed num
+    Float(f32), // 32-bit floating point (single precision)
     // pub c: f32, // Characters
     // pub r: f32, // small ratio
-    pub a: u32, // Physical address
-                // pub p: u32, // Packed instructions - TODO: bitfield
+    Addr(u32), // Physical address
+    PackedInst(u32), // Packed instructions - TODO: bitfield
 }
 
 impl QImmediate {
     pub fn new() -> Self {
-        Self { u: 0 }
+        Self::Unsigned(0)
+    }
+
+    pub fn u(self) -> Option<u32> {
+        match self {
+            QImmediate::Unsigned(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn s(self) -> Option<i32> {
+        match self {
+            QImmediate::Signed(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn f(self) -> Option<f32> {
+        match self {
+            QImmediate::Float(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn a(self) -> Option<u32> {
+        match self {
+            QImmediate::Addr(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn set_u(self, u: u32) {
+        match self {
+            QImmediate::Unsigned(mut val) => {
+                val = u;
+            }
+            _ => {}
+        }
+    }
+
+    pub fn set_s(self, s: i32) {
+        match self {
+            QImmediate::Signed(mut val) => {
+                val = s;
+            }
+            _ => {}
+        }
+    }
+
+    pub fn set_f(self, f: f32) {
+        match self {
+            QImmediate::Float(mut val) => {
+                val = f;
+            }
+            _ => {}
+        }
+    }
+
+    pub fn set_a(self, a: u32) {
+        match self {
+            QImmediate::Addr(mut val) => {
+                val = a;
+            }
+            _ => {}
+        }
     }
 }
 
 impl Default for QImmediate {
     fn default() -> Self {
-        Self { u: 0 }
+        Self::Unsigned(0)
     }
 }
 
 impl PartialEq for QImmediate {
     fn eq(&self, other: &Self) -> bool {
-        unsafe {
-            match self {
-                QImmediate { u: val1 } => match other {
-                    QImmediate { u: val2 } => val1 == val2,
+        match self {
+            QImmediate::Unsigned(val1) =>
+                match other {
+                    QImmediate::Unsigned(val2) => val1 == val2,
                     _ => false,
-                },
-                QImmediate { s: val1 } => match other {
-                    QImmediate { s: val2 } => val1 == val2,
+                }
+            QImmediate::Signed(val1) =>
+                match other {
+                    QImmediate::Signed(val2) => val1 == val2,
                     _ => false,
-                },
-                QImmediate { f: val1 } => match other {
-                    QImmediate { f: val2 } => val1 == val2,
+                }
+            QImmediate::Float(val1) =>
+                match other {
+                    QImmediate::Float(val2) => val1 == val2,
                     _ => false,
-                },
-                QImmediate { a: val1 } => match other {
-                    QImmediate { a: val2 } => val1 == val2,
+                }
+            QImmediate::Float(val1) =>
+                match other {
+                    QImmediate::Float(val2) => val1 == val2,
                     _ => false,
-                },
-            }
+                }
+            _ => false,
         }
     }
 }
@@ -96,26 +164,24 @@ impl Eq for QImmediate {}
 
 impl Display for QImmediate {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QImmediate { u: val } => write!(f, "QData u32: {}", val),
-                QImmediate { s: val } => write!(f, "QData i32: {}", val),
-                QImmediate { f: val } => write!(f, "QData f32: {}", val),
-                QImmediate { a: val } => write!(f, "QData address: {}", val),
-            }
+        match self {
+            QImmediate::Unsigned(val) => write!(f, "QData u32: {}", val),
+            QImmediate::Signed(val) => write!(f, "QData s32: {}", val),
+            QImmediate::Float(val) => write!(f, "QData f32: {}", val),
+            QImmediate::Addr(val) => write!(f, "QData address: {}", val),
+            _ => write!(f, "UNKNOWN"),
         }
     }
 }
 
 impl Debug for QImmediate {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QImmediate { u: val } => write!(f, "QData u32: {}", val),
-                QImmediate { s: val } => write!(f, "QData i32: {}", val),
-                QImmediate { f: val } => write!(f, "QData f32: {}", val),
-                QImmediate { a: val } => write!(f, "QData address: {}", val),
-            }
+        match self {
+            QImmediate::Unsigned(val) => write!(f, "QData u32: {}", val),
+            QImmediate::Signed(val) => write!(f, "QData s32: {}", val),
+            QImmediate::Float(val) => write!(f, "QData f32: {}", val),
+            QImmediate::Addr(val) => write!(f, "QData address: {}", val),
+            _ => write!(f, "UNKNOWN"),
         }
     }
 }
@@ -125,13 +191,36 @@ impl Add for QImmediate {
     fn add(self, rhs: Self) -> Self {
         let mut q = self;
 
-        unsafe {
-            match self {
-                QImmediate { u: val } => q.u += rhs.u,
-                QImmediate { s: val } => q.s += rhs.s,
-                QImmediate { f: val } => q.f += rhs.f,
-                QImmediate { a: val } => q.a += rhs.a,
-            }
+        match self {
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            _ => {}
         }
 
         return q;
@@ -144,13 +233,36 @@ impl Sub for QImmediate {
     fn sub(self, rhs: Self) -> Self {
         let mut q = self;
 
-        unsafe {
-            match self {
-                QImmediate { u: val } => q.u -= rhs.u,
-                QImmediate { s: val } => q.s -= rhs.s,
-                QImmediate { f: val } => q.f -= rhs.f,
-                QImmediate { a: val } => q.a -= rhs.a,
-            }
+        match self {
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            _ => {}
         }
 
         return q;
@@ -159,26 +271,72 @@ impl Sub for QImmediate {
 
 impl AddAssign for QImmediate {
     fn add_assign(&mut self, rhs: Self) {
-        unsafe {
-            match self {
-                QImmediate { u: val } => self.u += rhs.u,
-                QImmediate { s: val } => self.s += rhs.s,
-                QImmediate { f: val } => self.f += rhs.f,
-                QImmediate { a: val } => self.a += rhs.a,
-            }
+        match self {
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
+                }
+            _ => {}
         }
     }
 }
 
 impl SubAssign for QImmediate {
     fn sub_assign(&mut self, rhs: Self) {
-        unsafe {
-            match self {
-                QImmediate { u: val } => self.u -= rhs.u,
-                QImmediate { s: val } => self.s -= rhs.s,
-                QImmediate { f: val } => self.f -= rhs.f,
-                QImmediate { a: val } => self.a -= rhs.a,
-            }
+        match self {
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
+                }
+            _ => {}
         }
     }
 }
@@ -186,8 +344,8 @@ impl SubAssign for QImmediate {
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
 pub struct QData {
     pub i: QImmediate, // Immediate data type
-                       // pub l: QList,      // List objects
-                       // pub s: QStructure, // Structures objects
+    // pub l: QList,      // List objects
+    // pub s: QStructure, // Structures objects
 }
 
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
@@ -199,36 +357,39 @@ pub struct QCDRTagData {
 
 #[repr(C)]
 #[derive(Copy)]
-pub union QWord {
-    pub whole: u64,
-    pub parts: QCDRTagData,
+pub enum QWord {
+    Whole(u64),
+    CdrTagData(QCDRTagData),
 }
 
 impl Default for QWord {
     fn default() -> Self {
-        Self { whole: 0 }
+        Self::Whole(0)
     }
 }
 
 impl Clone for QWord {
     fn clone(&self) -> Self {
-        unsafe { QWord { whole: self.whole } } // easier to copy the u64
+        return match self {
+            QWord::Whole(val) => QWord::Whole(*val),
+            QWord::CdrTagData(val) => QWord::CdrTagData(*val),
+        };
     }
 }
 
 impl PartialEq for QWord {
     fn eq(&self, other: &Self) -> bool {
-        unsafe {
-            match self {
-                QWord { whole: val1 } => match other {
-                    QWord { whole: val2 } => val1 == val2,
-                    QWord { parts: val2 } => false,
-                },
-                QWord { parts: val1 } => match other {
-                    QWord { whole: val2 } => false,
-                    QWord { parts: val2 } => val1 == val2,
-                },
-            }
+        match self {
+            QWord::Whole(val1) =>
+                match other {
+                    QWord::Whole(val2) => val1 == val2,
+                    _ => false,
+                }
+            QWord::CdrTagData(val1) =>
+                match other {
+                    QWord::CdrTagData(val2) => val1 == val2,
+                    _ => false,
+                }
         }
     }
 }
@@ -237,104 +398,261 @@ impl Eq for QWord {}
 
 impl Display for QWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QWord { whole: val } => write!(f, "QWord u64: {}", val),
-                QWord { parts: val } => write!(
-                    f,
-                    "QWord cdr: {}, tag: {}, data: {}",
-                    val.cdr, val.tag, val.data
-                ),
-            }
+        match self {
+            QWord::Whole(val) => write!(f, "QWord u64: {}", val),
+            QWord::CdrTagData(val) =>
+                write!(f, "QWord cdr: {}, tag: {}, data: {}", val.cdr, val.tag, val.data),
         }
     }
 }
 
 impl Debug for QWord {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        unsafe {
-            match self {
-                QWord { whole: val } => write!(f, "QWord u64: {}", val),
-                QWord { parts: val } => write!(
-                    f,
-                    "QWord cdr: {}, tag: {}, data: {}",
-                    val.cdr, val.tag, val.data
-                ),
-            }
+        match self {
+            QWord::Whole(val) => write!(f, "QWord u64: {}", val),
+            QWord::CdrTagData(val) =>
+                write!(f, "QWord cdr: {}, tag: {}, data: {}", val.cdr, val.tag, val.data),
         }
     }
 }
 
 impl Add for QWord {
-    type Output = Self;
+    type Output = Option<Self>;
 
-    fn add(self, rhs: Self) -> Self {
-        let mut q = self;
-        unsafe {
-            q.parts.data += rhs.parts.data;
-        }
+    fn add(self, rhs: Self) -> Option<Self> {
+        return match self {
+            QWord::Whole(val_lhs) =>
+                match rhs {
+                    QWord::Whole(val_rhs) => Some(QWord::Whole(val_lhs + val_rhs)),
+                    _ => None,
+                }
 
-        return q;
+            QWord::CdrTagData(p_lhs) =>
+                match rhs {
+                    QWord::Whole(val_rhs) => None,
+                    QWord::CdrTagData(p_rhs) =>{
+                        let d = QImmediate::Unsigned(0);
+                        let mut q = QWord::CdrTagData({self.cdr().unwrap(); self.tag().unwrap(); d; });
+                        Some(
+                            QWord::CdrTagData({
+                                self.cdr().unwrap();
+                                self.tag().unwrap();
+                                p_lhs.data + p_rhs.data
+                            })
+                        )},
+                }
+        };
     }
 }
 
 impl Sub for QWord {
-    type Output = Self;
+    type Output = Option<Self>;
 
-    fn sub(self, rhs: Self) -> Self {
-        let mut q = self;
-        unsafe { q.parts.data -= rhs.parts.data };
-
-        return q;
+    fn sub(self, rhs: Self) -> Option<Self> {
+        match self {
+            QWord::Whole(val_lhs) =>
+                match rhs {
+                    QWord::Whole(val_rhs) => {
+                        return Some(self::Whole(val_lhs - val_rhs));
+                    }
+                    _ => {
+                        return None;
+                    }
+                }
+            _ => {
+                return None;
+            }
+        }
     }
 }
 
 impl AddAssign for QWord {
     fn add_assign(&mut self, rhs: Self) {
-        unsafe { self.parts.data += rhs.parts.data };
+        let QWord::Whole(val_lhs) = self;
+        let QWord::Whole(val_rhs) = rhs;
+
+        self::Whole(*val_lhs + val_rhs);
     }
 }
 
 impl SubAssign for QWord {
     fn sub_assign(&mut self, rhs: Self) {
-        unsafe { self.parts.data -= rhs.parts.data };
+        let QWord::Whole(val_lhs) = self;
+        let QWord::Whole(val_rhs) = rhs;
+
+        self::Whole(*val_lhs - val_rhs);
     }
 }
 
 impl QWord {
-    pub fn u(self) -> u32 {
-        return unsafe { self.parts.data.u };
+    pub fn cdr(self) -> Option<CDR> {
+        match self {
+            QWord::CdrTagData(p) => Some(p.cdr),
+            _ => {
+                return None;
+            }
+        }
     }
-    pub fn s(self) -> i32 {
-        return unsafe { self.parts.data.s };
+
+    pub fn tag(self) -> Option<QTag> {
+        match self {
+            QWord::CdrTagData(p) => Some(p.tag),
+            _ => {
+                return None;
+            }
+        }
     }
-    pub fn f(self) -> f32 {
-        return unsafe { self.parts.data.f };
+
+    pub fn data(self) -> Option<QImmediate> {
+        match self {
+            QWord::CdrTagData(p) => Some(p.data),
+            _ => {
+                return None;
+            }
+        }
     }
-    pub fn a(self) -> u32 {
-        return unsafe { self.parts.data.a };
+
+    pub fn u(self) -> Option<u32> {
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Unsigned(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
+        }
+    }
+
+    pub fn s(self) -> Option<i32> {
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Signed(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
+        }
+    }
+    pub fn f(self) -> Option<f32> {
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Float(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
+        }
+    }
+    pub fn a(self) -> Option<u32> {
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(val) => {
+                        return Some(val);
+                    }
+                    _ => None,
+                }
+            _ => {
+                return None;
+            }
+        }
     }
 
     pub fn inc(self) -> Self {
-        let mut q = self.clone();
-        unsafe { q.parts.data.a += 1 };
-
-        return q;
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        return QWord::CdrTagData(QCDRTagData {
+                            cdr: p.cdr,
+                            tag: p.tag,
+                            data: QImmediate::Addr(addr + 1),
+                        });
+                    }
+                    _ => {
+                        return self.clone();
+                    }
+                }
+            _ => {
+                return self.clone();
+            }
+        }
     }
 
     pub fn dec(self) -> Self {
-        let mut q = self.clone();
-        unsafe { q.parts.data.a -= 1 };
-
-        return q;
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        return QWord::CdrTagData(QCDRTagData {
+                            cdr: p.cdr,
+                            tag: p.tag,
+                            data: QImmediate::Addr(addr - 1),
+                        });
+                    }
+                    _ => {
+                        return self.clone();
+                    }
+                }
+            _ => {
+                return self.clone();
+            }
+        }
     }
 
     pub fn inc_mut(&mut self) {
-        unsafe { self.parts.data.a += 1 };
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        p.data = QImmediate::Addr(addr + 1);
+                    }
+                    _ => {}
+                }
+            _ => {}
+        }
     }
 
     pub fn dec_mut(&mut self) {
-        unsafe { self.parts.data.a -= 1 };
+        match self {
+            QWord::CdrTagData(p) =>
+                match p.data {
+                    QImmediate::Addr(addr) => {
+                        p.data = QImmediate::Addr(addr - 1);
+                    }
+                    _ => {}
+                }
+            _ => {}
+        }
+    }
+
+    pub fn set_cdr(&mut self, cdr: CDR) {
+        match self {
+            QWord::CdrTagData(p) => {
+                p.cdr = cdr;
+            }
+            _ => {}
+        }
+    }
+    pub fn set_tag(&mut self, tag: QTag) {
+        match self {
+            QWord::CdrTagData(p) => {
+                p.tag = tag;
+            }
+            _ => {}
+        }
     }
 }
 
@@ -367,7 +685,7 @@ pub struct Op {
 
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
 #[repr(C)]
-pub struct C2RustUnnamed_0 {
+pub struct C2rustUnnamed0 {
     #[bitfield(name = "data", ty = "u32", bits = "0..=15")]
     #[bitfield(name = "padding", ty = "u32", bits = "16..=31")]
     pub data: [u8; 4],
@@ -487,7 +805,7 @@ pub const INSTRUCTION_CACHE_LINE_SIZE: u32 = 0x40;
 pub struct VLMPageBases {
     #[bitfield(name = "dataPageBase", ty = "u32", bits = "0..=27")]
     #[bitfield(name = "tagsPageBase", ty = "u32", bits = "28..=31")]
-    pub dataPageBase_tagsPageBase: [u8; 4],
+    pub datapagebase_tagspagebase: [u8; 4],
 }
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -547,7 +865,7 @@ pub struct MinorMajorRelease {
     #[bitfield(name = "minorRelease", ty = "EmbWord", bits = "16..=23")]
     #[bitfield(name = "majorRelease", ty = "EmbWord", bits = "24..=30")]
     #[bitfield(name = "testReleaseP", ty = "EmbWord", bits = "31..=31")]
-    pub minorRevision_majorRevision_minorRelease_majorRelease_testReleaseP: [u8; 4],
+    pub minorrev_majorrev_minorrelease_majorrelease_testreleasep: [u8; 4],
 }
 
 #[derive(Copy, Clone, BitfieldStruct)]
@@ -561,11 +879,11 @@ pub struct MinorMajor {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SignalHandler {
-    pub handlerThread: u64,
-    pub handlerThreadSetup: bool,
+    pub handler_thread: u64,
+    pub handler_thread_setup: bool,
     pub signal: SignalMask,
-    pub handlerFunction: ProcPtrV,
-    pub handlerArgument: PtrV,
+    pub handler_function: ProcPtrV,
+    pub handler_argument: PtrV,
 }
 
 #[derive(Copy, Clone)]
@@ -576,8 +894,8 @@ pub struct EmbCommArea {
     pub system_type: EmbWord,
     pub number_of_slots: EmbWord,
     pub comm_memory_size: EmbWord,
-    pub generaVersion: MinorMajor,
-    pub osfVersion: MinorMajorRelease,
+    pub genera_version: MinorMajor,
+    pub osf_version: MinorMajorRelease,
     pub guest_major_version: EmbWord,
     pub guest_minor_version: EmbWord,
     pub fep_major_version: EmbWord,
@@ -593,14 +911,14 @@ pub struct EmbCommArea {
     pub host_to_guest_signals: SignalMask,
     pub live_host_to_guest_signals: SignalMask,
     pub channel_table: EmbPtr,
-    pub consoleChannel: EmbPtr,
+    pub console_channel: EmbPtr,
     pub cold_load_channel: EmbPtr,
     pub command_channel: EmbPtr,
-    pub virtualMemorySize: EmbWord,
-    pub worldImageSize: EmbWord,
+    pub virtual_memory_size: EmbWord,
+    pub world_image_size: EmbWord,
     pub bad_memory_map: EmbPtr,
     pub bad_memory_map_size: EmbWord,
-    pub clock_signal: SignalNumber,
+    pub clock_signal_number: SignalNumber,
     pub clock_interval: EmbWord,
     pub run_lights: EmbWord,
     pub reset_request: EmbWord,
@@ -614,49 +932,49 @@ pub struct EmbCommArea {
     pub restart_applications: EmbWord,
     pub signal_interrupt_vector: EmbWord,
     pub base_register: EmbWord,
-    pub hostVersion2: EmbWord,
-    pub hostVersion3: EmbWord,
-    pub MacIvory_NVRAM_settings: C2RustUnnamed_0,
-    pub worldPathname: EmbPtr,
-    pub unixLoginName: EmbPtr,
-    pub unixUID: UEmbWord,
-    pub unixGID: UEmbWord,
+    pub host_version2: EmbWord,
+    pub host_version3: EmbWord,
+    pub mac_ivory_nvram_settings: C2rustUnnamed0,
+    pub world_pathname: EmbPtr,
+    pub unix_login_name: EmbPtr,
+    pub unix_uid: UEmbWord,
+    pub unix_gid: UEmbWord,
     pub pad0: EmbWord,
     pub pad1: [EmbWord; 15],
-    pub guestStatus: EmbWord,
-    pub pollThreadAttrs: u64,
-    pub pollThreadAttrsSetup: bool,
-    pub outputThreadAttrs: u64,
-    pub outputThreadAttrsSetup: bool,
-    pub inputThreadAttrs: u64,
-    pub inputThreadAttrsSetup: bool,
-    pub useSignalLocks: bool,
-    pub signalHandler: [SignalHandler; 32],
+    pub guest_status: EmbWord,
+    pub poll_thread_attrs: u64,
+    pub poll_thread_attrs_setup: bool,
+    pub output_thread_attrs: u64,
+    pub output_thread_attrs_setup: bool,
+    pub input_thread_attrs: u64,
+    pub input_thread_attrs_setup: bool,
+    pub use_signal_locks: bool,
+    pub signal_handler: [SignalHandler; 32],
     pub reawaken: SignalMask,
-    pub signalLock: u64,
-    pub signalLockSetup: bool,
-    pub signalSignal: u64,
-    pub signalSignalSetup: bool,
-    pub pollingThread: u64,
-    pub pollTime: libc::c_long,
-    pub pollClockTime: libc::c_long,
-    pub pollingThreadSetup: bool,
-    pub clockThread: u64,
-    pub clockTime: libc::c_long,
-    pub clockLock: u64,
-    pub clockLockSetup: bool,
-    pub clockSignal: u64,
-    pub clockSignalSetup: bool,
-    pub clockThreadSetup: bool,
-    pub resetRequestCount: EmbWord,
-    pub restartApplicationsCount: EmbWord,
-    pub inhibitDisk: bool,
-    pub debugLevel: EmbWord,
-    pub slaveTrigger: u64,
-    pub XLock: u64,
-    pub XLockSetup: bool,
-    pub wakeupLock: u64,
-    pub wakeupLockSetup: bool,
-    pub wakeupSignal: u64,
-    pub wakeupSignalSetup: bool,
+    pub signal_lock: u64,
+    pub signal_lock_setup: bool,
+    pub signal_signal: u64,
+    pub signal_signal_setup: bool,
+    pub polling_thread: u64,
+    pub poll_time: libc::c_long,
+    pub poll_clock_time: libc::c_long,
+    pub polling_thread_setup: bool,
+    pub clock_thread: u64,
+    pub clock_time: libc::c_long,
+    pub clock_lock: u64,
+    pub clock_lock_setup: bool,
+    pub clock_signal: u64,
+    pub clock_signal_setup: bool,
+    pub clock_thread_setup: bool,
+    pub reset_request_count: EmbWord,
+    pub restart_applications_count: EmbWord,
+    pub inhibit_disk: bool,
+    pub debug_level: EmbWord,
+    pub slave_trigger: u64,
+    pub xlock: u64,
+    pub xlock_setup: bool,
+    pub wakeup_lock: u64,
+    pub wakeup_lock_setup: bool,
+    pub wakeup_signal: u64,
+    pub wakeup_signal_setup: bool,
 }
