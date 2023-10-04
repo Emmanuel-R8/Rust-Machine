@@ -12,7 +12,10 @@ Instructions are normally executed in the order in which they are stored in memo
 
 ------------------------------------------------------------------------
 
-NOTE: A full word address is split between an **even** half-world address, followed by an **odd** half-word address. \*\*\*\*\*\*
+
+:::callout-note
+NOTE: A full word address is split between an **even** half-world address, followed by an **odd** half-word address. 
+:::
 
 The cdr code field of each word executed contains sequencing information to minimize this waste. The cdr code takes on one of four values, which specify how much the PC is incremented after executing an instruction from this word. Note that the PC contains a half-word address.
 
@@ -129,9 +132,9 @@ Table \<\<\_i-machine_internal_registers\>\> lists I-machine internal registers.
 | 1030    | RW         | --        | Maximum Frame Size                            |
 | 1031    | RW         | --        | Stack Cache Dump Quantum                      |
 
-: I-Machine Internal Registers
+: #tab-i-machine-internal-registers
 
--   = Implementation Specific
+* Implementation Specific
 
 The `%read-internal-register` instruction always returns the object from the specified register with its cdr code set to `cdr-next`. If an internal register has cdr-code bits, they can not be read by this instruction.
 
@@ -177,9 +180,9 @@ Data Types Included
 
 `dtp-packed-instruction`
 
-DTFP-CALL-COMPILED-EVEN OTP-CALL-COMPILED\~ODD
+DTFP-CALL-COMPILED-EVEN DTP-CALL-COMPILED\~ODD
 
-OTP-CALL-INDERECT `dtp-call-generic`
+DTP-CALL-INDERECT `dtp-call-generic`
 
 Data-Type Code
 
@@ -195,7 +198,7 @@ Data-Type Code
 
 `dtp-call-generic-prefetch`
 
-OTP-FIXNUM `dtp-small-ratio` OTP-SINGLE-FLOAT `dtp-double-float` DTP\~BIGNUM `dtp-big-ratio` DBTP-COMPLEX OTP-SPARE-NUMBER OTP-INSTANCE OTP-LIST-INSTANCE DTP-ARRAY=INSTANCE OYP-STRING-INSTANCE OTP-NIL
+DTP-FIXNUM `dtp-small-ratio` DTP-SINGLE-FLOAT `dtp-double-float` DTP\~BIGNUM `dtp-big-ratio` DBTP-COMPLEX DTP-SPARE-NUMBER DTP-INSTANCE DTP-LIST-INSTANCE DTP-ARRAY=INSTANCE OYP-STRING-INSTANCE DTP-NIL
 
 DIP-LIST
 
@@ -217,7 +220,7 @@ DTP-ODD=PC 47 Value Cel\] Contents : DTP-EXTERNAL\~VALUE-CELL-POINTER 4
 
 Illegal Instructions::
 
-OTP-NULL a DTP---MONITOR-FORWARD 1 `dtp-header-p` 2 `dtp-header-i` 3 `dtp-one-q-forward` 5 `dtp-header-forward` 6 DTP-ELEMENT\~FORWARD 7 DTP-GC\~FORWARD 45
+DTP-NULL a DTP---MONITOR-FORWARD 1 `dtp-header-p` 2 `dtp-header-i` 3 `dtp-one-q-forward` 5 `dtp-header-forward` 6 DTP-ELEMENT\~FORWARD 7 DTP-GC\~FORWARD 45
 
 The following paragraphs describe these formats and their interpretations.
 
