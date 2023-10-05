@@ -1,8 +1,9 @@
 # Lisp-Machine Data Types
 
-The purpose of this chapter is to categorize and define all the objects that occur in I-machine memory, both visible and
-invisible. The categorization of a storage object is done according to its data type as specified by its type code. The
-definitions are presented in order by Lisp-object type.
+The purpose of this chapter is to categorize and define all the objects that occur in
+I-machine memory, both visible and invisible. The categorization of a storage object is done
+according to its data type as specified by its type code. The definitions are presented in
+order by Lisp-object type.
 
 The essence of I-machine architecture is its support of the execution of the Lisp language at the hardware level. This
 dictates the salient features of individual architectural components. In particular, I-machine data representations
@@ -16,21 +17,29 @@ encoding, to be described in this chapter, is to allow I-machine hardware to dis
 is operating on in order to handle each appropriately. More information in how I-machine instructions use different
 types of data is contained in another chapter. See the section \<\<\_macroinstruction_set\>\>.
 
+The chapter first introduces the I-machine's-basic storage unit. It then lists the different
+ways that a Lisp object can be stored in memory and describes the components of these
+representations. Note the interrelation between object references 'and stored
+representations of objects: while a stored representation is the target of an object
+reference, it can also contain object references as part of its structure. This relationship
+reflects the nature of the Lisp language.
 The chapter first introduces the I-machine's-basic storage unit. It then lists the different ways that a Lisp object can
 be stored in memory and describes the components of these representations. Note the interrelation between object
 references 'and stored representations of objects: while a stored representation is the target of an object reference,
 it can also contain object references as part of its structure. This relationship reflects the nature of the Lisp
 language.
 
-As part of its introduction to stored representations, the chapter discusses those stored objects that are not object
-references, including those that are invisible. This includes forwarding pointers, which are used when list or structure
-objects are moved. These are discussed here, despite the fact that the structures they are used in have not yet been
-defined. The general overview of data types encountered in I-machine memory makes forward references to some structures
-necessary. The reader can make use of the cross references supplied to help clarify these sections.
+As part of its introduction to stored representations, the chapter discusses those stored
+objects that are not object references, including those that are invisible. This includes
+forwarding pointers, which are used when list or structure objects are moved. These are
+discussed here, despite the fact that the structures they are used in have not yet been
+defined. The general overview of data types encountered in I-machine memory makes forward
+references to some structures necessary. The reader can make use of the cross references
+supplied to help clarify these sections.
 
-After the introduction, the body of the chapter describes and defines the structure of each of the Lisp objects that the
-I-machine architecture accommodates with a specifically assigned data type. The concluding section summarizes the
-data-type information.
+After the introduction, the body of the chapter describes and defines the structure of each
+of the Lisp objects that the I-machine architecture accommodates with a specifically
+assigned data type. The concluding section summarizes the data-type information.
 
 ## Introduction to Lisp-Machine Objects
 
@@ -38,43 +47,48 @@ data-type information.
 
 #### Length and Format
 
-Words are the basic unit of storage on the I machine. Every item in memory, including object references and object
-representations, is made up of one or more words. Whenever we refer to an address, it is the address of some word. More
-information on addresses is available elsewhere. See the section".Memory Layout and Addressing".
+Words are the basic unit of storage on the I machine. Every item in memory, including object
+references and object representations, is made up of one or more words. Whenever we refer to
+an address, it is the address of some word. More information on addresses is available
+elsewhere. See the section".Memory Layout and Addressing".
 
 A word contains 40 bits, which are assigned to the following fields:
 
 | Position  | Length  | Field name                 |
 |-----------|---------|----------------------------|
-| \<39:38\> | 2 bits  | CDR Code                   |
-| \<37:32\> | 6 bits  | Data Type                  |
-| \<31:3\>  | 32 bits | Address or Immediate Data. |
+| <39:38> | 2 bits  | CDR Code                   |
+| <37:32> | 6 bits  | Data Type                  |
+| <31:3>  | 32 bits | Address or Immediate Data. |
 
 : Memory Word
 
 ::: callout-note
 Immediate data fits in 32 bits (31:3). 3 (2:0) bottom bits are reserved.
 
-Note that the on-disk format of words split the storage of CDR+Tag separate from the immediate data. CDR+Tag is 8 bits.
-The immediate data is 32 bits. They are stored in one block of CDR+Tag, then 4 blocks of immediate data. This is instead
-of storing 8 bytes where only 5 would used.
+Note that the on-disk format of words split the storage of CDR+Tag separate from the
+immediate data. CDR+Tag is 8 bits. The immediate data is 32 bits. They are store in one
+block of CDR+Tag, then 4 blocks of immediate data. This is instead of storing 8 bytes where
+only 5 would used.
 :::
 
-Words in actual physical memory may be more than 40 bits wide to allow for parity or ECC schemes. The architecture does
-not require the existence of parity. or ECC nor does it specify. any specific ECC algorithm. Such information and its
-implications are part of the documentation of each implementation and of the system units that support the
+Words in actual physical memory may be more than 40 bits wide to allow for parity or ECC
+schemes. The architecture does not require the existence of parity. or ECC nor does it
+specify. any specific ECC algorithm. Such information and its implications are part of the
+documentation of each implementation and of the system units that support the
 implementation.
 
 #### Fields
 
-The *data-type field* indicates what kind of information is stored in a word. Each Lisp object referenced by its own
-assigned data type is explained in detail in the object, or the actual representation of an object. This is s explained
-in the sections covering the individual data types.
+The data-type field indicates what kind of information is stored in a word. Each Lisp object
+referenced by its own assigned data type is explained in detail in the object, or the actual
+representation of an object. This is s explained in. the. sections covering the individual
+data types.
 
-The cdr-code field is used for various purposes. For header data types, the cdr-code field is used as an extension of
-the data-type field: For stored representations of lists, the contents of this field indicate how the 'data that
-constitute the list are stored. Other uses of the cdr-code field are for. instruction sequencing. Use of the cdr code is
-explained in the sections on lists, headers, and compiled functions.
+The cdr-code field is used for various purposes. For header data types; the cdr-code field
+is used as an extension of the data-type field: For stored representations of lists, the
+contents of this field indicate how the 'data that constitute the list are stored. Other
+uses of the cdr-code field are for. instruction sequencing. Use of the cdr code is explained
+in the sections. on 1 lists, headers, and compiled functions.
 
 ### Classes of Stored Object Representations
 
@@ -135,20 +149,25 @@ digraph G {
 }
 ```
 
-The storage structures for Lisp objects are introduced here so that the reader will be able to see how the various data
-types function within them.
+The storage structures for Lisp objects are introduced here so that the reader will be able
+to see how the various data types function within them.
 
-There are three fundamentally. different ways that Lisp objects are stored in memory. An object can be stored
+There are three fundamentally. different ways that Lisp objects are stored in memory. An
+object can be stored
 
 -   as a list,
 -   as immediate data,
 -   or as a structure.
+-   as a list,
+-   as immediate data,
+-   or as a structure.
 
-A list object is an object built out of one or more conses. Refer to the Reference Guide to Symbolics-Lisp for the
-definition of a cons. The representation consists of a block of memory words strung together by means of the cdr codes.
-Often the block consists of only one or two words, so it is important to avoid the overhead of having an extra header
-word: this is why list representation and structure representation are different. The following types of objects have
-list representations:
+A list object is an object built out of one or more conses. Refer to the Reference Guide to
+Symbolics-Lisp for the definition of a cons. The representation consists of a block of
+memory words strung together by means of the cdr codes. Often the block consists of only one
+or two words, so it is important to avoid the overhead of having an extra header word: this
+is why list representation and structure representation are different. The following types
+of objects have list representations:
 
 -   conses,
 -   lists,
@@ -158,17 +177,27 @@ list representations:
 -   dynamic closures,
 -   lexical closures, and
 -   generic functions
+-   conses,
+-   lists,
+-   big ratios,
+-   double-precision floating-point numbers,
+-   complex numbers,
+-   dynamic closures,
+-   lexical closures, and
+-   generic functions
 
-Note that there is a difference between the concept of a list as a type of structure and the concept of the data type
-`dtp-list`. All the above data types use list structure, including. cdr coding (described later). Only the object
-references to lists and conses use the data type `dtp-list`. (There is no `dtp-cons`.)
+Note that there is a difference between the concept of a list as a type of structure and the
+concept of the data type `dtp-list`. All the above data types use list structure, including.
+cdr coding (described later). Only the object references to lists and conses use the data
+type `dtp-list`. (There is no `dtp-cons`.)
 
 Figure 1. Classes of stored object representations.
 
-An immediate object does not require any additional memory words for its representation. Instead the entire object
-representation is contained right in the object: reference. To be an immediate object,.an object type must not be
-subject: to side-effects, must: have a small representation, and must. have a need for very efficient allocation of new
-objects. of that type. The following types of objects have immediate representations:
+An immediate object does not require any additional memory words for its representation.
+Instead the entire object representation is contained right in the object: reference. To be
+an immediate object,.an object type must not be subject: to side-effects, must: have a small
+representation, and must. have a need for very efficient allocation of new objects. of that
+type. The following types of objects have immediate representations:
 
 -   small integers (fixnums),
 -   single-precision floating-point numbers,
@@ -176,42 +205,61 @@ objects. of that type. The following types of objects have immediate representat
 -   characters,
 -   packed instructions, and
 -   physical addresses
+-   small integers (fixnums),
+-   single-precision floating-point numbers,
+-   small ratios,
+-   characters,
+-   packed instructions, and
+-   physical addresses
 
-A structure object is represented as a block of memory words. The first word contains a header with a special data type
-code. Usually all words after the first contain object references. The header contains enough information to determine
-the size of the object's representation in memory. Further, it contains enough information about the type of the object
-so that a legal object reference designating this object can be constructed. Structure representation is designed to
-work for large objects. Some attention is also paid to minimizing overhead for small objects, but there. is always at
-least one word of overhead. The. objects represented as structures are:
+A structure object is represented as a block of memory words. The first word contains a
+header with a special data type code. Usually all words after the first contain object
+references. The header contains enough information to determine the size of the object's
+representation in memory. Further, it contains enough information about the type of the
+object so that a legal object reference designating this object can be constructed.
+Structure representation is designed to work for large objects. Some attention is also paid
+to minimizing overhead for small objects, but there. is always at least one word of
+overhead. The. objects represented as structures are:
 
 -   symbols,
 -   instances,
 -   bignums,
 -   arrays, and
 -   compiled functions.
+-   symbols,
+-   instances,
+-   bignums,
+-   arrays, and
+-   compiled functions.
 
-The stored representation of a list or structure object is contained in some number of consecutive words of memory. Each
-memory word within the structure may contain an object reference, a header, a forwarding pointer, or a special marker.
+The stored representation of a list or structure object is contained in some number of
+consecutive words of memory. Each memory word within the structure may contain an object
+reference, a header, a forwarding pointer, or a special marker.
 
-The data-type code identifies the word type. For example, an array is represented as a header word, which contains such
-information as the length of the array, and; following the header, memory words that contain the elements of the array.
-An object reference to an array without a leader contains the address of the first memory word in the stored
-representation of the array.
+The data-type code identifies the word type. For example, an array is represented as a
+header word, which contains such information as the length of the array, and; following the
+header, memory words that contain the elements of the array. An object reference to an array
+without a leader contains the address of the first memory word in the stored representation
+of the array.
 
 ### Components of Stored Representations
 
-The components of the stored representations to be found in Lisp machine memory are either object references, headers,
-forwarding (invisible) pointers, or special markers.
+The components of the stored representations to be found in Lisp machine memory are either
+object references, headers, forwarding (invisible) pointers, or special markers.
 
 #### Object References
 
-Object references are the mechanism by which one refers to an object. The object reference is the fundamental form of
-data in this and any Lisp system. Object references are similar in function to the "pointer" of other languages. As
-noted before, an object reference can both point to the representation of a Lisp object and be a component part of such
-a representation.
+Object references are the mechanism by which one refers to an object. The object reference
+is the fundamental form of data in this and any Lisp system. Object references are similar
+in function to the "pointer" of other languages. As noted before, an object reference can
+both point to the representation of a Lisp object and be a component part of such a
+representation.
 
 There are three types of object references:
 
+-   object references by address
+-   immediate object references, and
+-   pointers.
 -   object references by address
 -   immediate object references, and
 -   pointers.
@@ -261,13 +309,15 @@ digraph G {
 }
 ```
 
-Object references by address are implemented by a memory word whose address field contains the virtual address of the
-stored representation of the object. Such memory words are categorized as pointer data. Examples of this type of object
-reference are symbols, lists, and arrays.
+Object references by address are implemented by a memory word whose address field contains
+the virtual address of the stored representation of the object. Such memory words are
+categorized as pointer data. Examples of this type of object reference are symbols, lists,
+and arrays.
 
-Immediate object references are implemented by memory words that directly contain the entire representation of the
-object. These are implemented by memory words that contain the object in the 32-bit immediate data field. Examples of
-this type of object reference are small integers (fixnums) and single-precision floating-point numbers.
+Immediate object references are implemented by memory words that directly contain the entire
+representation of the object. These are implemented by memory words that contain the object
+in the 32-bit immediate data field. Examples of this type of object reference are small
+integers (fixnums) and single-precision floating-point numbers.
 
 Pointers are implemented in the same way as object references by address. The difference between these two types is that
 pointers contain the virtual addresses of locations that do not contain objects: they point instead to locations within
@@ -275,18 +325,23 @@ objects - for example, to the value cell of a symbol. Pointers are also categori
 
 #### Headers
 
-A header is the first word in the stored representation of structure objects. The header marks the boundary between the
-stored representations of two objects and contains information about the object that it heads. This information is
-either immediate data, when the header. type is `dtp-header-i`, or it is the address of some descriptive data, when the
-header type is `dtp-header-p`. The header-i format contains object-specific immediate data in bits \<31:0\>. The
-header-p format 'contains the address of an object-specific item in bits \<31:0\>. Object references usually use the
-address of an object's header as the address of the object. (The only exceptions are the object reference to. a compiled
-function and the object reference to an array with a leader, in which case the reference points to a specified location
-inside the. structure.
+A header is the first word in the stored representation of structure objects. The header
+marks the boundary between the stored representations of two objects and contains
+information about the object that it heads. This information is either immediate data, when
+the header. type is `dtp-header-i`, or it is the address of some descriptive data, when the
+header type is `dtp-header-p`. The header-i format contains object-specific immediate data
+in bits <31:0>. The header-p format 'contains the address of an object-specific item in
+bits <31:0>. Object references usually use the address of an object's header as the
+address of the object. (The only exceptions are the object reference to. a compiled function
+and the object reference to an array with a leader, in which case the reference points to a
+specified location inside the. structure.
 
-The cdr-code field of a header word is used as.the header-type field: it distinguishes what kind of object the structure
-represents. The four header types for each type of header format are shown in Table 1.
+The cdr-code field of a header word is used as.the header-type field: it distinguishes what
+kind of object the structure represents. The four header types for each type of header
+format are shown in Table 1.
 
+| Header | Symbolic Name           | Object Type  |
+|--------|-------------------------|--------------|
 | Header | Symbolic Name           | Object Type  |
 |--------|-------------------------|--------------|
 | 0      | `%header-type-symbol`   | Symbol       |
@@ -303,19 +358,22 @@ represents. The four header types for each type of header format are shown in Ta
 | 2      | `%header-type-number`            | Number            |
 | 3      |                                  | Reserved          |
 
-It is possible to change the memory location of an object represented by a structure. In this case, the object's header
-is moved to a new location and the object's old location is filled with a word of data type `dtp-header-forward`, an
-invisible pointer that contains the address of the new location of the reference. The object references in the locations
-of the old structure are all replaced with pointers of the type `dtp-element-forward`, which contain the addresses of
-the new . locations of the objects. This arrangement allows all existing references to the object to continue to work.
-Refer to Figure 3. Forwarding pointers are described more fully in the next section. See the section
-\<<forwarding_invisible_pointers>\>.
+It is possible to change the memory location of an object represented by a structure. In
+this case, the object's header is moved to a new location and the object's old location is
+filled with a word of data type `dtp-header-forward`, an invisible pointer that contains the
+address of the new location of the reference. The object references in the locations of the
+old structure are all replaced with pointers of the type `dtp-element-forward`, which
+contain the addresses of the new . locations of the objects. This arrangement allows all
+existing references to the object to continue to work. Refer to Figure 3. Forwarding
+pointers are described more fully in the next section. See the section
+<<\_forwarding_invisible_pointers>>.
 
 #### Forwarding (Invisible) Pointers {#sec-forward-invisible-pointers}
 
-A forwarding pointer specifies that a reference to the location containing it should be redirected to another memory
-location, just as in postal forwarding. These are also called invisible pointers. They are used for a number of internal
-bookkeeping purposes by the storage management software, including the implementation of extendable arrays.
+A forwarding pointer specifies that a reference to the location containing it should be
+redirected to another memory location, just as in postal forwarding. These are also called
+invisible pointers. They are used for a number of internal bookkeeping purposes by the
+storage management software, including the implementation of extendable arrays.
 
 Figure 3: Use of forwarding pointers to move an array.
 
@@ -325,38 +383,48 @@ The data types of the forwarding pointers are:
 -   `dtp-one-q-forward`
 -   `dtp-header-forward`
 -   `dtp-element-forward`
+-   `dtp-external-value-cell-pointer`
+-   `dtp-one-q-forward`
+-   `dtp-header-forward`
+-   `dtp-element-forward`
 
 An external-value-cell: pointer is used to link a 'symbol's value cell to a closure or instance value cell. It is not
 invisible to binding and unbinding. See the section \<<binding_stack>\>.
 
-A one-q-forward pointer forwards only the cell that contains it, that is, it indicates that -the cell is contained at
-the address specified in the address field of the `dtp-one-q-forward` word and that the cdr code of the required data is
-the cdr code of the `dtp-one-q-forward` word. This pointer is used to link a symbol value or function cell to a wired
-cell or a compiled-function's function cell, as well as for many other applications.
+A one-q-forward pointer forwards only the cell that contains it, that is, it indicates that
+-the cell is contained at the address specified in the address field of the
+`dtp-one-q-forward` word and that the cdr code of the required data is the cdr code of the
+`dtp-one-q-forward` word. This pointer is used to link a symbol value or function cell to a
+wired cell or a compiled-function's function cell, as well as for many other applications.
 
-A header-forward pointer is used when a whole structure is forwarded. This word marks where the header used to be, and
-contains the address of where the header is now. When an array with a leader is forwarded, `dtp-header-forward`.
-pointers replace both the prefix header and the leader header. The other words of the structure are forwarded with
-`dtp-element-forward` pointers. The address field of an element-forward pointer contains the new address of the word
-that used to be there, The cdr code of the required data is stored with the relocated data -- the cdr code of the
-header-forward pointer is ignored. Every word of the structure except the headers contains an element-forward pointer.
+A header-forward pointer is used when a whole structure is forwarded. This word marks where
+the header used to be, and contains the address of where the header is now. When an array
+with a leader is forwarded, `dtp-header-forward`. pointers replace both the prefix header
+and the leader header. The other words of the structure are forwarded with
+`dtp-element-forward` pointers. The address field of an element-forward pointer contains the
+new address of the word that used to be there, The cdr code of the required data is stored
+with the relocated data -- the cdr code of the header-forward pointer is ignored. Every word
+of the structure except the headers contains an element-forward pointer.
 
-A header-forward pointer is also used in connection with list representation. List representation is explained fully in
-another section. See the section \<\<\_representations_of_lists\>\>. When a one-word cons must be expanded to a two-word
-cons by `rplacd`, a new two-word cons is allocated and the old one-word cons is replaced by a header-forward pointer
-containing the address of the new cons. (The cdr code of the header-forward pointer is required to be `cdr-nil` for
-garbage- collection purposes. It is ignored by cdr and `rplacd` operations.) The cdr code in the location containing the
-forwarding pointer is ignored. This is one difference between.a header-forward pointer and a one-q-forward pointer: the
-cdr code in the location containing a one-q-forward pointer is used rather than ignored. See Figure 4. This figure
-illustrates how a cons whose car contains a reference to a fixnum and whose cdr is nil is changed when an rplaed
-instruction changes its cdr to another fixnum.
+A header-forward pointer is also used in connection with list representation. List
+representation is explained fully in another section. See the section
+<<\_representations_of_lists>>. When a one-word cons must be expanded to a two-word cons
+by `rplacd`, a new two-word cons is allocated and the old one-word cons is replaced by a
+header-forward pointer containing the address of the new cons. (The cdr code of the
+header-forward pointer is required to be `cdr-nil` for garbage- collection purposes. It is
+ignored by cdr and `rplacd` operations.) The cdr code in the location containing the
+forwarding pointer is ignored. This is one difference between.a header-forward pointer and a
+one-q-forward pointer: the cdr code in the location containing a one-q-forward pointer is
+used rather than ignored. See Figure 4. This figure illustrates how a cons whose car
+contains a reference to a fixnum and whose cdr is nil is changed when an rplaed instruction
+changes its cdr to another fixnum.
 
 #### Special Markers
 
-A special marker indicates that the memory location containing it does not currently contain an object reference. An
-attempt to use the contents of that location signals an error. The address field of a special marker is used by
-error-handling software to determine what kind of error should be reported. (The hardware does not use the
-special-marker address field.)
+A special marker indicates that the memory location containing it does not currently contain
+an object reference. An attempt to use the contents of that location signals an error. The
+address field of a special marker is used by error-handling software to determine what kind
+of error should be reported. (The hardware does not use the special-marker address field.)
 
 Figure 4, Use of forwarding pointers to expand a cons.
 
@@ -366,13 +434,15 @@ The data types of the special.markers are:
 -   `dtp-monitor-forward`
 -   `dtp-gc-forward`
 
-A null special marker is placed in the value cell or function cell of a symbol 'or in the instarice-variable value cell
-in an instance, in those cases when no value has been assigned.. The address field of the null marker contains the
-address of the name of the variable. This makes it possible for an error handler to report the name of the offending
+A null special marker is placed in the value cell or function cell of a symbol 'or in the
+instarice-variable value cell in an instance, in those cases when no value has been
+assigned.. The address field of the null marker contains the address of the name of the
+variable. This makes it possible for an error handler to report the name of the offending
 variable when an attempt to use the value of an unbound variable is detected.
 
-A null special marker is also used to initialize a freshly-created virtual memory pagé in case it is accidentally
-accessed before an object is created in it. The address field contains the word's own address.
+A null special marker is also used to initialize a freshly-created virtual memory pagé in
+case it is accidentally accessed before an object is created in it. The address field
+contains the word's own address.
 
 The encoding of the null-special-marker data type is zero. Memory that is initialized to all bits zero thus. contains
 all null words, which will cause a trap if referenced.
@@ -380,15 +450,16 @@ all null words, which will cause a trap if referenced.
 The monitor special marker is intended for use with a debugging feature that will allow modifications of a particular
 storage location to be intercepted. See the section \<\<\_exception_handling\>\>.
 
-A marker of type `dtp-gc-forward` is used by the garbage collector and may only appear in oldspace. When an object is
-evacuated from oldspace, each word of the object's former representation contains a `dtp-gc-forward` that points to the
-new location of that word. It is categorized here as a special marker, rather than as a pointer, since it is visible
-only to the garbage-collecting system, never to Lisp code.
+A marker of type `dtp-gc-forward` is used by the garbage collector and may only appear in
+oldspace. When an object is evacuated from oldspace, each word of the object's former
+representation contains a `dtp-gc-forward` that points to the new location of that word. It
+is categorized here as a special marker, rather than as a pointer, since it is visible only
+to the garbage-collecting system, never to Lisp code.
 
 ### Operand-Reference Classification
 
 | Marker Class     | Marker type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|----------------------------|--------------------------------------------------------------------------------------------|
+|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Immediate data   | `dtp-fixnum`, `dtp-small-ratio`, `dtp-single-float`, `dtp-character`,`dtp-physical-address`, `dtp-packed-instruction`, `dtp-spare-immediate-1` (22 type codes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | Pointer data     | `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`,`dtp-spare-number`, `dtp-instance`, `dtp-list-instance`, `dtp-array-instance`, `dtp-string-instance`, `dtp-nil`, `dtp-list`, `dtp-array`, `dtp-string`, `dtp-symbol`, `dtp-locative`, `dtp-lexical-closure`, `dtp-dynamic-closure`, `dtp-compiled-function`, `dtp-generic-function`, `dtp-spare-pointer-1`, `dtp-spare-pointer-2`, `dtp-spare-pointer-3`, `dtp-spare-pointer-4`, `dtp-even-pc`, `dtp-odd-pc`, `dtp-call-compiled-even`, `dtp-call-compiled-odd`, `dtp-call-indirect`, `dtp-call-generic`, `dtp-call-compiled-even-prefetch`, `dtp-call-compiled-odd-prefetch`, `dtp-call-indirect-prefetch`, `dtp-call-generic-prefetch` (33 type codes) |
 | Null             | `dtp-null` (1 type code)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -409,16 +480,23 @@ only to the garbage-collecting system, never to Lisp code.
 
 ## Data-Type Descriptions
 
-This section defines how each type of object is represented in storage and explains how the stored representations make
-use of type-coded objects.
+This section defines how each type of object is represented in storage and explains how the
+stored representations make use of type-coded objects.
 
 ### Representations of Symbols
 
-The object reference to a symbol is a word of data type `dtp-symbol` or `dtp-nil`. The address field of this word
-contains the address of a header of type `dtp-header-p`. The header is followed by four words. The header's header-type
-field equals `%header-type-symbol` and the address field of the header contains the address of the symbol's name, a
-string: The five words that constitute a symbol object, in order, are:
+The object reference to a symbol is a word of data type `dtp-symbol` or `dtp-nil`. The
+address field of this word contains the address of a header of type `dtp-header-p`. The
+header is followed by four words. The header's header-type field equals
+`%header-type-symbol` and the address field of the header contains the address of the
+symbol's name, a string: The five words that constitute a symbol object, in order, are:
 
+| 0   | SYMBOL-NAME-CELL       | address of the symbol's name          |
+|-----|------------------------|---------------------------------------|
+| 1   | `SYMBOL-VALUE-CELL`    | the value, or an unbound marker       |
+| 2   | `SYMBOL-FUNCTION-CELL` | the. definition, or an unbound marker |
+| 3   | `SYMBOL-PROPERTY-CELL` | the property list                     |
+| 4   | `SYMBOL-PACKAGE-CELL`  | the home package, or NIL              |
 | 0   | SYMBOL-NAME-CELL       | address of the symbol's name          |
 |-----|------------------------|---------------------------------------|
 | 1   | `SYMBOL-VALUE-CELL`    | the value, or an unbound marker       |
@@ -428,22 +506,25 @@ string: The five words that constitute a symbol object, in order, are:
 
 See Figure 5.
 
-The special symbols nil and t reside in fixed memory locations: (VMA=PMA 1611000) and (VMA=PMA 1011005), respectively.
-See the section \<\<\_wired_addresses\>\>. The fixed address and separate data type for nil speed up operations such as
-predicate functions.
+The special symbols nil and t reside in fixed memory locations: (VMA=PMA 1611000) and
+(VMA=PMA 1011005), respectively. See the section <<\_wired_addresses>>. The fixed
+address and separate data type for nil speed up operations such as predicate functions.
 
 ### Representations of Instances and Related Data Types
 
-The data types described in this section are used by the flavor system, which deals with flavors, instances, instance
-variables, generic functions, and message passing. A flavor describes the behavior of a family of similar instances. An
-instance is an object. whose behavior is described by a flavor. An instance variable is a variable that has a separate
-value associated with each instance. A generic function is a function whose implementation dispatches on the flavor of
-its first argument. and selects a method that gets called as the body of the generic function. Generic functions are
-described in the section on function data types. See the section".Representation of Functions and Closures". In message
-pass.ag, an instance is called as a function; the function's first argument, known as the message name, is a symbol that
-is dispatched upon to select a method that gets called.
+The data types described in this section are used by the flavor system, which deals with
+flavors, instances, instance variables, generic functions, and message passing. A flavor
+describes the behavior of a family of similar instances. An instance is an object. whose
+behavior is described by a flavor. An instance variable is a variable that has a separate
+value associated with each instance. A generic function is a function whose implementation
+dispatches on the flavor of its first argument. and selects a method that gets called as the
+body of the generic function. Generic functions are described in the section on function
+data types. See the section".Representation of Functions and Closures". In message pass.ag,
+an instance is called as a function; the function's first argument, known as the message
+name, is a symbol that is dispatched upon to select a method that gets called.
 
-See the Lisp documentation for more information about flavors, instances, instance variables, and messages.
+See the Lisp documentation for more information about flavors, instances, instance
+variables, and messages.
 
 #### Flavor Instances
 
@@ -459,24 +540,25 @@ are:
 
 Figure 5. Structure of a symbol object.
 
--   the array header, part of.the packaging of the structure (It must be a short- prefix array format, but.is not
-    checked.)
+-   the array header, part of.the packaging of the structure (It must be a short- prefix
+    array format, but.is not checked.)
 -   the named-structure symbol,. part of the. packaging of the structure
--   the size of an instance, used by the garbage collector and by the instance referencing instructions (`%instance-ref`
-    and the like)
+-   the size of an instance, used by the garbage collector and by the instance referencing
+    instructions (`%instance-ref` and the like)
 -   the hash mask, used by the hardware for method lookup
 -   the handler hash table address, used by the hardware for method lookup
 -   the name of the flavor, used by the type-of function
 -   additional fields known only to the flavor system
 
-A handler table is a hash table that maps from a generic function or a message to the function to be invoked and a
-parameter to that function. Typically, the function is a method and the parameter is a mapping table used by that method
-to access instance variables. The mapping table is a simple, short-prefix ART-Q array. For speed, the format of handler
-tables is architecturally defined and known by hardware. Handler hash tables are packaged inside arrays, but this is
-software dependent, not hardware or architecture dependent.
+A handler table is a hash table that maps from a generic function or a message to the
+function to be invoked and a parameter to that function. Typically, the function is a method
+and the parameter is a mapping table used by that method to access instance variables. The
+mapping table is a simple, short-prefix ART-Q array. For speed, the format of handler tables
+is architecturally defined and known by hardware. Handler hash tables are packaged inside
+arrays, but this is software dependent, not hardware or architecture dependent.
 
-A handler table consists of a sequence of three-word elements. The address of the first word of the first element is in
-the flavor. Each element consists of:
+A handler table consists of a sequence of three-word elements. The address of the first word
+of the first element is in the flavor. Each element consists of:
 
 -   the key: This is a generic function (`dtp-generic-function`), a message name (`dtp-symbol`), or nil, which is a
     default that matches everything (`dtp-nil`).
@@ -595,22 +677,21 @@ See SYS:SYS2;BIGDEFS.LISP, BIGNUM.LISP. Essentially the same code should run on 
 
 #### Small-Ratio Representation
 
-A small ratio is represented by an immediate object of data type `user::dtp-small-ratio`. The data field is divided into
-two subfields as follows:
+A small ratio is represented by an immediate object of data type `user::dtp-small-ratio`. The data
+field is divided into two subfields as follows:
 
-| Position  |
-|-----------|
-| \<31:16\> |
-| \<15:0\>  |
+| Position | Description |
+| <31:16> | form a two's-complement numerator. 0 is an illegal value. |
+| <15:0> | is an unsigned denominator. 0 and 1 are illegal values. |
 
-|       |        |           |             |
-|-------|--------|-----------|-------------|
-| CC    | SM-RAT | NUMERATOR | DENOMINATOR |
-| 39 38 | 37 32  | 31 16     | 15 0        |
+| | | |
+|----|----------|------|------------------------|
+| CC | SM-RAT | NUMERATOR | DENOMINATOR |
+| 39 38 | 37 32 | 31 16 | 15 0 |
 
-The illegal values are so because of either division by zero, or because the number is an integer and should be
-represented as such. The ratio is reduced to lowest terms. Note that the hardware does. not make. use of the fields of
-the small ratio.
+The illegal values are so because of either division by zero, or because the number is an
+integer and should be represented as such. The ratio is reduced to lowest terms. Note that
+the hardware does. not make. use of the fields of the small ratio.
 
 Figure 7. Structure of an object of type `dtp-bignum`
 
@@ -852,10 +933,10 @@ header (assuming the array has its long prefix bit set). Indirect arrays can be 
 the fourth word. Figure 15 shows-a simple displaced array, while the figure in Figure 16 shows a one-dimensional array
 indirected to another two-dimensional array. The following code generates two such arrays: t
 
-```         
+```
 (setq a (make-array '(7 4) :element-type '(unsigned-byte 4))
-      b (make-array 4 :displaced-to a 
-                      :dispaced-index-offset 10. 
+      b (make-array 4 :displaced-to a
+                      :dispaced-index-offset 10.
                       :element-type '(unsigned-byte 4)))
 ```
 
@@ -1305,12 +1386,11 @@ The I machine and 3600-family machine data representations are similar in the fo
 
 5..The two header data types are similar, but they have slightly different values and possible fields. These are
 
-```         
-`DTP-HEADER-1` `dtp-header-p`
-```
+DTP-HEADER-1 `dtp-header-p`
 
-6.  The: structure of bignums on-the two machines is essentially the same, though the I machine has an explicit data
-    type for them, while 3600-family machines use dtp-extended-number with the bignum subtype.
+1.  The: structure of bignums on-the two machines is essentially the same, though the I
+    machine has an explicit data type for them, while 3600-family machines use
+    dtp-extended-number with the bignum subtype.
 
 The differences between the data representations and types of 3600-family computers and I machines are:
 
@@ -1352,35 +1432,23 @@ The differences between the data representations and types of 3600-family comput
 
 These are the main differences between 3600-family arrays and I-machine arrays:
 
-\- The format of the I-machine prefix header is simpler and contains more explicit
+-   The format of the I-machine prefix header is simpler and contains more explicit
+    information about the array.
 
-information about the array.
+-   The optional array leader is stored before (at lower memory locations) the array's
+    header on the I machine and after it on 3600-family machines. An I machine leader has
+    its own header; a 3600-family leader does not.
 
-\- The optional array leader is stored before (at lower memory locations) the array's
-
-header on the I machine and after it on 3600-family machines. An I machine leader has
-
-its own header; a 3600-family leader does not.
-
-\- The I machine has two kinds of array prefix, 3600-family machines six, Figure 20 is a
-
-detailed comparison of the corresponding array prefix structures, their fields, and the
-
-maximum values of the fields.
-
--   <div>
-
-    ```         
-    ```
-
-    </div>
+-   The I machine has two kinds of array prefix, 3600-family machines six, Figure 20 is a
+    detailed comparison of the corresponding array prefix structures, their fields, and the
+    maximum values of the fields.
 
 ### Compiled Function Differences
 
 The major difference between the data representations of 3600-family machines and I machines is in the structure of
 compiled functions:
 
-```         
+```
 -   3600-family machines have an *external reference table*, which is stored between the
 compiled function prefix and the body of instructions. I machines, which omit this
 table, store the contents of this table -- constants and locatives -- *in line* with the
