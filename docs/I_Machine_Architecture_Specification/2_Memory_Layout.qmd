@@ -1,0 +1,656 @@
+# Memory Layout and Addressing
+
+## Address Space
+
+The architecture provides a single address space which is shared by all
+processes. An address is thirty-two bits wide, and specifies the location of a
+word.
+
+*****
+NOTE: A word is 16 bits, i.e. 2 bytes. Addresses refer to quad-words (4-byte aligned), then split into even / odd.
+*****
+
+The address space is divided into thirty-two zones, each containing 128
+megawords. The thirty-two zones are variously assigned to several sections as
+shown in the table below. Note that ephemeral space is a subset of the virtual
+address space.
+
+*****
+NOTE: Zones are numbered 0 to 31.
+*****
+
+
+[cols="m<,m<,a<,a<,a<", options="header"]
+.Address fileds for Memory Address
+|===
+| Octal |Hex | Name | Zone | Comment
+| 0o000_0000_0000 : 0o007_7777_7777 | 0x00_00_00_00 : 0x03_FF_FF_FF
+| Ephemeral Address Space | zone 0 | low 128 megawords
+
+| 0o000_0000_0000 : 0o367_7777_7777 | 0x00_00_00_00 : 0xF7_FF_FF_FF
+| Virtual Address Space | zones 0 - 30 | low 3,968 megawords
+
+| 0o370_0000_0000 : 0o377_7777_7777 | 0xF8_FF_FF_FF : 0xFF_FF_FF_FF
+| Unmapped Address Space | zone 31 | high 128 megawords
+
+| 0o000_0000_0000 : 0o377_7777_7777 | 0x00_00_00_00 : 0xFF_FF_FF_FF
+| Total Address Space | zones 0 to 31 | 4 gigawords
+|===
+
+### Virtual Addresses
+
+The lower 31 out of 32 zones of the address space is used for virtual addresses.
+These addresses are subject to page mapping and are used for all allocation of
+normal objects.
+
+A virtual address is divided into two fields for mapping purposes. These are the
+virtual page number and the offset within page fields.
+
+Virtual space occupies thirty-one zones. An internal processor register allows
+each zone to be specified as either old or new space.
+
+.Address Fields for Virtual Addresses
+[cols="v,a", options="header"]
+|===
+|Position | Meaning
+|<81:27>  | Zone number (zones 0 through 30)
+|<81:8>   | Virtual Page Number (VPN – 512K virtual pages per zone)
+|<7:0>    | Offset within Page (256 words per page)
+|===
+
+The virtual address space is partitioned by software into regions, areas, and
+quanta. These have no direct hardware impact. Note, however, that the hardware
+hash function for the Page Hash Table (See the section <<_page_hash_table>>) is
+optimized for a quantum size of 65,536 words (16 bits).
+
+### Ephemeral Addresses
+
+The lowest zone of the virtual address space is reserved for the storage of
+ephemeral objects. This space is provided to support a garbage collection
+strategy that takes advantage of recently created objects usually having a short
+lifetime,
+
+Ephemeral space is divided into thirty-two levels. Data within an ephemeral
+level is the same age. The relative ages of different levels is up to software
+to decide, and would normally change dynamically. Each level is further divided
+into two halves, old and new space, An internal processor register specifies
+which half is old and which is new.
+
+The thirty-two ephemeral levels are grouped into four groups of eight levels
+each. The ephemeral level groups referenced by a page are maintained in the PHT.
+
+.Address Fields for Ephemeral Addresses
+[cols="v,a", options="header"]
+|===
+|Position | Meaning
+|<31:27>  | 0000 => ephemeral, otherwise non-ephemeral
+|<26>     | which half of the ephemeral level
+|<26:21>  | ephemeral level number
+|<28:24>  | ephemeral level group number
+|<20:8>   | word address within an ephemeral level
+|===
+
+Static and dynamic data are stored at virtual address 1_27 (2^27) and above. See
+the section <<_revision_0_implementation_memory_features>>.
+
+
+### Unmapped Addresses
+
+The upper asciimath:[1 // 32^(nd)] of the virtual address space is used to
+directly address the low portion of the physical address space. The upper five
+bits of these addresses are translated from all ones to all zeros. They are used
+primarily to access page tables and paging software, to avoid recursive
+translation faults. These addresses are sometimes called the virtual=physical or
+VMA=PMA region.
+
+Note that there is an aliasing situation for some mapped pages. They have two
+addresses, one virtual.and one VMA=PMA. A virtual data cache would have to be
+careful to maintain coherence when writing via one of these addresses and
+reading via another. A VMA need not translate to a page also accessible by
+VMA=PMA, (VMA=PMA cannot reference the entire physical address space.)
+
+### Wired Addresses
+
+A portion of the system needs to be wired down, that is, not subject to eviction
+of its pages from main memory. Most obviously, the software that handles page
+faults needs to be wired.
+
+There are a number of architecturally defined data structures that reside at
+fixed physical locations. A system implementation must provide memory that
+responds to these addresses. These locations are as follows (all addresses
+relative to the beginning of VMA=PMA space):
+
+[cols="m,a"]
+|===
+| 0o0_0000_0000 : 0o0_0077_7777 | FEP code, data, and stacks (256K)
+| 0o0_0100_0000 : 0o0_0100_7777 | Trap vectors (refer to chapter 5)
+| 0o0_0101_0000 : 0o0_0101_0377 | FEP communication area
+| 0o0_0101_0400 : 0o0_0101_0777 | System communication area
+| 0o0_0101_1000 : 0o0_0101_1004 | NIL
+| 0o0_0101_1010 : 0o0_0101_1014 | T
+| |
+| 0o7_7740_0000 : 0o7_7757_7777 | Boot prom (64k)
+| 0o7_7760_0000 : 0o7_7760_7777 | Reserved for Ibus configuration space (64K)
+|===
+
+Init sets the contents of the Program Counter (PC) to VMA=PMA 0o7_7740_0100
+(that is, `0o377_7740_0100` or `-0o37_7700`) with data type `dtp-even-pc`. See the
+section <<_revision_0_implementation_memory_features>>.
+
+### Pages
+
+The virtual address space is demand-paged with 256-word pages, just as
+on the 3600.
+
+## GC Support
+
+Two internal processor registers designate sections of the address space as
+oldspace. These registers can be written via the `%write-internal-register`
+instruction, allowing the designations to change during execution.
+
+The `zone-oldspace` register contains a bit map that specifies for each zone of
+dynamic space (virtual space minus ephemeral space) whether the zone is newspace
+or oldspace. A set bit. indicates its corresponding zone is oldspace. Bit 0,
+specifying zone .0, is ignored since that zone is ephemeral space. Bit 31
+specifies zone 31, which is VMA=PMA space. Since VMA=PMA space cannot be
+condemned, bit 31 must always be 0 (the hardware may or may not ignore it).
+
+The `ephemeral-oldspace` register contains a bit map that specifies for each
+ephemeral level which half of the level is newspace and which half is oldspace.
+A set bit indicates the upper half is oldspace.
+
+This scheme never incurs false traps during ephemeral garbage collection, and
+incurs no false traps during dynaniic garbage collection in the usual case where
+the software allocates addresses according to a certain convention. A false trap
+is a transport trap for reading a pointer to a zone marked as oldspace in the
+zone oldspace register in which the pointer is not actually pointing at a region
+in oldspace, so the trap handler must recover using the
+`pht.transport-trap` bit. This only happens if the software uses a zone in a
+mixed way, where part of it is oldspace and part is newspace. The first zone of
+the virtual address space is always used for ephemeral space, while each of the
+remaining zones can be dedicated to static space, dynamic new/copyspace, or
+dynamic oldspace. After a garbage collection completes, zones dedicated to
+dynamic oldspace become free and can be reallocated either to static or to
+dynamic space, as desired.
+
+## Address Translation
+
+Virtual addresses are mapped before being used to address physical memory.
+Mapping translates the virtual page number (**VPN**) field of the virtual
+address into a physical page number (**PNP**). Mapping also checks for various
+exceptions that may result from attempting a memory reference and records
+information about the reference useful to software.
+
+### Page Hash Table
+
+The VPN of a virtual address is translated using the Page Hash Table, or
+PHT. The PHT is the "backing store" for the hardware map cache: in the event of
+a map cache miss, the VPN of a virtual address is translated by looking up its
+entry in the PHT, checking the access attributes, and loading the map cache with
+the result. Unlike the 3600, the I-machine uses a translation algorithm that is
+implemented entirely In microcode, so map misses are guaranteed not to cause
+faults (`pclsring`) for resident pages.
+
+There are a number of attributes associated with each page. These control access
+to data in the page, and also record various side effects on the page. These
+attributes are stored in the PHT along with the translation information. Some of
+them are also stored in the map cache.
+
+Each entry in the PHT consists two words, ai "key" and a "value"
+(approximately). Both words’ data types are `dtp-fixnum`. The format of an entry
+is as follows:
+
+
+[cols="m,m,m,a", options="header"]
+|===
+| Word  | Position | Field Name           | Comments
+| PHT0  | <39>     | spare                |
+|       | <38>     | end-collision-chain | 0 keep searching, 1 stop
+|       | <37:32>  | data-type            | `dtp-fixnum`
+|       | <31:8>   | VPN                  | -1 for deleted entries
+|       | <7>      | fault-request        | If 1, this page cannot be accessed in any way
+|       | <6>      | pending              | For software use only (see the notes section)
+|       | <5:4>    | spare                | For software use only
+|       | <3:0>    | age                  | Set to 0 when this entry is loaded into the map
+|       |          |                      |
+| PHT1  | <39:38>  | spare                |
+|       | <37:32>  | data-type            | `dtp-fixnum`
+|       | <31:8>   | PPN                  | (allows 32-bit physical addresses)
+|       | <7>      | modified             | If 1, this page has been written and probably differs from its on-disk representation
+|       | <6>      | write-protect        | If 1, this page cannot be written
+|       | <5>      | cache-inhibit        | If 1, locations in this page are not cached
+|       | <4>      | transport-trap       | If 1, transport-traps on this page are enabled
+|       | <3:0>    | ephemeral-reference  | Ephemeral groups referenced by this page
+|===
+
+
+An invalid PHT entry has -1 in its VPN field; since that indicates a VPN=PPN
+address, it does not usurp any possibly useful page.
+
+The following attributes control access to data in the page. If an instruction
+attempts an access not allowed by one of these attributes, a fault will be
+generated. See the section <<_translation_algorithm>>. Note that an
+implementation should be careful not to cause spurious faults when accessing
+ahead of instruction execution.
+
+[cols="v,a"]
+|===
+| fault-request
+| fault-request, when 1, indicates that any access to this page should cause a
+  fault. When 0, accesses are allowed according to the write-protect bit.
+
+| write-protect
+| write-protect, when 1, indicates that any attempt to write data into the page
+  should cause a fault. When 0, data can be written into the page. Note: just
+  because a page is write-protected does not mean it is not modified; there
+  are several mechanisms that circumvent this bit. See the modified bit below.
+
+| transport-trap
+| transport-trap, when 1, enables traps when reading a word from this page that
+  is a potentially a pointer to oldspace. This is used by the garbage collector.
+
+Words are potentially pointers to oldspace if their data-type field contains a
+pointer type and their address field satisfies a condition based on the
+address-space referenced. See the section <<_lisp_machine_data_types>>. The
+condition for a reference to ephemeral space is that the `ephemeral-oldspace`
+register indicates the half of the ephemeral level referenced is oldspace. The
+condition for a reference to dynamic space is that the zone-oldspace register
+indicates the zone referenced is oldspace. References to physical space never
+generate transport traps.
+
+If the pointer satisfies the above conditions and the `transport-trap` bit is
+set for the page, then a transport trap is taken. The garbage collector is
+responsible for deciding whether or not the pointer truly points to oldspace.
+
+See the section <<_revision_0_implementation_memory_features>>.
+|===
+
+
+The following attributes record various side effects that have occurred
+to data in the page. The hardware maintains these attributes for use by
+the software.
+
+[cols="m,a"]
+|===
+| age <3:0>
+| The age field is set to 0 when an instruction accesses data in this page, or
+  an instruction is executed from this page.
+
+The paging software interprets this field as either a set of bits, all of which
+are cleared upon reference, or as a counter which is reset to zero upon
+reference. Either way, the intent is to assist a pseudo-LRU page replacement
+algorithm and perhaps allow experimentation with more sophisticated schemes.
+
+Because the age is in the PHT, instead of in the MMPT, as in the 3600, the page
+replacement algorithm will scan through main memory pages in the order they
+appear in the PHT rather than in order of increasing physical addresses. Because
+of this, PHT insertion and deletion may not generally be allowed to relocate PHT
+entries.
+
+The age is stored only in the PHT. By definition, when an entry is in the map
+cache, the age is 0.
+
+| modified
+| modified is set to 1 whenever data is written into this page. Paging software
+clears this bit when it has saved the page.
+
+| ephemeral-reference <3:0>
+| The ephemeral-reference field records which ephemeral level groups are
+  referenced by pointers in this page. Each bit in this field, when set,
+  indicates that a reference to the corresponding ephemeral level group has been
+  stored in this page. A discussion of ephemeral levels and groups occurs in an
+  earlier section. See the section <<_address_space>>.
+
+This information is used by the ephemeral garbage collector to know whether or
+not it has to seen this page and rescue objects it references, when a portion of
+ephemeral space is being garbage-collected.
+|===
+
+
+The PHT is a hash table with buckets of four entries of two words each. The
+number of buckets must be a power of two, and is chosen to yield between 38% and
+70% density (PHT density is pages-of-physical-memory/entries-in-pht), Within
+each bucket, the four entries are simply laid out in order, alternating PHT0 and
+PHT1 words. The inner loop of the lookup algorithm searches all the PHT0 words
+in bucket for a given VPN, using block-mode memory cycles but skipping over the
+PHT1 words.
+
+The PHT is allocated in VMA=PMA space at boot time (any time before the first
+map cache miss). There are two processor registers describing the PHT:
+`PHT-BASE` and `PHT-MASK`. `PHT-BASE` is set to the physical address of the
+first word in the PHT, and `PHT-MASK` is set to `(lsh (1- pht-number-of-buckets)
+3)`. See the section <<_revision_0_implementation_memory_features>>.
+
+### PHT Lookup Algorithm
+
+The PHT lookup algorithm is a rehash-on-collision hash lookup. The hash/rehash
+algorithm generates a sequence of buckets to be probed; each bucket is linearly
+scanned, at maximum memory bandwidth, for the desired VPN. The lookup terminates
+successfully when the desired entry is found, or unsuccessfully after scanning a
+bucket at the end of a collision chain. The lookup is guaranteed to terminate
+because the rehash algorithm guarantees that every bucket will be probed, and
+Lisp guarantees that at least one bucket in the PHT will have
+end-collision-chain=1. [when there are too many collisions in the PHT to satisfy
+this constraint, the PHT gets rebuilt – a time-consuming operation that will.
+probably never happen].
+
+The collision-count mechanism is similar to that in the 3600; the PHT insertion
+and deletion routines maintain a per-bucket count of the number of entries that
+hashed to a particular bucket, but could not be stored there because of
+collisions. However, the actual representation of the collision counts (either
+in a separate table or in some of the spare bits in PHT0) is not used by the
+hardware. Instead, the software distills the collision count for each bucket
+into a single bit, `pht.end-collision-chain`, which is 0 if the collision count
+is non-zero, otherwise 1. (in `SYSDEF`, this is called
+`%%pht0-end-collision-chain`.) `pht.end-collision-chain` is only significant for
+the last entry of a bucket.
+
+The hash function used for the initial probe of the PHT is computed by a
+bit-shuffle-and-xor hashbox, the exact description of which is given below. This
+hashbox maps 24-bit virtual page numbers inte PHT bucket numbers, which span
+eleven bits.in a minimal (1M main memory) configuration, thirteen bits in a
+typical (4M main memory) configuration, and twenty-three bits in the maximum
+configuration (4096M main memory). However, its output is actually left-shifted
+by three bits to convert it directly into a PHT offset, saving a cycle in the
+microcode. The field `pht-mask` is similarly left-shifted.
+
+This hash function was chosen presuming a page size of `2^8` words, a quantum
+size of `2^16` words, a half-ephemeral-level size of `2^21` words, and a zone
+size of `2^27` words. All bit numbers are in decimal.
+
+PHT-OFFSET<0..25> ::
+[cols="v"]
+|===
+| HASH< 0> = 0
+| HASH< 1> = 0
+| HASH< 2> = 0
+| HASH< 3> = VMA<12> D VMA<27>
+| HASH< 4> = VMA<11> D VMA<28>
+| HASH< 5> = VMA<10> D VMA<29>
+| HASH< 6> = VMA< 9> D VMA<30>
+| HASH< 7> = VMA< 8> D VMA<31>
+| HASH< 8> = VMA<13> D VMA<20>
+| HASH< 9> = VMA<14> D VMA<22>
+| HASH<10> = VMA<15> D VMA<21>
+| HASH<11> = VMA<16> D VMA<26>
+| HASH<12> = VMA<17> D VMA<25>
+| HASH<13> = VMA<18> D VMA<24>
+| HASH<14> = VMA<19> D VMA<23>
+| HASH<15> = VMA<12> D VMA<16>
+| HASH<16> = VMA<11> D VMA<17>
+| HASH<17> = VMA<10> D VMA<18>
+| HASHK18> = VMA< 9> D VMAc19>
+| HASH<19> = VMA< 8> D VMA<20>
+| HASH<20> = VMA<13> D VMA<25>
+| HASH<21> = VMA<14> ⨂ VMA<26>
+| HASH<22> = VMA<15> ⨂ VMA<27>
+| HASH<23> = VMA<21> ⨂ VMA<31>
+| HASH<24> = VMA<22> ⨂ VMA<30>
+| HASH<25> = VMA<23> ⨂ VMA<29>
+|===
+
+****
+NOTE: Note the change from `D` to `⨂`.
+****
+
+This hashbox is accessible by Lisp via an internal register.
+
+The first bucket probed is computed by the hashbox described above, modulo the
+table size. If that probe fails, a linear pseudo-random number generator,
+initialized to asciimath:[17 * VPN + 1] and advanced by asciimath:[17 * x + 1],
+defines the rehash sequence. A Lisp expression of the lookup algorithm is given
+below:
+
+```
+;; This is just 17x +1, mod 2^32,
+(defmacro pht-next (state)
+  `(sys:%32-bit-plus
+    (sys:%32-bit-plus
+       (sys:%logdpb ,state (byte 28. 4.) 0)
+       ,state)
+    1))
+
+(defun pht-lookup (vpn)
+  (flet ((search-bucket (pht-offset)
+           (loop repeat 4
+              initially (setf (%block-address) (+ pht-base pht-offset))
+              for entry = (%block-read) ; fetch next pht0 word
+              do (if (= (ldb %%pht0-vpn entry) vpn)
+                     (if (= (ldb %%pht0-fault-request entry) 0)
+                         ;; This is the correct entry, return pht0 and pht1 words.
+                         (return-from pht-lookup entry (%block~read))
+                         ;; This is the correct entry, but fault-request is set.
+                         (take-page-fault-request-trap))
+                     ;; VPN doesn’t match, skip over the pht1 word for this entry.
+                     (%b1ock-read))
+              finally
+              ;; If at end of collision chain, fail.
+                (when (= (ldb %%pht0-collision-chain entry) 1)
+                  (take-page-not-resident-trap)))))
+    (search-bucket (logand (pht-hash vpn) pht-mask))
+    (loop for state first (pht-next vpn) then (pht-next state)
+       do (search-bucket (logand (lsh state 3) pht-mask)))))
+```
+
+See the section <<_revision_0_implementation_memory_features>>. A new entry is
+inserted into the PHT by hashing/rehashing the VPN into successive bucket
+numbers and searching each bucket for an invalid entry to reuse. The collision
+bucket for an invalid entry to reuse. The collision count of each full bucket in
+the hash sequence is incremented. When incrementing a bucket’s collision count
+from 0 to 1,`pht.end-collision-chain` for that bucket must be set to 0.
+
+An entry is deleted from the PHT by hashing/rehashing the VPN into successive
+bucket numbers and searching each bucket for the entry. The collision-count of
+each bucket in the hash sequence (excepting the one that actually contains the
+entry) is decremented. If a collision count is decremented below 0, you have
+tried to delete a nonexistent entry and have corrupted the table by
+inappropriately decrementing collision counts (the 3600 just crashes in this
+case). When decrementing a bucket’s collision count from 1 to 0,
+`pht.end-collision-chain` for that bucket should be set to 1. Deleted entries
+are marked by setting their VPN field to -1.
+
+### Translation Algorithm
+
+When the attributes of a resident virtual page are changed, either by Lisp doing
+something like aging or replacing the page or by a memory reference causing the
+age, modified, and/or ephemeral-reference attributes to change, the PHT and the
+map cache must be synchronized so they both contain the same information. This
+is a cache/backing-store sort of problem, and the same sort of solutions apply.
+We use a "write-through" strategy, so the map cache and the PHT are always
+consistent.
+
+When the storage system wants to change the attributes of a resident page, it
+updates the PHT entry for the page, and simply invalidates the map cache entry
+for that page (if one exists). See the section <<_internal_registers>>. The next
+reference to the page will reload the map.
+
+When a memory reference needs to change the attribute of a page that has an
+entry in the map cache (`modified` and `ephemeral-reference` are the only fields
+it can change), a microcode trap handler is invoked to update the corresponding
+fields in the PHT, Whether or not the PHT update occurs before or after the
+reference is implementation dependent.
+
+The translation/access-checking process for a memory read cycle is:
+
+```
+if VMA is of type dtp-physical-address
+    access-bits := write-protect=0,
+                     transport-trap=0,
+                     modified=1,
+                     ephemeral-reference=17
+    MD := contents of physical address VMA<31:0>
+
+else if VMA is in VMA=PMA space
+    access~bits := write-protect=0,
+                     transport-trap=0,
+                     modified=1,
+                     ephemeral-reference=17
+
+    if VMA is shadowed by the stack-cache
+        MD := contents of stack-cache address VMA,7:0>
+    else
+        MD := contents of physical address VMA<26:0>
+
+else if VMA has an entry in the map cache
+    PPN, access-bits come from map cache entry
+
+    if VMA is shadowed by the stack-cache
+        MD := contents of stack-cache address VMA<7:0>
+    else
+        MD := contents of physical address PPN | VMA<7:0>
+
+else if PHT contains an entry for VPN. with fault-request=0
+    if age90, rewrite PHT0 word clearing age
+    load map cache with PPN, access-bits from PHT entry
+    retry memory cycle
+
+else
+    take page-not-resident pre-trap
+```
+
+The translation/access-checking process for a memory write cycle is:
+
+
+```
+if VMA is of type dtp-physical-address
+    access-bits := write-protect=0,
+                     transport-trap=0,
+                     modified=1,
+                     ephemeral-reference=17
+    write MD to physical address VMA<31:0>
+
+else if VMA ts in VMA=PMA space
+    access-bits := write-protect=0,
+                     transport-trap=0,
+                     modified=1,
+                     ephemeral-reference=17
+    if VMA is shadowed by the stack—cache
+        write MD to stack cache address VMA<7:0>
+    write MD to physical address VMA<26:0>
+
+else if VMA has an entry in the map cache PPN, access-bits come from map cache entry
+    if write-protect=1, take page-write-fault pre-trap
+    if (or (= modified 0)
+       (and (pointer—type? MD)
+             (ephemeral~address? MD)
+             (= logand (lsh 1 vma-ephemeral-level-group(MD))
+                        ephemeral-reference) 0)))
+        trap to microcode to update the PHT
+    if VMA is shadowed by the stack-cache
+        write MD to stack cache address VMA<7:0>
+    write MD to physical address PPN | VMA<7.:0>
+
+else if PHT contains an entry for VPN with fault-request=0
+    if write-protect=1, take page-write-fault pre-trap
+    unless age=0, modified=1,
+            and the appropriate ephemeral-reference bit is set, rewrite
+            PHT entry with the updated values
+    load map cache with PPN, updated access-bits
+    retry memory cycle
+
+else
+    take page-not-resident pre-trap
+```
+
+The fake access-bits for VMA=PMA and `dtp-physical-address` addresses are chosen
+to prevent PHT update traps (those addresses are not in the PHT, so you could
+not update them if you tried). There are two very important consequences of
+this: VMA=PMA or `dtp-physical-address` write cycles do not update the
+`ephemeral-reference` bits, and VMA=PMA or `dtp-physical-address` read cycles do
+not take transport traps. Code that uses such addresses when using ephemeral
+references or references to oldspace must be very careful not to violate the
+conventions imposed by the garbage collector.
+
+Whether or not a given address is shadowed by the stack cache is determined by
+examining the virtual address only. Memory operations using
+`dtp-physical-addresses` will always bypass the stack cache.
+
+To work properly in a shared-memory multiprocessor, updating a PHT entry should
+be implemented by reading the entry, ORing in the changed attributes, and
+writing the entry, using interlocked bus cycles. See the section
+<<_revision_0_implementation_memory_features>>. A processor should not presume
+that its map cache entry is up to date, since other processors may have modified
+the PHT entry since it was encached. (When software modifies a mapping and
+adjusts the PHT, software must coordinate the change with all processors, which
+probably involves the invalidation of previous map-cache entries.)
+
+
+## Appendix: Comparison of 3600-family and I-machine. Memory Layout and Addressing
+
+3600-family and I-machine memory layout and addressing are similar in the
+following ways:
+
+- Both architectures employ a single address space that is shared by all
+processes.
+
+- The upper portion of either memory space is used for physical address space,
+that is, for unmapped addressing. On the I machine, the upper
+asciimath:[ 1 // 32^(nd)] is used; on 3600-family machines, the upper asciimath:[ 1 // 16^(th)].
+
+- On 3600-family machines, physical address space size is 16 Mwords; on I
+machines, it is 4 Gwords.
+
+- Both architectures employ the same page size: 256 words.
+
+- Both architectures call for a fixed portion of memory that is "wired", that
+is, not subject to being swapped from main memory out to secondary memory. The
+architectures have differing requirements for portions of memory that are not
+subject to address-translation faults.
+
+- Each architecture can designate portions of storage as containing temporary
+objects, and has hardware support for keeping track of references to those
+objects.
+
+- Both architectures perform address translation (mapping of virtual addresses
+to physical addresses) by means of tables that describe pages resident in main
+memory.
+
+The differences between the memory layouts and addressing schemes of 3600-family
+and I machines are:
+
+- The I-machine virtual address space is sixteen times bigger.
+
+- On the L machine, the hardware can dynamically designate attributes of
+portions of storage at the granularity of hardware quanta (6 Kwords). On the I
+machine, the attributes of portions of storage are designated by a much more
+rigid scheme. The primary division of storage in the I-machine, for GC purposes,
+is a zone (128 Mwords), of which there are 32.
+
+- Wired address spaces are different in the two families. On 3600-family
+machines, wired memory occupies virtual address space from virtual address 0 to
+`%wired-virtual-address-high` (contained in a control register), which is mapped
+to a contiguous set of physical memory addresses starting at
+`%wired-physical-address-low` (in another control register). On I machines,
+wired pages are stored at a predetermined set of physical addresses, starting at
+address 0.
+
+- Ephemeral spaces are different in the two families. On the I machine,
+ephemeral space is architecturally defined to be a particular address space -
+zone 0 (addresses 0 to 2°27). On 3600-family machines, the gc tag ram allows the
+ephemerality of each quantum to be specified.
+
+- GC support in general is different in the two families. On a 3600-family
+machine, ephemeral-reference attributes. of a page are stored in a dedicated
+hardware memory. On the I-machine, these attributes are stored in the PHT.
+
+- The I machine never has to abort (`pclsr`) an instruction due to a translation
+for a resident page, while the L machine sometimes has to do so.
+
+- On a 3600-family, the hardware map cache is backed up by a PHTC (page hash
+table cache), which is referenced by microcode with some hardware assist. If
+both the map and the PHTC miss for a given address translation, Lisp is called
+to attempt the translation via the PHT. The I machine has no PHTC, the hardware
+map cache is backed up directly by the PHT, which is referenced by microcode.
+
+- The 3600-family PHT is optimized for density (about 66%): each entry is one
+word, and table size is a prime number. The I-machine PHT (about 50% dense) is
+optimized for simplicity and performance: each entry is two words, and table
+size is a power of two. As a result of these differing designs, some attributes
+of resident pages are in the PHT on the I-machine, but in the MMPT on the
+3600-family.
+
+- The stack on the L machine is mapped to virtual memory on a per-page basis. In
+the I machine, the stack cache size (128 words in the first implementation) is
+less than the sizeof a page (256 words), so there are registers that indicate
+the upper and lower bounds of the stack cache. (Actually, any cache size less
+than twice the page size requires such registers.)

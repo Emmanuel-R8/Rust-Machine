@@ -26,90 +26,96 @@ pub trait Memory {
 }
 
 // Constants
-const OBJECT_T: QWord = QWord {
-    parts: QCDRTagData {
-        cdr: CDR::Jump,
-        tag: QTag::Symbol,
-        data: QImmediate { u: ADDRESS_T },
-    },
-};
-const OBJECT_NIL: QWord = QWord {
-    parts: QCDRTagData {
-        cdr: CDR::Jump,
-        tag: QTag::NIL,
-        data: QImmediate { u: ADDRESS_NIL },
-    },
-};
-const OBJECT_CDR_MASK: QWord = QWord {
-    parts: QCDRTagData {
-        cdr: CDR::Jump,
-        tag: QTag::TagCdrMask,
-        data: QImmediate { u: 0 },
-    },
-};
+const OBJECT_T: QWord = QWord::CdrTagData(QCDRTagData {
+            cdr: CDR::Jump,
+            tag: QTag::Symbol,
+            data: QImmediate::Addr(ADDRESS_T),
+        });
+
+const OBJECT_NIL: QWord = QWord::CdrTagData(QCDRTagData {
+            cdr: CDR::Jump,
+            tag: QTag::Symbol,
+            data: QImmediate::Addr(ADDRESS_NIL),
+        });
+
+const OBJECT_CDR_MASK: QWord = QWord::CdrTagData(QCDRTagData {
+            cdr: CDR::Jump,
+            tag: QTag::TagCdrMask,
+            data: QImmediate::Unsigned(0),
+        });
+
 
 pub fn make_lisp_obj(c: CDR, t: QTag, d: QImmediate) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
             data: d,
-        },
-    };
+        });
 }
 
 pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate { u: val },
-        },
-    };
+            data: QImmediate::Unsigned(val),
+        });
 }
 
 pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate { s: val },
-        },
-    };
+            data: QImmediate::Signed(val),
+        });
 }
 
 pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> QWord {
-    return QWord {
-        parts: QCDRTagData {
+    return QWord::CdrTagData(QCDRTagData {
             cdr: c,
             tag: t,
-            data: QImmediate { f: val },
-        },
-    };
+            data: QImmediate::Float(val),
+        });
 }
 
-pub fn lisp_obj_cdr(q: QWord) -> CDR {
-    return unsafe { q.parts.cdr };
+pub fn lisp_obj_cdr(q: QWord) -> Option<CDR> {
+    return match q {
+        QWord::CdrTagData(p) => Some(p.cdr),
+        _ => None,
+    } ;
 }
 
-pub fn lisp_obj_tag(q: QWord) -> QTag {
-    return unsafe { q.parts.tag };
-}
+pub fn lisp_obj_tag(q: QWord) -> Option<QTag> {
+    return match q {
+        QWord::CdrTagData(p) => Some(p.tag),
+        _ => None,
+    } ;}
 
-pub fn lisp_obj_data(q: QWord) -> QImmediate {
-    return unsafe { q.parts.data };
+pub fn lisp_obj_data(q: QWord) -> Option<QImmediate> {
+    return match q {
+        QWord::CdrTagData(p) => Some(p.data),
+        _ => None,
+    } ;
 }
 
 pub fn write_lisp_obj_cdr(q: &mut QWord, newcdr: CDR) {
-    q.parts.cdr = newcdr;
+    match q {
+        QWord::CdrTagData(mut p) => { p.cdr = newcdr},
+        _ => {},
+    } ;
 }
 
 pub fn write_lisp_obj_tag(q: &mut QWord, newtag: QTag) {
-    q.parts.tag = newtag;
+    match q {
+        QWord::CdrTagData(mut p) => { p.tag = newtag},
+        _ => {},
+    } ;
 }
 
 pub fn write_lisp_obj_data(q: &mut QWord, newdata: u32) {
-    q.parts.data.u = newdata;
+    match q {
+        QWord::CdrTagData(mut p) => { p.data = QImmediate::Unsigned(newdata)},
+        _ => {},
+    } ;
 }
 
 pub fn memory_page_number(vma: u32) -> u32 {
@@ -190,13 +196,13 @@ pub fn clear_vmexists(mut vma: VMAttribute) {
 
 #[derive(Debug)]
 pub struct VMMemory {
-    pub Space: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
+    pub space: [QWord; 1 << 31], /* 2^32 bytes of tags + data */
     pub attribute: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 }
 
 impl VMMemory {
     pub fn map_virtual_address_data(&self, start: usize, count: usize) -> Option<Vec<QWord>> {
-        let s = self.Space;
+        let s = self.space;
 
         if count == 0 {
             None

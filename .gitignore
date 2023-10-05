@@ -1,14 +1,25 @@
 # Rust
 Cargo.lock
 
+# R
+.Rhistory
+.Rdata
+
 # Project
 /target
 /data/*
-/docs/*
 /src/generated/*
 
-# RStudio
+# Editors
+
+## RStudio
 .Rproj.user
+
+## VScode
+.vscode
+
+## IntelliJ
+.idea
 
 # Backup files
 *ods#
