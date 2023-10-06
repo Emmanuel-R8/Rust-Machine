@@ -54,8 +54,8 @@ elsewhere. See the section".Memory Layout and Addressing".
 
 A word contains 40 bits, which are assigned to the following fields:
 
-| Position  | Length  | Field name                 |
-|-----------|---------|----------------------------|
+| Position| Length  | Field name                 |
+|---------|---------|----------------------------|
 | <39:38> | 2 bits  | CDR Code                   |
 | <37:32> | 6 bits  | Data Type                  |
 | <31:3>  | 32 bits | Address or Immediate Data. |
@@ -329,7 +329,7 @@ A header is the first word in the stored representation of structure objects. Th
 marks the boundary between the stored representations of two objects and contains
 information about the object that it heads. This information is either immediate data, when
 the header. type is `dtp-header-i`, or it is the address of some descriptive data, when the
-header type is `dtp-header-p`. The header-i format contains object-specific immediate data
+header type is `dtp-header-p`. The header-i format contains object-specific immediate data
 in bits <31:0>. The header-p format 'contains the address of an object-specific item in
 bits <31:0>. Object references usually use the address of an object's header as the
 address of the object. (The only exceptions are the object reference to. a compiled function
@@ -497,7 +497,7 @@ symbol's name, a string: The five words that constitute a symbol object, in orde
 | 2   | `SYMBOL-FUNCTION-CELL` | the. definition, or an unbound marker |
 | 3   | `SYMBOL-PROPERTY-CELL` | the property list                     |
 | 4   | `SYMBOL-PACKAGE-CELL`  | the home package, or NIL              |
-| 0   | SYMBOL-NAME-CELL       | address of the symbol's name          |
+| 0   | `SYMBOL-NAME-CELL`     | address of the symbol's name          |
 |-----|------------------------|---------------------------------------|
 | 1   | `SYMBOL-VALUE-CELL`    | the value, or an unbound marker       |
 | 2   | `SYMBOL-FUNCTION-CELL` | the. definition, or an unbound marker |
@@ -737,8 +737,8 @@ Figure 8. Representation of a big ratio.
 
 The second fixnum contains one field:
 
-| Position \| Symbolic Name \| Description \|
-| \<31:8\> \| `%%FRACTION-LOW` \| bottom 32 bits of fraction \|
+| Position | Symbolic Name | Description |
+| \<31:8\> | `%%FRACTION-LOW` | bottom 32 bits of fraction |
 
 | CC  | FXNM | S   | EXPONENT | FRACTION-LOW |
 |-----|------|-----|----------|--------------|
@@ -892,7 +892,7 @@ The address of data element i of a short-prefix array whose address is a and who
 given by `(+ a (ash i (- b)) 1)`. When `b` is greater than zero, packed array elements are stored right-to-left within
 words, thus the right shift to right-justify data element `i` is `(ash (logand i (1- (ash 1 b))) (- 5 b))`.
 
-Figure 13. \| Short-prefix. arrays with and without leaders.
+Figure 13. | Short-prefix. arrays with and without leaders.
 
 ##### `%array-prefix-long`:
 
@@ -1036,11 +1036,12 @@ entry instruction by software.
 The first word in the prefix is a header word that identifies this object as a compiled function and specifies its size
 and the sizes of its parts. The bits in this word are:
 
-| bits \| Content \|
-| \<39: 38\> \| `%HEADER-TYPE-COMPILED-FUNCTION` \|
-| \<37:32\> \| `DTP-HEADER-I` \|
-| \<31:18\> \| Size of the suffix (14 bits) \|
-| \<17:0\> \| Total size of the object (18 bits) \|
+| bits | Content |
+|---|---|
+| \<39: 38\> | `%HEADER-TYPE-COMPILED-FUNCTION` |
+| \<37:32\> | `DTP-HEADER-I` |
+| \<31:18\> | Size of the suffix (14 bits) |
+| \<17:0\> | Total size of the object (18 bits) |
 
 The second word in the prefix is available for use as the function cell that contains the current.definition of the
 function. Typically the function cell of the symbol that names a function contains a `dtp-one-q-forward` invisible
@@ -1336,7 +1337,7 @@ Eight types-as shown in Table 9:
 Table 9. Full-Word Instruction Data Types
 
 | Type Code | Symbolic Name                                                    | Description                                                |
-|-------------------------------|-------------------------------|----------------------------------------------------------|
+|-----------|------------------------------------------------------------------|------------------------------------------------------------|
 | 50        | `dtp-call-compiled-even`                                         | Start call, address is compiled function                   |
 | 51        | `dtp-call-compiled-odd` Start call, address is compiled function |                                                            |
 | 52        | `dtp-call-indirect`                                              | Start call, address is function cell                       |
@@ -1374,8 +1375,7 @@ The I machine and 3600-family machine data representations are similar in the fo
 3.  They have twenty-two data types in common (that is, data types with the same name), seventeen of which are alike in
     all respects except for the word size difference. These similar data types are:
 
-    `OTP-NIL`
-    `OTP-NULL`dtp-instancedtp-listDTP-MONITOR-FORWARDOTP-GC-FORWARDBTP-SYMBOLDTP-EXTERNAL~VALUE-CELL~POINTERdtp-even-pcdtp-locativeBTP-ONE-Q-FORWARDdtp-odd-pcOTP-LEXICAL-CLOSUREOTP-HEADER-FORWARDDTP-GENERIC\~FUNCTIONdtp-element-forwarddtp-character\`
+    `DTP-NIL` `DTP-NULL `dtp-instance` `dtp-list` `DTP-MONITOR-FORWARD` `DTP-GC-FORWARD` `DTP-SYMBOL` `DTP-EXTERNAL~VALUE-CELL-POINTER` `dtp-even-pc` `dtp-locative` `DTP-ONE-Q-FORWARD` `dtp-odd-pc` `DTP-LEXICAL-CLOSURE` `DTP-HEADER-FORWARD` `DTP-GENERIC-FUNCTION` `dtp-element-forwarddtp-character`
 
 4.  Two data types are similar, except that 3600-family machines obtain an extra four bits in the immediate data fields
     at the expense of the data-type field. These types are:
@@ -1404,20 +1404,20 @@ The differences between the data representations and types of 3600-family comput
 4.  The. 1 machine has the following data types which.3600-family machines do not have (not including `dtp-single-float`
     and `dtp-dynamic-closure`, which are simply named differently):
 
-    `BTP-SMALL-RATIO` `BTP-PHYSICAL-ADDRESS` `dtp-double-float` `OTP-CALL-COMPILED-EVEN` `dtp-bignum`
-    `OTP-CALL-COMPILED-ODD` `DTP\~BIG-RATIO` `DTP-CALL\~INDIRECT` `dtp-complex` `dtp-call-generic` OTP\~SPARE-NUMBER
-    `dtp-call-compiled-even-prefetch` `dtp-list-instance` `OTP-CALL-COMPILED-ODD-PREFETCH` `DTP\~ARRAY-INSTANCE`
+    `DTP-SMALL-RATIO` `DTP-PHYSICAL-ADDRESS` `dtp-double-float` `DTP-CALL-COMPILED-EVEN` `dtp-bignum`
+    `DTP-CALL-COMPILED-ODD` `DTP-BIG-RATIO` `DTP-CALL-INDIRECT` `dtp-complex` `dtp-call-generic` DTP-SPARE-NUMBER
+    `dtp-call-compiled-even-prefetch` `dtp-list-instance` `DTP-CALL-COMPILED-ODD-PREFETCH` `DTP-ARRAY-INSTANCE`
     `dtp-call-indirect-prefetch` `dtp-string-instance` `dtp-call-generic-prefetch` `DTP-SPARE-POINTER-<1-4>`
-    `DTP-PACKED-INSTRUCTION` `BTP-SPARE-IMMEDIATE`
+    `DTP-PACKED-INSTRUCTION` `DTP-SPARE-IMMEDIATE`
 
-5.  3600-family machines have the following data types which I machines do not have (not including dtp-float and
-    dtp-closure):
+5.  3600-family machines have the following data types which I machines do not have (not including `dtp-float` and
+    `dtp-closure`):
 
-    `DTP-BODY-FORWARD` - (obsolete) `DTP\~EXTENDED-NUMBER` `OTP-LOGIC-VARIABLE` `DTP-<16-17,73-77>` (spares)
+    `DTP-BODY-FORWARD` - (obsolete) `DTP-EXTENDED-NUMBER` `DTP-LOGIC-VARIABLE` `DTP-<16-17,73-77>` (spares)
 
 6.  The following kind of objects are structure objects on the 3600-family and list objects on the I machine:
 
-    -   Rational numbers (\`big-ratio" on the I machine "small-ratio" are immediate on the I machine.)
+    -   Rational numbers ("big-ratio" on the I machine "small-ratio" are immediate on the I machine.)
     -   Double-precision
     -   floating-point numbers
     -   Complex numbers
@@ -1448,7 +1448,6 @@ These are the main differences between 3600-family arrays and I-machine arrays:
 The major difference between the data representations of 3600-family machines and I machines is in the structure of
 compiled functions:
 
-```
 -   3600-family machines have an *external reference table*, which is stored between the
 compiled function prefix and the body of instructions. I machines, which omit this
 table, store the contents of this table -- constants and locatives -- *in line* with the
@@ -1470,4 +1469,4 @@ have seventeen-bit instructions and use the cdr-code field for the high-order bi
 each of the two instructions packed in a `dtp-fixnum` word. I machines have eighteen-bit
 instructions and use the low-order four bits of the data-type field for the high-order I
 bits of the odd instruction.
-```
+

@@ -6,36 +6,28 @@ The architecture provides a single address space which is shared by all
 processes. An address is thirty-two bits wide, and specifies the location of a
 word.
 
-*****
+:::callout-note
 NOTE: A word is 16 bits, i.e. 2 bytes. Addresses refer to quad-words (4-byte aligned), then split into even / odd.
-*****
+:::
 
 The address space is divided into thirty-two zones, each containing 128
 megawords. The thirty-two zones are variously assigned to several sections as
 shown in the table below. Note that ephemeral space is a subset of the virtual
 address space.
 
-*****
+:::callout-note
 NOTE: Zones are numbered 0 to 31.
-*****
+:::
 
 
-[cols="m<,m<,a<,a<,a<", options="header"]
-.Address fileds for Memory Address
-|===
-| Octal |Hex | Name | Zone | Comment
-| 0o000_0000_0000 : 0o007_7777_7777 | 0x00_00_00_00 : 0x03_FF_FF_FF
-| Ephemeral Address Space | zone 0 | low 128 megawords
+| Octal |Hex | Name | Zone | Comment |
+|---|---|---|---|---|
+| 0o000_0000_0000 : 0o007_7777_7777 | 0x00_00_00_00 : 0x03_FF_FF_FF | Ephemeral Address Space | zone 0 | low 128 megawords |
+| 0o000_0000_0000 : 0o367_7777_7777 | 0x00_00_00_00 : 0xF7_FF_FF_FF | Virtual Address Space | zones 0 - 30 | low 3,968 megawords |
+| 0o370_0000_0000 : 0o377_7777_7777 | 0xF8_FF_FF_FF : 0xFF_FF_FF_FF | Unmapped Address Space | zone 31 | high 128 megawords |
+| 0o000_0000_0000 : 0o377_7777_7777 | 0x00_00_00_00 : 0xFF_FF_FF_FF | Total Address Space | zones 0 to 31 | 4 gigawords |
 
-| 0o000_0000_0000 : 0o367_7777_7777 | 0x00_00_00_00 : 0xF7_FF_FF_FF
-| Virtual Address Space | zones 0 - 30 | low 3,968 megawords
-
-| 0o370_0000_0000 : 0o377_7777_7777 | 0xF8_FF_FF_FF : 0xFF_FF_FF_FF
-| Unmapped Address Space | zone 31 | high 128 megawords
-
-| 0o000_0000_0000 : 0o377_7777_7777 | 0x00_00_00_00 : 0xFF_FF_FF_FF
-| Total Address Space | zones 0 to 31 | 4 gigawords
-|===
+#sec-Address-fields-for-Memory-Address
 
 ### Virtual Addresses
 
@@ -49,14 +41,14 @@ virtual page number and the offset within page fields.
 Virtual space occupies thirty-one zones. An internal processor register allows
 each zone to be specified as either old or new space.
 
-.Address Fields for Virtual Addresses
-[cols="v,a", options="header"]
-|===
-|Position | Meaning
-|<81:27>  | Zone number (zones 0 through 30)
-|<81:8>   | Virtual Page Number (VPN – 512K virtual pages per zone)
-|<7:0>    | Offset within Page (256 words per page)
-|===
+|Position | Meaning |
+|---|---|
+|<81:27>  | Zone number (zones 0 through 30) |
+|<81:8>   | Virtual Page Number (VPN – 512K virtual pages per zone) |
+|<7:0>    | Offset within Page (256 words per page) |
+
+#sec-Address-Fields-for-Virtual-Addresses
+
 
 The virtual address space is partitioned by software into regions, areas, and
 quanta. These have no direct hardware impact. Note, however, that the hardware
@@ -79,16 +71,15 @@ which half is old and which is new.
 The thirty-two ephemeral levels are grouped into four groups of eight levels
 each. The ephemeral level groups referenced by a page are maintained in the PHT.
 
-.Address Fields for Ephemeral Addresses
-[cols="v,a", options="header"]
-|===
-|Position | Meaning
-|<31:27>  | 0000 => ephemeral, otherwise non-ephemeral
-|<26>     | which half of the ephemeral level
-|<26:21>  | ephemeral level number
-|<28:24>  | ephemeral level group number
-|<20:8>   | word address within an ephemeral level
-|===
+|Position | Meaning |
+|---|---|
+|<31:27>  | 0000 => ephemeral, otherwise non-ephemeral |
+|<26>     | which half of the ephemeral level |
+|<26:21>  | ephemeral level number |
+|<28:24>  | ephemeral level group number |
+|<20:8>   | word address within an ephemeral level |
+
+#sec-Address-Fields-for-Ephemeral-Addresses
 
 Static and dynamic data are stored at virtual address 1_27 (2^27) and above. See
 the section <<_revision_0_implementation_memory_features>>.
@@ -120,18 +111,17 @@ fixed physical locations. A system implementation must provide memory that
 responds to these addresses. These locations are as follows (all addresses
 relative to the beginning of VMA=PMA space):
 
-[cols="m,a"]
-|===
-| 0o0_0000_0000 : 0o0_0077_7777 | FEP code, data, and stacks (256K)
-| 0o0_0100_0000 : 0o0_0100_7777 | Trap vectors (refer to chapter 5)
-| 0o0_0101_0000 : 0o0_0101_0377 | FEP communication area
-| 0o0_0101_0400 : 0o0_0101_0777 | System communication area
-| 0o0_0101_1000 : 0o0_0101_1004 | NIL
-| 0o0_0101_1010 : 0o0_0101_1014 | T
-| |
-| 0o7_7740_0000 : 0o7_7757_7777 | Boot prom (64k)
-| 0o7_7760_0000 : 0o7_7760_7777 | Reserved for Ibus configuration space (64K)
-|===
+| Address range | Location name |
+|---|---|
+| 0o0_0000_0000 : 0o0_0077_7777 | FEP code, data, and stacks (256K) |
+| 0o0_0100_0000 : 0o0_0100_7777 | Trap vectors (refer to chapter 5) |
+| 0o0_0101_0000 : 0o0_0101_0377 | FEP communication area |
+| 0o0_0101_0400 : 0o0_0101_0777 | System communication area |
+| 0o0_0101_1000 : 0o0_0101_1004 | NIL |
+| 0o0_0101_1010 : 0o0_0101_1014 | T |
+| 0o7_7740_0000 : 0o7_7757_7777 | Boot prom (64k) |
+| 0o7_7760_0000 : 0o7_7760_7777 | Reserved for Ibus configuration space (64K) |
+
 
 Init sets the contents of the Program Counter (PC) to VMA=PMA 0o7_7740_0100
 (that is, `0o377_7740_0100` or `-0o37_7700`) with data type `dtp-even-pc`. See the
@@ -196,32 +186,31 @@ to data in the page, and also record various side effects on the page. These
 attributes are stored in the PHT along with the translation information. Some of
 them are also stored in the map cache.
 
-Each entry in the PHT consists two words, ai "key" and a "value"
+Each entry in the PHT consists two words, a "key" and a "value"
 (approximately). Both words’ data types are `dtp-fixnum`. The format of an entry
 is as follows:
 
 
-[cols="m,m,m,a", options="header"]
-|===
-| Word  | Position | Field Name           | Comments
-| PHT0  | <39>     | spare                |
-|       | <38>     | end-collision-chain | 0 keep searching, 1 stop
-|       | <37:32>  | data-type            | `dtp-fixnum`
-|       | <31:8>   | VPN                  | -1 for deleted entries
-|       | <7>      | fault-request        | If 1, this page cannot be accessed in any way
-|       | <6>      | pending              | For software use only (see the notes section)
-|       | <5:4>    | spare                | For software use only
-|       | <3:0>    | age                  | Set to 0 when this entry is loaded into the map
-|       |          |                      |
-| PHT1  | <39:38>  | spare                |
-|       | <37:32>  | data-type            | `dtp-fixnum`
-|       | <31:8>   | PPN                  | (allows 32-bit physical addresses)
-|       | <7>      | modified             | If 1, this page has been written and probably differs from its on-disk representation
-|       | <6>      | write-protect        | If 1, this page cannot be written
-|       | <5>      | cache-inhibit        | If 1, locations in this page are not cached
-|       | <4>      | transport-trap       | If 1, transport-traps on this page are enabled
-|       | <3:0>    | ephemeral-reference  | Ephemeral groups referenced by this page
-|===
+
+| Word  | Position | Field Name           | Comments |
+|---|--|---|--|
+| PHT0  | <39>     | spare                | |
+|       | <38>     | end-collision-chain | 0 keep searching, 1 stop |
+|       | <37:32>  | data-type            | `dtp-fixnum` |
+|       | <31:8>   | VPN                  | -1 for deleted entries |
+|       | <7>      | fault-request        | If 1, this page cannot be accessed in any way |
+|       | <6>      | pending              | For software use only (see the notes section) |
+|       | <5:4>    | spare                | For software use only |
+|       | <3:0>    | age                  | Set to 0 when this entry is loaded into the map |
+|       |          |                      | |
+| PHT1  | <39:38>  | spare                | |
+|       | <37:32>  | data-type            | `dtp-fixnum` |
+|       | <31:8>   | PPN                  | (allows 32-bit physical addresses) |
+|       | <7>      | modified             | If 1, this page has been written and probably differs from its on-disk representation |
+|       | <6>      | write-protect        | If 1, this page cannot be written |
+|       | <5>      | cache-inhibit        | If 1, locations in this page are not cached |
+|       | <4>      | transport-trap       | If 1, transport-traps on this page are enabled |
+|       | <3:0>    | ephemeral-reference  | Ephemeral groups referenced by this page |
 
 
 An invalid PHT entry has -1 in its VPN field; since that indicates a VPN=PPN
@@ -233,78 +222,55 @@ generated. See the section <<_translation_algorithm>>. Note that an
 implementation should be careful not to cause spurious faults when accessing
 ahead of instruction execution.
 
-[cols="v,a"]
-|===
-| fault-request
-| fault-request, when 1, indicates that any access to this page should cause a
+__fault-request__: fault-request, when 1, indicates that any access to this page should cause a
   fault. When 0, accesses are allowed according to the write-protect bit.
 
-| write-protect
-| write-protect, when 1, indicates that any attempt to write data into the page
+__write-protect__: write-protect, when 1, indicates that any attempt to write data into the page
   should cause a fault. When 0, data can be written into the page. Note: just
   because a page is write-protected does not mean it is not modified; there
   are several mechanisms that circumvent this bit. See the modified bit below.
 
-| transport-trap
-| transport-trap, when 1, enables traps when reading a word from this page that
-  is a potentially a pointer to oldspace. This is used by the garbage collector.
-
-Words are potentially pointers to oldspace if their data-type field contains a
+__transport-trap__: transport-trap, when 1, enables traps when reading a word from this page that
+  is a potentially a pointer to oldspace. This is used by the garbage collector. Words are potentially pointers to oldspace if their data-type field contains a
 pointer type and their address field satisfies a condition based on the
 address-space referenced. See the section <<_lisp_machine_data_types>>. The
 condition for a reference to ephemeral space is that the `ephemeral-oldspace`
 register indicates the half of the ephemeral level referenced is oldspace. The
 condition for a reference to dynamic space is that the zone-oldspace register
 indicates the zone referenced is oldspace. References to physical space never
-generate transport traps.
-
-If the pointer satisfies the above conditions and the `transport-trap` bit is
+generate transport traps. If the pointer satisfies the above conditions and the `transport-trap` bit is
 set for the page, then a transport trap is taken. The garbage collector is
-responsible for deciding whether or not the pointer truly points to oldspace.
+responsible for deciding whether or not the pointer truly points to oldspace. See the section <<_revision_0_implementation_memory_features>>.
 
-See the section <<_revision_0_implementation_memory_features>>.
-|===
 
 
 The following attributes record various side effects that have occurred
 to data in the page. The hardware maintains these attributes for use by
 the software.
 
-[cols="m,a"]
-|===
-| age <3:0>
-| The age field is set to 0 when an instruction accesses data in this page, or
-  an instruction is executed from this page.
-
+__age <3:0>__: The age field is set to 0 when an instruction accesses data in this page, or
+  an instruction is executed from this page. 
 The paging software interprets this field as either a set of bits, all of which
 are cleared upon reference, or as a counter which is reset to zero upon
 reference. Either way, the intent is to assist a pseudo-LRU page replacement
-algorithm and perhaps allow experimentation with more sophisticated schemes.
-
+algorithm and perhaps allow experimentation with more sophisticated schemes. 
 Because the age is in the PHT, instead of in the MMPT, as in the 3600, the page
 replacement algorithm will scan through main memory pages in the order they
 appear in the PHT rather than in order of increasing physical addresses. Because
 of this, PHT insertion and deletion may not generally be allowed to relocate PHT
-entries.
-
-The age is stored only in the PHT. By definition, when an entry is in the map
+entries. The age is stored only in the PHT. By definition, when an entry is in the map
 cache, the age is 0.
 
-| modified
-| modified is set to 1 whenever data is written into this page. Paging software
+__modified__: modified is set to 1 whenever data is written into this page. Paging software
 clears this bit when it has saved the page.
 
-| ephemeral-reference <3:0>
-| The ephemeral-reference field records which ephemeral level groups are
+__ephemeral-reference <3:0>__: The ephemeral-reference field records which ephemeral level groups are
   referenced by pointers in this page. Each bit in this field, when set,
   indicates that a reference to the corresponding ephemeral level group has been
   stored in this page. A discussion of ephemeral levels and groups occurs in an
-  earlier section. See the section <<_address_space>>.
-
-This information is used by the ephemeral garbage collector to know whether or
+  earlier section. See the section <<_address_space>>. This information is used by the ephemeral garbage collector to know whether or
 not it has to seen this page and rescue objects it references, when a portion of
 ephemeral space is being garbage-collected.
-|===
 
 
 The PHT is a hash table with buckets of four entries of two words each. The
@@ -358,40 +324,39 @@ This hash function was chosen presuming a page size of `2^8` words, a quantum
 size of `2^16` words, a half-ephemeral-level size of `2^21` words, and a zone
 size of `2^27` words. All bit numbers are in decimal.
 
-PHT-OFFSET<0..25> ::
-[cols="v"]
-|===
-| HASH< 0> = 0
-| HASH< 1> = 0
-| HASH< 2> = 0
-| HASH< 3> = VMA<12> D VMA<27>
-| HASH< 4> = VMA<11> D VMA<28>
-| HASH< 5> = VMA<10> D VMA<29>
-| HASH< 6> = VMA< 9> D VMA<30>
-| HASH< 7> = VMA< 8> D VMA<31>
-| HASH< 8> = VMA<13> D VMA<20>
-| HASH< 9> = VMA<14> D VMA<22>
-| HASH<10> = VMA<15> D VMA<21>
-| HASH<11> = VMA<16> D VMA<26>
-| HASH<12> = VMA<17> D VMA<25>
-| HASH<13> = VMA<18> D VMA<24>
-| HASH<14> = VMA<19> D VMA<23>
-| HASH<15> = VMA<12> D VMA<16>
-| HASH<16> = VMA<11> D VMA<17>
-| HASH<17> = VMA<10> D VMA<18>
-| HASHK18> = VMA< 9> D VMAc19>
-| HASH<19> = VMA< 8> D VMA<20>
-| HASH<20> = VMA<13> D VMA<25>
-| HASH<21> = VMA<14> ⨂ VMA<26>
-| HASH<22> = VMA<15> ⨂ VMA<27>
-| HASH<23> = VMA<21> ⨂ VMA<31>
-| HASH<24> = VMA<22> ⨂ VMA<30>
-| HASH<25> = VMA<23> ⨂ VMA<29>
-|===
+| PHT-OFFSET<0..25> |
+|---|
+| HASH< 0> = 0 |
+| HASH< 1> = 0 |
+| HASH< 2> = 0 |
+| HASH< 3> = VMA<12> D VMA<27> |
+| HASH< 4> = VMA<11> D VMA<28> |
+| HASH< 5> = VMA<10> D VMA<29> |
+| HASH< 6> = VMA< 9> D VMA<30> |
+| HASH< 7> = VMA< 8> D VMA<31> |
+| HASH< 8> = VMA<13> D VMA<20> |
+| HASH< 9> = VMA<14> D VMA<22> |
+| HASH<10> = VMA<15> D VMA<21> |
+| HASH<11> = VMA<16> D VMA<26> |
+| HASH<12> = VMA<17> D VMA<25> |
+| HASH<13> = VMA<18> D VMA<24> |
+| HASH<14> = VMA<19> D VMA<23> |
+| HASH<15> = VMA<12> D VMA<16> |
+| HASH<16> = VMA<11> D VMA<17> |
+| HASH<17> = VMA<10> D VMA<18> |
+| HASHK18> = VMA< 9> D VMAc19> |
+| HASH<19> = VMA< 8> D VMA<20> |
+| HASH<20> = VMA<13> D VMA<25> |
+| HASH<21> = VMA<14> ⨂ VMA<26> |
+| HASH<22> = VMA<15> ⨂ VMA<27>  |
+| HASH<23> = VMA<21> ⨂ VMA<31> |    
+| HASH<24> = VMA<22> ⨂ VMA<30> |
+| HASH<25> = VMA<23> ⨂ VMA<29> |
 
-****
+
+:::callout-note
 NOTE: Note the change from `D` to `⨂`.
-****
+:::
 
 This hashbox is accessible by Lisp via an internal register.
 
