@@ -60,7 +60,7 @@ The cdr code sequencing described above only indicates the default next instruct
 
 ### Internal Registers
 
-Table \<\<\_i-machine_internal_registers\>\> lists I-machine internal registers. Within this table, an asterisk by an address entry means that the register may be defined by an implementation, and reserved means the register may be architecturally defined in the future. The information in this table is specific to Revision 0 of the Ivory chip. As the architecturally defined information in the table becomes determinate, implementation-specific details will be removed to an appendix.
+Table @tab-i-machine-internal-registers lists I-machine internal registers. Within this table, an asterisk by an address entry means that the register may be defined by an implementation, and reserved means the register may be architecturally defined in the future. The information in this table is specific to Revision 0 of the Ivory chip. As the architecturally defined information in the table becomes determinate, implementation-specific details will be removed to an appendix.
 
 | Address | Read/Write | Data Type | Register Name                                 |
 |------------|------------|--------------|-----------------------------------|
@@ -208,7 +208,7 @@ DIP-LIST
 
 57
 
-18 11 12 13 «14 45 46 17 28 21 22 23 24 25 26 2? 36 31Symbolics, Inc.
+18 11 12 13 «14 45 46 17 28 21 22 23 24 25 26 2? 36 31 Symbolics, Inc.
 
 Table 12; continued
 
