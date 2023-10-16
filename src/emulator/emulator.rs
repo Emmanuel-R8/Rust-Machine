@@ -160,15 +160,15 @@ impl<'a> GlobalContext<'a> {
         self.cpu.fp = self.cpu.sp;
 
         // Push the control register
-        let mut q = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, self.cpu.control.u().unwrap());
+        let mut q = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, self.cpu.control.as_raw());
         self.cpu.sp = self.inc_and_write_at(self.cpu.sp, q);
 
         // Create a new control register
-        self.cpu.control = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, 0);
+        self.cpu.control = MemoryCell::new_cdr_tag_i(CDR::Jump, QTag::Fixnum, 0);
         write_control_argument_size(&mut self.cpu.control, 2);
         write_control_caller_frame_size(
             &mut self.cpu.control,
-            (self.cpu.sp - self.cpu.fp).u().unwrap()
+            self.cpu.sp.as_address() - self.cpu.fp.as_address()
         );
 
         self.cpu.continuation = self.cpu.pc;
@@ -180,17 +180,17 @@ impl<'a> GlobalContext<'a> {
         self.cpu.sp = self.cpu.fp;
 
         // Determine the next frame pointer by decreasing by the frame size
-        self.cpu.fp_inc(read_control_caller_frame_size(self.cpu.control).unwrap());
+        self.cpu.fp_inc(read_control_caller_frame_size(self.cpu.control));
 
         // Restore the PC using the stored continuation
         self.cpu.pc = self.cpu.continuation;
 
         // Temporary copy of FP
         (self.cpu.continuation, self.cpu.fp) = self.read_at_and_inc(self.cpu.fp);
-        self.cpu.set_control(self.read_at(self.cpu.fp).u().unwrap());
+        self.cpu.set_control(self.read_at(self.cpu.fp).as_raw());
 
         self.cpu.lp = self.cpu.fp.clone();
-        self.cpu.lp_inc(read_control_argument_size(self.cpu.control).unwrap());
+        self.cpu.lp_inc(read_control_argument_size(self.cpu.control));
     }
 
     #[inline]
@@ -786,7 +786,7 @@ impl<'a> GlobalContext<'a> {
 
         datum = byte_swap_32(w.data_page[q_number as usize]);
         let tag: QTag = unsafe { ::std::mem::transmute(w.tags_page[q_number as usize]) };
-        return make_lisp_obj_u(CDR::Jump, tag, datum);
+        return MemoryCell::new_cdr_tag_u(CDR::Jump, tag, datum);
     }
 
     fn read_swapped_vlm_world_file_next_q(&self) -> MemoryCell {
@@ -800,7 +800,7 @@ impl<'a> GlobalContext<'a> {
         // w.current_q_number += 1;
 
         // return q;
-        return MemoryCell::Whole(0);
+        return MemoryCell::default();
     }
 
     //  Canonicalize the load map entries for a VLM world:  Look for load map entries
@@ -837,7 +837,7 @@ impl<'a> GlobalContext<'a> {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
                 // assign the page number within the file
                 let mut new_wired_map_entry = world.wired_map_entries.data[i as usize];
-                new_wired_map_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+                new_wired_map_entry.data = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
                 new_wired_map_entries.insert(new_wired_map_entry);
                 page_number = page_number + page_count;
                 i += 1;

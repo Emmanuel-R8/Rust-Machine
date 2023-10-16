@@ -6,7 +6,7 @@ use std::{ cell::RefCell, rc::Rc };
 
 // Representation of lisp objects
 use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS };
-use crate::common::types::QWord::Whole;
+
 
 // See I-Machine specs p. 4
 #[repr(C)]
@@ -639,298 +639,7 @@ pub struct QCDRTagData {
     pub data: QImmediate,
 }
 
-#[repr(C)]
-#[derive(Copy)]
-pub enum QWord {
-    Whole(u64),
-    CdrTagData(QCDRTagData),
-}
 
-impl Default for QWord {
-    fn default() -> Self {
-        Self::Whole(0)
-    }
-}
-
-impl Clone for QWord {
-    fn clone(&self) -> Self {
-        return match self {
-            QWord::Whole(val) => QWord::Whole(*val),
-            QWord::CdrTagData(val) => QWord::CdrTagData(*val),
-        };
-    }
-}
-
-impl PartialEq for QWord {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            QWord::Whole(val1) =>
-                match other {
-                    QWord::Whole(val2) => val1 == val2,
-                    _ => false,
-                }
-            QWord::CdrTagData(val1) =>
-                match other {
-                    QWord::CdrTagData(val2) => val1 == val2,
-                    _ => false,
-                }
-        }
-    }
-}
-
-impl Eq for QWord {}
-
-impl Display for QWord {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            QWord::Whole(val) => write!(f, "QWord u64: {}", val),
-            QWord::CdrTagData(val) =>
-                write!(f, "QWord cdr: {}, tag: {}, data: {}", val.cdr, val.tag, val.data),
-        }
-    }
-}
-
-impl Debug for QWord {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            QWord::Whole(val) => write!(f, "QWord u64: {}", val),
-            QWord::CdrTagData(val) =>
-                write!(f, "QWord cdr: {}, tag: {}, data: {}", val.cdr, val.tag, val.data),
-        }
-    }
-}
-
-impl Add for QWord {
-    type Output = Option<Self>;
-
-    fn add(self, rhs: Self) -> Option<Self> {
-        match self {
-            QWord::Whole(val_lhs) =>
-                match rhs {
-                    QWord::Whole(val_rhs) => {
-                        return Some(self::Whole(val_lhs + val_rhs));
-                    }
-                    _ => {
-                        return None;
-                    }
-                }
-            _ => {
-                return None;
-            }
-        }
-    }
-}
-
-impl Sub for QWord {
-    type Output = Option<Self>;
-
-    fn sub(self, rhs: Self) -> Option<Self> {
-        match self {
-            QWord::Whole(val_lhs) =>
-                match rhs {
-                    QWord::Whole(val_rhs) => {
-                        return Some(self::Whole(val_lhs - val_rhs));
-                    }
-                    _ => {
-                        return None;
-                    }
-                }
-            _ => {
-                return None;
-            }
-        }
-    }
-}
-
-impl AddAssign for QWord {
-    fn add_assign(&mut self, rhs: Self) {
-        let QWord::Whole(val_lhs) = self;
-        let QWord::Whole(val_rhs) = rhs;
-
-        self::Whole(*val_lhs + val_rhs);
-    }
-}
-
-impl SubAssign for QWord {
-    fn sub_assign(&mut self, rhs: Self) {
-        let QWord::Whole(val_lhs) = self;
-        let QWord::Whole(val_rhs) = rhs;
-
-        self::Whole(*val_lhs - val_rhs);
-    }
-}
-
-impl QWord {
-    pub fn cdr(self) -> Option<CDR> {
-        match self {
-            QWord::CdrTagData(p) => Some(p.cdr),
-            _ => {
-                return None;
-            }
-        }
-    }
-
-    pub fn tag(self) -> Option<QTag> {
-        match self {
-            QWord::CdrTagData(p) => Some(p.tag),
-            _ => {
-                return None;
-            }
-        }
-    }
-
-    pub fn data(self) -> Option<QImmediate> {
-        match self {
-            QWord::CdrTagData(p) => Some(p.data),
-            _ => {
-                return None;
-            }
-        }
-    }
-
-    pub fn u(self) -> Option<u32> {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Unsigned(val) => {
-                        return Some(val);
-                    }
-                    _ => None,
-                }
-            _ => {
-                return None;
-            }
-        }
-    }
-
-    pub fn s(self) -> Option<i32> {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Signed(val) => {
-                        return Some(val);
-                    }
-                    _ => None,
-                }
-            _ => {
-                return None;
-            }
-        }
-    }
-    pub fn f(self) -> Option<f32> {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Float(val) => {
-                        return Some(val);
-                    }
-                    _ => None,
-                }
-            _ => {
-                return None;
-            }
-        }
-    }
-    pub fn a(self) -> Option<u32> {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Addr(val) => {
-                        return Some(val);
-                    }
-                    _ => None,
-                }
-            _ => {
-                return None;
-            }
-        }
-    }
-
-    pub fn inc(self) -> Self {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Addr(addr) => {
-                        return QWord::CdrTagData(QCDRTagData {
-                            cdr: p.cdr,
-                            tag: p.tag,
-                            data: QImmediate::Addr(addr + 1),
-                        });
-                    }
-                    _ => {
-                        return self.clone();
-                    }
-                }
-            _ => {
-                return self.clone();
-            }
-        }
-    }
-
-    pub fn dec(self) -> Self {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Addr(addr) => {
-                        return QWord::CdrTagData(QCDRTagData {
-                            cdr: p.cdr,
-                            tag: p.tag,
-                            data: QImmediate::Addr(addr - 1),
-                        });
-                    }
-                    _ => {
-                        return self.clone();
-                    }
-                }
-            _ => {
-                return self.clone();
-            }
-        }
-    }
-
-    pub fn inc_mut(&mut self) {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Addr(addr) => {
-                        p.data = QImmediate::Addr(addr + 1);
-                    }
-                    _ => {}
-                }
-            _ => {}
-        }
-    }
-
-    pub fn dec_mut(&mut self) {
-        match self {
-            QWord::CdrTagData(p) =>
-                match p.data {
-                    QImmediate::Addr(addr) => {
-                        p.data = QImmediate::Addr(addr - 1);
-                    }
-                    _ => {}
-                }
-            _ => {}
-        }
-    }
-
-    pub fn set_cdr(&mut self, cdr: CDR) {
-        match self {
-            QWord::CdrTagData(p) => {
-                p.cdr = cdr;
-            }
-            _ => {}
-        }
-    }
-    pub fn set_tag(&mut self, tag: QTag) {
-        match self {
-            QWord::CdrTagData(p) => {
-                p.tag = tag;
-            }
-            _ => {}
-        }
-    }
-}
 
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
 #[repr(C)]
@@ -1035,8 +744,8 @@ pub struct Control {
 #[derive(Debug)]
 #[repr(C)]
 pub struct InstructionCacheLine {
-    pub pc: QWord,
-    pub next_pc: QWord,
+    pub pc: MemoryCell,
+    pub next_pc: MemoryCell,
     pub code: u32,
     pub operand: u32,
     pub instruction: u64,
@@ -1046,8 +755,8 @@ pub struct InstructionCacheLine {
 impl Default for InstructionCacheLine {
     fn default() -> Self {
         InstructionCacheLine {
-            pc: QWord::default(),
-            next_pc: QWord::default(),
+            pc: MemoryCell::default(),
+            next_pc: MemoryCell::default(),
             code: 0,
             operand: 0,
             instruction: 0,
@@ -1091,14 +800,14 @@ pub struct VMState {
     extent_register: u32,
     attributes_register: u32,
     destination_register: u32,
-    data_register: QWord,
+    data_register: MemoryCell,
 }
 
 #[derive(Default, Debug, Copy, Clone)]
 #[repr(C)]
 pub struct Bar {
-    pub address: QWord,
-    pub mapped: QWord,
+    pub address: MemoryCell,
+    pub mapped: MemoryCell,
 }
 
 pub type VMPageNumber = i32;

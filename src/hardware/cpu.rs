@@ -2,12 +2,21 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::common::constants::{
-    QTag, TrapMode, CDR, IVORY_PAGE_SIZE_QS, IVORY_STACK_CACHE_SIZE, MEMORY_STACK_CACHE_BASE,
+    QTag,
+    TrapMode,
+    CDR,
+    IVORY_PAGE_SIZE_QS,
+    IVORY_STACK_CACHE_SIZE,
+    MEMORY_STACK_CACHE_BASE,
 };
 use crate::common::types::{
-    Bar, InstructionCacheLine, QCDRTagData,  MemoryCell, INSTRUCTION_CACHE_SIZE,
+    Bar,
+    InstructionCacheLine,
+    QCDRTagData,
+    MemoryCell,
+    INSTRUCTION_CACHE_SIZE, Address,
 };
-use crate::utils::{dpb, ldb};
+use crate::utils::{ dpb, ldb };
 
 const CONTROL_ARGUMENT_SIZE: u32 = 0o377;
 const CONTROL_EXTRA_ARGUMENT: u32 = 0o400;
@@ -18,146 +27,133 @@ const CONTROL_CALL_STARTED: u32 = 0o20_000_000;
 const CONTROL_CLEANUP_BITS: u32 = 0o700_000_000;
 const CONTROL_TRACE_BITS: u32 = 0o7_000_000_000;
 
-pub fn read_control_argument_size(c: MemoryCell) -> Option<u32> {
+pub fn read_control_argument_size(c: MemoryCell) -> u32 {
     return read_control_bits(c, 8, 0);
 }
 
-pub fn read_control_extra_argument(c: MemoryCell) -> Option<u32> {
+pub fn read_control_extra_argument(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 8);
 }
 
-pub fn read_control_caller_frame_size(c: MemoryCell) -> Option<u32> {
+pub fn read_control_caller_frame_size(c: MemoryCell) -> u32 {
     return read_control_bits(c, 8, 9);
 }
 
-pub fn read_control_apply(c: MemoryCell) -> Option<u32> {
+pub fn read_control_apply(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 17);
 }
 
-pub fn read_control_value_disposition(c: MemoryCell) -> Option<u32> {
+pub fn read_control_value_disposition(c: MemoryCell) -> u32 {
     return read_control_bits(c, 2, 18);
 }
 
-pub fn read_control_cleanup_bits(c: MemoryCell) -> Option<u32> {
+pub fn read_control_cleanup_bits(c: MemoryCell) -> u32 {
     return read_control_bits(c, 3, 24);
 }
 
-pub fn read_control_cleanup_catch(c: MemoryCell) -> Option<u32> {
+pub fn read_control_cleanup_catch(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 26);
 }
 
-pub fn read_control_cleanup_bindings(c: MemoryCell) -> Option<u32> {
+pub fn read_control_cleanup_bindings(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 25);
 }
 
-pub fn read_control_trap_on_exit(c: MemoryCell) -> Option<u32> {
+pub fn read_control_trap_on_exit(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 24);
 }
 
-pub fn read_control_trap_mode(c: MemoryCell) -> Option<u32> {
+pub fn read_control_trap_mode(c: MemoryCell) -> u32 {
     return read_control_bits(c, 2, 30);
 }
 
-pub fn read_control_call_started(c: MemoryCell) -> Option<u32> {
+pub fn read_control_call_started(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 22);
 }
 
-pub fn read_control_cleanup_in_progress(c: MemoryCell) -> Option<u32> {
+pub fn read_control_cleanup_in_progress(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 23);
 }
 
-pub fn read_control_instruction_trace(c: MemoryCell) -> Option<u32> {
+pub fn read_control_instruction_trace(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 29);
 }
 
-pub fn read_control_call_trace(c: MemoryCell) -> Option<u32> {
+pub fn read_control_call_trace(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 28);
 }
 
-pub fn read_control_trace_pending(c: MemoryCell) -> Option<u32> {
+pub fn read_control_trace_pending(c: MemoryCell) -> u32 {
     return read_control_bits(c, 1, 27);
 }
 
-pub fn read_control_bits(c: MemoryCell, ss: u8, pp: u8) -> Option<u32> {
-    match c {
-        MemoryCell::CdrTagData(p) => match p.data {
-            u32::Unsigned(val) => return Some(ldb(ss, pp, val)),
-            _ => return None,
-        },
-        _ => return None,
-    }
+// This assumes that the memory content is the right one.
+pub fn read_control_bits(c: MemoryCell, ss: u8, pp: u8) -> u32 {
+    return ldb(ss, pp, c.as_raw());
 }
 
-pub fn write_control_argument_size(c: &mut MemoryCell, x: u32) {
+pub fn write_control_argument_size(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 8, 0);
 }
 
-pub fn write_control_extra_argument(c: &mut MemoryCell, x: u32) {
+pub fn write_control_extra_argument(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 8);
 }
 
-pub fn write_control_caller_frame_size(c: &mut MemoryCell, x: u32) {
+pub fn write_control_caller_frame_size(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 8, 9);
 }
 
-pub fn write_control_apply(c: &mut MemoryCell, x: u32) {
+pub fn write_control_apply(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 17);
 }
 
-pub fn write_control_value_disposition(c: &mut MemoryCell, x: u32) {
+pub fn write_control_value_disposition(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 2, 18);
 }
 
-pub fn write_control_cleanup_bits(c: &mut MemoryCell, x: u32) {
+pub fn write_control_cleanup_bits(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 3, 24);
 }
 
-pub fn write_control_cleanup_catch(c: &mut MemoryCell, x: u32) {
+pub fn write_control_cleanup_catch(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 26);
 }
 
-pub fn write_control_cleanup_bindings(c: &mut MemoryCell, x: u32) {
+pub fn write_control_cleanup_bindings(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 25);
 }
 
-pub fn write_control_trap_on_exit(c: &mut MemoryCell, x: u32) {
+pub fn write_control_trap_on_exit(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 24);
 }
 
-pub fn write_control_trap_mode(c: &mut MemoryCell, x: u32) {
+pub fn write_control_trap_mode(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 2, 30);
 }
 
-pub fn write_control_call_started(c: &mut MemoryCell, x: u32) {
+pub fn write_control_call_started(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 22);
 }
 
-pub fn write_control_cleanup_in_progress(c: &mut MemoryCell, x: u32) {
+pub fn write_control_cleanup_in_progress(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 23);
 }
 
-pub fn write_control_instruction_trace(c: &mut MemoryCell, x: u32) {
+pub fn write_control_instruction_trace(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 29);
 }
 
-pub fn write_control_call_trace(c: &mut MemoryCell, x: u32) {
+pub fn write_control_call_trace(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 28);
 }
 
-pub fn write_control_trace_pending(c: &mut MemoryCell, x: u32) {
+pub fn write_control_trace_pending(c: &mut MemoryCell, x: Address) {
     write_control_bits(c, x, 1, 27);
 }
 
-pub fn write_control_bits(c: &mut MemoryCell, x: u32, ss: u8, pp: u8) {
-    match c {
-        MemoryCell::CdrTagData(p) => match p.data {
-            u32::Unsigned(mut val) => {
-                val = dpb(x, ss, pp, val);
-            }
-            _ => {}
-        },
-        _ => {}
-    }
+pub fn write_control_bits(c: &mut MemoryCell, x: Address, ss: u8, pp: u8) {
+    c.set_raw(dpb(x as u32, ss, pp, c.as_raw()));
 }
 
 #[derive(Debug, Clone)]
@@ -211,7 +207,7 @@ pub struct CPU {
     pub instruction_count: u32,
 }
 
-pub const PROGRAM_COUNTER_INIT: u32 = 0x07FE_0040;
+pub const PROGRAM_COUNTER_INIT: u32 = 0x07fe_0040;
 
 impl Default for CPU {
     fn default() -> Self {
@@ -220,17 +216,20 @@ impl Default for CPU {
             restarts_p: MemoryCell::default(),
             fp: MemoryCell::default(),
             lp: MemoryCell::default(),
-            pc: MemoryCell::CdrTagData(QCDRTagData {
-                cdr: CDR::Normal,
-                tag: QTag::EvenPC, // See IMAS p. 59
-                data: u32::Addr(PROGRAM_COUNTER_INIT),
-            }),
+            pc: MemoryCell::new_cdr_tag_a(
+                CDR::Normal,
+                QTag::EvenPC, // See IMAS p. 59
+                PROGRAM_COUNTER_INIT
+            ),
             continuation: MemoryCell::default(),
             instruction_cache: vec![
                 InstructionCacheLine::default();
                 INSTRUCTION_CACHE_SIZE as usize
             ],
-            stack_cache: [MemoryCell::Whole(0); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize],
+            stack_cache: [
+                MemoryCell::default();
+                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize
+            ],
             stack_cache_limit: MemoryCell::default(),
             allocated_caches: false,
 
@@ -279,14 +278,16 @@ impl CPU {
             self.instruction_cache =
                 vec![InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE as usize];
 
-            self.stack_cache =
-                [MemoryCell::default(); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize];
+            self.stack_cache = [
+                MemoryCell::default();
+                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize
+            ];
 
-            self.stack_cache_limit = MemoryCell::CdrTagData(QCDRTagData {
-                cdr: CDR::Jump,
-                tag: QTag::Fixnum,
-                data: u32::Unsigned(IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128),
-            });
+            self.stack_cache_limit = MemoryCell::new_cdr_tag_u(
+                CDR::Jump,
+                QTag::Fixnum,
+                IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128
+            );
 
             self.allocated_caches = true;
         }
@@ -295,12 +296,8 @@ impl CPU {
         self.instruction_count = 0;
 
         for i in 0..INSTRUCTION_CACHE_SIZE / 2 {
-            self.instruction_cache[2 * i as usize] = InstructionCacheLine {
-                pc: MemoryCell::CdrTagData(QCDRTagData {
-                    cdr: CDR::Jump,
-                    tag: QTag::EvenPC,
-                    data: u32::Unsigned(0),
-                }),
+            self.instruction_cache[2 * (i as usize)] = InstructionCacheLine {
+                pc: MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::EvenPC, 0),
                 next_pc: MemoryCell::default(),
                 code: 0,
                 operand: 0,
@@ -308,12 +305,8 @@ impl CPU {
                 next_cp: Rc::new(RefCell::default()),
             };
 
-            self.instruction_cache[2 * i as usize + 1] = InstructionCacheLine {
-                pc: MemoryCell::CdrTagData(QCDRTagData {
-                    cdr: CDR::Jump,
-                    tag: QTag::OddPC,
-                    data: u32::Unsigned(0),
-                }),
+            self.instruction_cache[2 * (i as usize) + 1] = InstructionCacheLine {
+                pc: MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::OddPC, 0),
                 next_pc: MemoryCell::default(),
                 code: 0,
                 operand: 0,
@@ -324,52 +317,20 @@ impl CPU {
 
         self.stack_cache_base = MEMORY_STACK_CACHE_BASE;
         for i in 0..IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE {
-            self.stack_cache[i as usize] = MemoryCell::CdrTagData(QCDRTagData {
-                cdr: CDR::Jump,
-                tag: QTag::Null,
-                data: u32::Unsigned(i),
-            });
+            self.stack_cache[i as usize] = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Null, 0);
         }
 
-        self.fp = MemoryCell::CdrTagData(QCDRTagData {
-            cdr: CDR::Jump,
-            tag: QTag::OddPC,
-            data: u32::Addr(4),
-        });
+        self.fp = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::OddPC, 4);
+        self.sp = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::OddPC, 5);
+        self.lp = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::OddPC, 6);
 
-        self.sp = MemoryCell::CdrTagData(QCDRTagData {
-            cdr: CDR::Jump,
-            tag: QTag::OddPC,
-            data: u32::Addr(5),
-        });
-
-        self.lp = MemoryCell::CdrTagData(QCDRTagData {
-            cdr: CDR::Jump,
-            tag: QTag::OddPC,
-            data: u32::Addr(6),
-        });
-
-        self.control = MemoryCell::CdrTagData(QCDRTagData {
-            cdr: CDR::Jump,
-            tag: QTag::Fixnum,
-            data: u32::Unsigned(0),
-        });
-
+        self.control = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Null, 0);
         write_control_argument_size(&mut self.control, 2);
         write_control_caller_frame_size(&mut self.control, 2);
-        write_control_trap_mode(&mut self.control, TrapMode::FEP as u32);
+        write_control_trap_mode(&mut self.control, TrapMode::FEP as Address);
 
-        self.pc = MemoryCell::CdrTagData(QCDRTagData {
-            cdr: CDR::Jump,
-            tag: QTag::NIL,
-            data: u32::Unsigned(0),
-        });
-
-        self.continuation = MemoryCell::CdrTagData(QCDRTagData {
-            cdr: CDR::Jump,
-            tag: QTag::NIL,
-            data: u32::Unsigned(0),
-        });
+        self.pc = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Null, 0);
+        self.continuation = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Null, 0);
     }
 
     pub fn running_p(&self) -> bool {
@@ -389,27 +350,11 @@ impl CPU {
     }
 
     pub fn fp_inc(&mut self, addr: u32) {
-        match self.fp {
-            MemoryCell::CdrTagData(p) => match p.data {
-                u32::Addr(mut val) => {
-                    val += addr;
-                }
-                _ => {}
-            },
-            _ => {}
-        }
+        self.fp += MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
     }
 
     pub fn fp_dec(&mut self, addr: u32) {
-        match self.fp {
-            MemoryCell::CdrTagData(p) => match p.data {
-                u32::Addr(mut val) => {
-                    val -= addr;
-                }
-                _ => {}
-            },
-            _ => {}
-        }
+        self.fp-=MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
     }
 
     pub fn fp_jump(&mut self, addr: i32) {
@@ -417,31 +362,15 @@ impl CPU {
             return self.fp_inc(addr as u32);
         } else {
             return self.fp_dec(addr.abs() as u32);
-        };
+        }
     }
 
     pub fn lp_inc(&mut self, addr: u32) {
-        match self.lp {
-            MemoryCell::CdrTagData(p) => match p.data {
-                u32::Addr(mut val) => {
-                    val += addr;
-                }
-                _ => {}
-            },
-            _ => {}
-        }
+        self.lp += MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
     }
 
     pub fn lp_dec(&mut self, addr: u32) {
-        match self.lp {
-            MemoryCell::CdrTagData(p) => match p.data {
-                u32::Addr(mut val) => {
-                    val -= addr;
-                }
-                _ => {}
-            },
-            _ => {}
-        }
+        self.lp-=MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
     }
 
     pub fn lp_jump(&mut self, addr: i32) {
@@ -449,15 +378,10 @@ impl CPU {
             return self.lp_inc(addr as u32);
         } else {
             return self.lp_dec(addr.abs() as u32);
-        };
+        }
     }
 
     pub fn set_control(&mut self, ctrl: u32) {
-        match self.control {
-            MemoryCell::CdrTagData(p) => {
-                p.data.set_u(ctrl);
-            }
-            _ => {}
-        }
+        self.control.set_raw(ctrl);
     }
 }
