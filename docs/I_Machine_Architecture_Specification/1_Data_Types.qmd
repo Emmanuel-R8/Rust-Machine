@@ -205,12 +205,6 @@ type. The following types of objects have immediate representations:
 -   characters,
 -   packed instructions, and
 -   physical addresses
--   small integers (fixnums),
--   single-precision floating-point numbers,
--   small ratios,
--   characters,
--   packed instructions, and
--   physical addresses
 
 A structure object is represented as a block of memory words. The first word contains a
 header with a special data type code. Usually all words after the first contain object
@@ -221,11 +215,6 @@ Structure representation is designed to work for large objects. Some attention i
 to minimizing overhead for small objects, but there. is always at least one word of
 overhead. The. objects represented as structures are:
 
--   symbols,
--   instances,
--   bignums,
--   arrays, and
--   compiled functions.
 -   symbols,
 -   instances,
 -   bignums,
@@ -257,9 +246,6 @@ representation.
 
 There are three types of object references:
 
--   object references by address
--   immediate object references, and
--   pointers.
 -   object references by address
 -   immediate object references, and
 -   pointers.
@@ -379,10 +365,6 @@ Figure 3: Use of forwarding pointers to move an array.
 
 The data types of the forwarding pointers are:
 
--   `dtp-external-value-cell-pointer`
--   `dtp-one-q-forward`
--   `dtp-header-forward`
--   `dtp-element-forward`
 -   `dtp-external-value-cell-pointer`
 -   `dtp-one-q-forward`
 -   `dtp-header-forward`
@@ -1469,4 +1451,3 @@ have seventeen-bit instructions and use the cdr-code field for the high-order bi
 each of the two instructions packed in a `dtp-fixnum` word. I machines have eighteen-bit
 instructions and use the low-order four bits of the data-type field for the high-order I
 bits of the odd instruction.
-

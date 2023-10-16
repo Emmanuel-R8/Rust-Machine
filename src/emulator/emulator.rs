@@ -45,7 +45,7 @@ use crate::hardware::cpu::{
 use crate::hardware::memory::{
     compute_protection,
     default_attributes,
-    lisp_obj_data,
+    get_data,
     make_lisp_obj_u,
     memory_page_offset,
     memory_wad_offset,
@@ -431,7 +431,7 @@ impl<'a> GlobalContext<'a> {
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
         if w.format == LoadFileFormat::VLMWorldFormat {
-            match lisp_obj_data(read_ivory_world_file_q(&w, 0)).unwrap().u().unwrap() {
+            match get_data(read_ivory_world_file_q(&w, 0)).unwrap().u().unwrap() {
                 VLMVERSION1_AND_ARCHITECTURE => {
                     wired_count_q = 1;
                     unwired_count_q = 0;

@@ -6,7 +6,7 @@ use std::fmt::{self};
 // TYPES tag - 6 top bits of a Lisp objects
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#[repr(u32)]
+#[repr(u8)]
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum QTag {
     //  Headers  special markers and forwarding pointers.

@@ -43,6 +43,132 @@ impl Default for QStructure {
     }
 }
 
+
+// Address space is 32 bits
+pub type Address = u32;
+
+
+pub struct MemoryCell {
+    cdr_tag: u8, // 3 bits for cdr and 5 bits for tag
+    half_word1: u16, // 16 bits
+    half_word2: u16, // 16 bits
+}
+
+impl MemoryCell {
+    pub fn new(cdr: u8, tag: u8, half_word1: u16, half_word2: u16) -> Self {
+        assert!(cdr <= 0b111); // make sure cdr is within 3 bits
+        assert!(tag <= 0b11111); // make sure tag is within 5 bits
+        let cdr_tag = (cdr << 5) | tag; // pack cdr and tag into one byte
+        MemoryCell { cdr_tag, half_word1, half_word2 }
+    }
+
+    pub fn cdr(&self) -> u8 {
+        self.cdr_tag >> 5 // retrieve cdr
+    }
+
+    pub fn tag(&self) -> u8 {
+        self.cdr_tag & 0b11111 // retrieve tag
+    }
+
+    // Form a i32 from the 2 half-words
+    pub fn as_i32(&self) -> Option<i32> {
+        if self.tag() == (QTag::Fixnum as u8) {
+            let mut bits = self.half_word1 as u32;
+            bits |= (self.half_word2 as u32) << 16;
+            return Some(unsafe { std::mem::transmute::<u32, i32>(bits) });
+        } else {
+            return None;
+        }
+    }
+
+    // Form a f32 from the 2 half-words
+    pub fn as_f32(&self) -> Option<f32> {
+        if self.tag() == (QTag::SingleFloat as u8) {
+            let mut bits = (self.half_word1 as u32) << 16;
+            bits |= self.half_word2 as u32;
+            return Some(f32::from_bits(bits));
+        } else {
+            return None;
+        }
+    }
+}
+
+// Implement PartialEq and Eq for MemoryCell
+// todo: tHIS PROBABLY ONLY WORKS FOR PRIMITIVE TYPES.
+impl PartialEq for MemoryCell {
+    fn eq(&self, other: &Self) -> bool {
+        self.tag() == other.tag() &&
+            self.half_word1 == other.half_word1 &&
+            self.half_word2 == other.half_word2
+    }
+}
+
+impl Eq for MemoryCell {}
+
+// Implements add assign for 2 MemoryCell where both contain the same type
+// The content is u32 if the TAG is equal to QTag::Fixnum
+// The content is u32 if the TAG is equal to QTag::Fixnum
+// The content is u32 if the TAG is equal to QTag::Fixnum
+impl AddAssign for MemoryCell {
+    // TODO: Check big or low endian representation
+    fn add_assign(&mut self, rhs: Self) {
+        if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
+            let val = self.as_i32().unwrap() + rhs.as_i32().unwrap();
+            *self = MemoryCell::new(
+                self.cdr(),
+                self.tag(),
+                ((val | 0xffff_0000) >> 16) as u16,
+                (val | 0x0000_ffff) as u16
+            );
+            return;
+        }
+
+        if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
+            let val = self.as_f32().unwrap() + rhs.as_f32().unwrap();
+            let val_u32 = f32::to_bits(val);
+            *self = MemoryCell::new(
+                self.cdr(),
+                self.tag(),
+                ((val_u32 | 0xffff_0000) >> 16) as u16,
+                (val_u32 | 0x0000_ffff) as u16
+            );
+            return;
+        }
+    }
+}
+
+// Implements sub assign for 2 MemoryCell where both contain the same type
+// The content is i32 if the TAG is equal to QTag::Fixnum
+// The content is f32 if the TAG is equal to QTag::Singlefloat
+impl SubAssign for MemoryCell {
+    // TODO: Check big or low endian representation
+    fn sub_assign(&mut self, rhs: Self) {
+        if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
+            let val = self.as_i32().unwrap() - rhs.as_i32().unwrap();
+            *self = MemoryCell::new(
+                self.cdr(),
+                self.tag(),
+                ((val | 0xffff_0000) >> 16) as u16,
+                (val | 0x0000_ffff) as u16
+            );
+            return;
+        }
+
+        if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
+            let val = self.as_f32().unwrap() - rhs.as_f32().unwrap();
+            let val_u32 = f32::to_bits(val);
+            *self = MemoryCell::new(
+                self.cdr(),
+                self.tag(),
+                ((val_u32 | 0xffff_0000) >> 16) as u16,
+                (val_u32 | 0x0000_ffff) as u16
+            );
+            return;
+        }
+    }
+}
+
+
 // See I-Machine specs p. 15
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -420,28 +546,20 @@ impl Add for QWord {
     type Output = Option<Self>;
 
     fn add(self, rhs: Self) -> Option<Self> {
-        return match self {
+        match self {
             QWord::Whole(val_lhs) =>
                 match rhs {
-                    QWord::Whole(val_rhs) => Some(QWord::Whole(val_lhs + val_rhs)),
-                    _ => None,
+                    QWord::Whole(val_rhs) => {
+                        return Some(self::Whole(val_lhs + val_rhs));
+                    }
+                    _ => {
+                        return None;
+                    }
                 }
-
-            QWord::CdrTagData(p_lhs) =>
-                match rhs {
-                    QWord::Whole(val_rhs) => None,
-                    QWord::CdrTagData(p_rhs) =>{
-                        let d = QImmediate::Unsigned(0);
-                        let mut q = QWord::CdrTagData({self.cdr().unwrap(); self.tag().unwrap(); d; });
-                        Some(
-                            QWord::CdrTagData({
-                                self.cdr().unwrap();
-                                self.tag().unwrap();
-                                p_lhs.data + p_rhs.data
-                            })
-                        )},
-                }
-        };
+            _ => {
+                return None;
+            }
+        }
     }
 }
 
@@ -687,7 +805,7 @@ pub struct Op {
 #[repr(C)]
 pub struct C2rustUnnamed0 {
     #[bitfield(name = "data", ty = "u32", bits = "0..=15")]
-    #[bitfield(name = "padding", ty = "u32", bits = "16..=31")]
+    #[bitfield(name = "_pad", ty = "u32", bits = "16..=31")]
     pub data: [u8; 4],
 }
 
@@ -699,7 +817,7 @@ pub struct Fep {
     #[bitfield(name = "busy", ty = "u32", bits = "9..=9")]
     #[bitfield(name = "error", ty = "u32", bits = "10..=10")]
     #[bitfield(name = "lisp_is_loaded", ty = "u32", bits = "11..=11")]
-    #[bitfield(name = "padding", ty = "u32", bits = "12..=31")]
+    #[bitfield(name = "_pad", ty = "u32", bits = "12..=31")]
     pub status_cursor_busy_error_lisp_is_loaded: [u8; 4],
 }
 
@@ -716,7 +834,7 @@ pub struct GeneraVersion {
 pub struct EmbDiskChannelFlags {
     #[bitfield(name = "host_byte_order", ty = "u32", bits = "0..=0")]
     #[bitfield(name = "read_only", ty = "u32", bits = "1..=1")]
-    #[bitfield(name = "padding", ty = "u32", bits = "2..=31")]
+    #[bitfield(name = "_pad", ty = "u32", bits = "2..=31")]
     pub host_byte_order_read_only: [u8; 4],
 }
 
@@ -726,9 +844,9 @@ pub struct EmbDiskOperation {
     #[bitfield(name = "cmd", ty = "u32", bits = "0..=2")]
     #[bitfield(name = "tagged", ty = "u32", bits = "3..=3")]
     #[bitfield(name = "buffered", ty = "u32", bits = "4..=4")]
-    #[bitfield(name = "pad1", ty = "u32", bits = "5..=7")]
+    #[bitfield(name = "_pad1", ty = "u32", bits = "5..=7")]
     #[bitfield(name = "suppress_error_recovery", ty = "u32", bits = "8..=8")]
-    #[bitfield(name = "pad2", ty = "u32", bits = "9..=31")]
+    #[bitfield(name = "_pad2", ty = "u32", bits = "9..=31")]
     pub cmd_tagged_buffered_suppresserrorrecovery: [u8; 4],
 }
 
@@ -743,12 +861,12 @@ pub struct Control {
     #[bitfield(name = "argument_size", ty = "u32", bits = "0..=7")] // 0b00000000_00000000_00000000_11111111
     #[bitfield(name = "extra_argument", ty = "u32", bits = "8..=8")] // 0b00000000_00000000_00000001_00000000
     #[bitfield(name = "caller_frame_size", ty = "u32", bits = "9..=15")] // 0b00000000_00000000_01111110_00000000
-    #[bitfield(name = "with_gap2", ty = "u32", bits = "16..=17")]
+    #[bitfield(name = "_pda1", ty = "u32", bits = "16..=17")]
     #[bitfield(name = "apply", ty = "u32", bits = "18..=18")] // 0b00000000_00000010_00000000_00000000
     #[bitfield(name = "value_disposition", ty = "u32", bits = "19..=21")] // 0b00000000_00001100_00000000_00000000
     #[bitfield(name = "call_started", ty = "u32", bits = "22..=22")] // 0b00000000_00100000_00000000_00000000
     #[bitfield(name = "cleanup_bits", ty = "u32", bits = "23..=25")] // 0b00000000_11100000_00000000_00000000
-    #[bitfield(name = "with_stub", ty = "u32", bits = "26..=31")]
+    #[bitfield(name = "_pad2", ty = "u32", bits = "26..=31")]
     pub argsize_extraarg_callerframesize_apply_valuedisposition_callstarted_cleanbits: [u8; 4],
 }
 
