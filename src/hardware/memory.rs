@@ -41,19 +41,11 @@ pub trait Memory {
 }
 
 // Constants
-pub const CELL_T: MemoryCell = MemoryCell::new(
-    CDR::Jump as u8,
-    QTag::Symbol as u8,
-    ((ADDRESS_T | 0xffff_0000) >> 16) as u16,
-    (ADDRESS_T | 0x0000_ffff) as u16
-);
+pub const CELL_T: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Symbol, ADDRESS_T);
 
-pub const CELL_NIL: MemoryCell = MemoryCell::new(
-    CDR::Jump as u8,
-    QTag::Symbol as u8,
-    ((ADDRESS_NIL | 0xffff_0000) >> 16) as u16,
-    (ADDRESS_NIL | 0x0000_ffff) as u16
-);
+pub const CELL_NIL: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Symbol, ADDRESS_NIL);
+
+pub const CELL_CDRMASK: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::TagCdrMask, 0);
 
 const OBJECT_T: QWord = QWord::CdrTagData(QCDRTagData {
     cdr: CDR::Jump,

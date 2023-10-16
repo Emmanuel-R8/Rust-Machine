@@ -43,10 +43,8 @@ impl Default for QStructure {
     }
 }
 
-
 // Address space is 32 bits
 pub type Address = u32;
-
 
 pub struct MemoryCell {
     cdr_tag: u8, // 3 bits for cdr and 5 bits for tag
@@ -56,14 +54,36 @@ pub struct MemoryCell {
 
 impl MemoryCell {
     pub fn new(cdr: u8, tag: u8, half_word1: u16, half_word2: u16) -> Self {
-        assert!(cdr <= 0b111); // make sure cdr is within 3 bits
-        assert!(tag <= 0b11111); // make sure tag is within 5 bits
+        assert!(cdr <= 0b0000_0111); // make sure cdr is within 3 bits
+        assert!(tag <= 0b0001_1111); // make sure tag is within 5 bits
         let cdr_tag = (cdr << 5) | tag; // pack cdr and tag into one byte
         MemoryCell { cdr_tag, half_word1, half_word2 }
     }
 
+    pub fn new_cdr_tag_u(cdr: CDR, tag: QTag, u: u32) -> Self {
+        let cdr = cdr as u8;
+        let tag = tag as u8;
+        let half_word1 = ((u | 0xffff_0000) >> 16) as u16;
+        let half_word2 = (u & 0x0000_ffff) as u16;
+        MemoryCell::new(cdr, tag, half_word1, half_word2)
+    }
+
+    pub fn new_cdr_tag_i(cdr: CDR, tag: QTag, i: i32) -> Self {
+        let u = unsafe { std::mem::transmute::<i32, u32>(i) };
+        MemoryCell::new_cdr_tag_u(cdr, tag, u)
+    }
+
+    pub fn new_cdr_tag_f(cdr: CDR, tag: QTag, f: f32) -> Self {
+        let u = f32::to_bits(f);
+        MemoryCell::new_cdr_tag_u(cdr, tag, u)
+    }
+
     pub fn cdr(&self) -> u8 {
         self.cdr_tag >> 5 // retrieve cdr
+    }
+
+    pub fn set_cdr(&mut self, cdr: CDR) {
+        self.cdr_tag = ((cdr as u8) << 5) | (self.cdr_tag & 0b0001_1111); // set cdr
     }
 
     pub fn tag(&self) -> u8 {
@@ -167,7 +187,6 @@ impl SubAssign for MemoryCell {
         }
     }
 }
-
 
 // See I-Machine specs p. 15
 #[repr(C)]
