@@ -4,6 +4,7 @@ use log::warn;
 use sets::Set;
 use std::cmp::Ordering;
 use std::fs::{DirEntry, File};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::{fmt, process};
 use uuid::Uuid;
@@ -14,6 +15,7 @@ use crate::common::constants::{
 use crate::common::types::MemoryCell;
 
 use crate::emulator::emulator::GlobalContext;
+use crate::utils::pack_8_to_32;
 
 /// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -168,6 +170,117 @@ impl World {
         };
         return w;
     }
+
+
+    pub fn load_image(&mut self, pathname: &str, punt_on_errors: bool) {
+        let mut page_bases: MemoryCell = MemoryCell::default();
+        let mut wired_count_q: u32 = 0;
+        let mut unwired_count_q: u32 = 0;
+        let mut pages_base_q: u32 = 0;
+        let mut first_sysout_q: u32 = 0;
+        let mut first_map_q: u32 = 0;
+
+        let mut f = File::open(pathname)?;
+
+        // Read 4 bytes for the file magic cookie
+        let mut cookie = [0 as u8; 4];
+        f.read(&mut cookie);
+
+        match pack_8_to_32(cookie) {
+            VLMWORLD_FILE_COOKIE => {
+                self.format = LoadFileFormat::VLMWorldFormat;
+                self.byte_swapped = false;
+            }
+
+            VLMWORLD_FILE_COOKIE_SWAPPED => {
+                self.format = LoadFileFormat::VLMWorldFormat;
+                self.byte_swapped = true;
+            }
+
+            IVORY_WORLD_FILE_COOKIE => {
+                self.format = LoadFileFormat::IvoryWorldFormat;
+                wired_count_q = 1;
+                unwired_count_q = 2;
+                first_sysout_q = 0;
+                first_map_q = 8;
+            }
+
+            _ => {
+                if punt_on_errors {
+                    panic_exit(format!("Format of world file {} is unrecognized", pathname));
+                }
+            }
+        }
+
+        self.ivory_data_page = vec![MemoryCell::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
+        // w.current_page_number = 0;
+
+        // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
+        if self.format == LoadFileFormat::VLMWorldFormat {
+            match read_ivory_world_file_q(self, 0).as_raw() {
+                VLMVERSION1_AND_ARCHITECTURE => {
+                    wired_count_q = 1;
+                    unwired_count_q = 0;
+                    pages_base_q = 3;
+                    first_sysout_q = 0;
+                    first_map_q = 8;
+                }
+                VLMVERSION2_AND_ARCHITECTURE => {
+                    wired_count_q = 1;
+                    unwired_count_q = 0;
+                    pages_base_q = 2;
+                    first_sysout_q = 3;
+                    first_map_q = 8;
+                }
+                _ => {
+                    panic_exit(
+                        format!(
+                            "Format magic code of world file {} is unrecognized",
+                            path.display()
+                        )
+                    );
+                }
+            }
+        }
+
+        if self.format == LoadFileFormat::VLMWorldFormat {
+            page_bases = read_ivory_world_file_q(self, pages_base_q);
+            self.data_page_base = page_bases.as_raw();
+             self.tags_page_base = page_bases.tag() as u32;
+        }
+
+        if first_sysout_q != 0 {
+            // w.current_q_number = first_sysout_q;
+
+            // w.generation = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.timestamp_1 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.timestamp_2 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.parent_timestamp_1 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.parent_timestamp_2 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+        } else {
+            self.generation = 0;
+            self.timestamp_2 = 0;
+            self.timestamp_1 = 0;
+            self.parent_timestamp_2 = 0;
+            self.parent_timestamp_1 = 0;
+        }
+        // w.current_q_number = first_map_q;
+        // w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
+        // w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
+
+        self.fd = Some(f);
+    }
+
 
     // Select the specified Set<LoadMapEntry>
     pub fn select_entries(&mut self, selector: MapEntrySelector) -> &Set<LoadMapEntry> {
