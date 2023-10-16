@@ -44,8 +44,9 @@ impl Default for QStructure {
 }
 
 // Address space is 32 bits
-pub type Address = u32;
+pub type Address = usize;
 
+#[derive(Debug)]
 pub struct MemoryCell {
     cdr_tag: u8, // 3 bits for cdr and 5 bits for tag
     half_word1: u16, // 16 bits
@@ -78,16 +79,24 @@ impl MemoryCell {
         MemoryCell::new_cdr_tag_u(cdr, tag, u)
     }
 
+    pub fn new_cdr_tag_a(cdr: CDR, tag: QTag, a: u32) -> Self {
+        MemoryCell::new_cdr_tag_u(cdr, tag, a)
+    }
+
     pub fn cdr(&self) -> u8 {
         self.cdr_tag >> 5 // retrieve cdr
     }
 
     pub fn set_cdr(&mut self, cdr: CDR) {
-        self.cdr_tag = ((cdr as u8) << 5) | (self.cdr_tag & 0b0001_1111); // set cdr
+        self.cdr_tag = ((cdr as u8) << 5) | (self.cdr_tag & 0b0001_1111);
     }
 
     pub fn tag(&self) -> u8 {
-        self.cdr_tag & 0b11111 // retrieve tag
+        self.cdr_tag & 0b0001_1111
+    }
+
+    pub fn set_tag(&mut self, tag: QTag) {
+        self.cdr_tag = (self.cdr() << 5) | ((tag as u8) & 0b0001_1111);
     }
 
     // Form a i32 from the 2 half-words
@@ -101,6 +110,14 @@ impl MemoryCell {
         }
     }
 
+    pub fn set_i32(&mut self, val: i32) {
+        let u = unsafe { std::mem::transmute::<i32, u32>(val) };
+        let h1 = ((u & 0xffff_0000) >> 16) as u16;
+        let h2 = (u & 0x0000_ffff) as u16;
+        self.half_word1 = h1;
+        self.half_word2 = h2;
+    }
+
     // Form a f32 from the 2 half-words
     pub fn as_f32(&self) -> Option<f32> {
         if self.tag() == (QTag::SingleFloat as u8) {
@@ -111,7 +128,129 @@ impl MemoryCell {
             return None;
         }
     }
+
+    pub fn set_f32(&mut self, val: f32) {
+        let u = f32::to_bits(val);
+        let h1 = ((u & 0xffff_0000) >> 16) as u16;
+        let h2 = (u & 0x0000_ffff) as u16;
+        self.half_word1 = h1;
+        self.half_word2 = h2;
+    }
+
+    pub fn as_raw(&self) -> u32 {
+        let mut bits = (self.half_word1 as u32) << 16;
+        bits |= self.half_word2 as u32;
+        return bits;
+    }
+
+    pub fn set_raw(&mut self, val: u32) {
+        let h1 = ((val & 0xffff_0000) >> 16) as u16;
+        let h2 = (val & 0x0000_ffff) as u16;
+        self.half_word1 = h1;
+        self.half_word2 = h2;
+    }
+
+    pub fn as_address(&self) -> Address {
+        let mut bits = (self.half_word1 as u32) << 16;
+        bits |= self.half_word2 as u32;
+        return bits as Address;
+    }
+
+    //
+    // Basic arithmetic
+    //
+
+    // Non mutating
+    pub fn inc(self) -> MemoryCell {
+        let tag_i = QTag::Fixnum as u8;
+        let tag_f = QTag::SingleFloat as u8;
+
+        match self.tag() {
+            tag_i => {
+                let mut m = self.clone();
+                let i = self.as_i32().unwrap() + 1;
+                m.set_i32(i);
+                return m;
+            }
+            tag_f => {
+                let mut m = self.clone();
+                let f = self.as_f32().unwrap() + 1.0;
+                m.set_f32(f);
+                return m;
+            }
+            _ => todo!(),
+        }
+    }
+
+    // Non mutating
+    pub fn dec(self) -> MemoryCell {
+        let tag_i = QTag::Fixnum as u8;
+        let tag_f = QTag::SingleFloat as u8;
+
+        match self.tag() {
+            tag_i => {
+                let mut m = self.clone();
+                let i = self.as_i32().unwrap() - 1;
+                m.set_i32(i);
+                return m;
+            }
+            tag_f => {
+                let mut m = self.clone();
+                let f = self.as_f32().unwrap() - 1.0;
+                m.set_f32(f);
+                return m;
+            }
+            _ => todo!(),
+        }
+    }
+
+    // Mutating
+    pub fn inc_mut(&mut self) {
+        match self.tag() {
+            tag_i => {
+                let i = self.as_i32().unwrap() + 1;
+                self.set_i32(i);
+            }
+            tag_f => {
+                let f = self.as_f32().unwrap() + 1.0;
+                self.set_f32(f);
+            }
+            _ => todo!(),
+        }
+    }
+
+    // Non mutating
+    pub fn dec_mut(&mut self) {
+        match self.tag() {
+            tag_i => {
+                let i = self.as_i32().unwrap() - 1;
+                self.set_i32(i);
+            }
+            tag_f => {
+                let f = self.as_f32().unwrap() - 1.0;
+                self.set_f32(f);
+            }
+            _ => todo!(),
+        }
+    }
 }
+
+impl Default for MemoryCell {
+    fn default() -> Self {
+        MemoryCell::new_cdr_tag_u(CDR::Normal, QTag::Fixnum, 0)
+    }
+}
+
+impl Clone for MemoryCell {
+    fn clone(&self) -> Self {
+        let r = self.as_raw();
+        let h1 = ((r & 0xffff_0000) >> 16) as u16;
+        let h2 = (r & 0x0000_ffff) as u16;
+        MemoryCell::new(self.cdr(), self.tag(), h1, h2)
+    }
+}
+
+impl Copy for MemoryCell {}
 
 // Implement PartialEq and Eq for MemoryCell
 // todo: tHIS PROBABLY ONLY WORKS FOR PRIMITIVE TYPES.

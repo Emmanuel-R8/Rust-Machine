@@ -34,7 +34,7 @@ use crate::common::constants::{
     VMATTRIBUTE_EMPTY,
     VMATTRIBUTE_EXISTS,
 };
-use crate::common::types::QWord;
+use crate::common::types::MemoryCell;
 use crate::hardware::cpu::{
     read_control_argument_size,
     read_control_caller_frame_size,
@@ -45,8 +45,6 @@ use crate::hardware::cpu::{
 use crate::hardware::memory::{
     compute_protection,
     default_attributes,
-    get_data,
-    make_lisp_obj_u,
     memory_page_offset,
     memory_wad_offset,
 };
@@ -58,18 +56,15 @@ use crate::world::world::{
     // read_ivory_world_file_next_q,
     // read_load_map,
     virtual_memory_read,
-    virtual_memory_write,
-    virtual_memory_write_block_constant,
     LoadMapEntry,
     LoadMapEntryOpcode,
-    MapEntrySelector,
     World,
 };
 
 #[derive()]
 pub struct GlobalContext<'a> {
     pub cpu: CPU,
-    pub mem: [QWord; 1 << 31] /* 2^32 bytes of tags + data */,
+    pub mem: [MemoryCell; 1 << 31] /* 2^32 bytes of tags + data */,
     pub attribute_table: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
     pub world: Uuid,
@@ -87,7 +82,7 @@ impl<'a> Default for GlobalContext<'a> {
     fn default() -> Self {
         return GlobalContext {
             cpu: CPU::default(),
-            mem: [QWord::default(); 1 << 31],
+            mem: [MemoryCell::default(); 1 << 31],
             attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
             world: Uuid::nil(),
@@ -107,7 +102,7 @@ impl<'a> GlobalContext<'a> {
     pub fn new() -> Self {
         return GlobalContext {
             cpu: CPU::default(),
-            mem: [QWord::default(); 1 << 31],
+            mem: [MemoryCell::default(); 1 << 31],
             attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
             world: Uuid::nil(),
@@ -122,35 +117,35 @@ impl<'a> GlobalContext<'a> {
         };
     }
 
-    pub fn write_at(&mut self, addr: QWord, val: QWord) {
-        self.mem[(unsafe { addr.a().unwrap() }) as usize] = val;
+    pub fn write_at(&mut self, addr: MemoryCell, val: MemoryCell) {
+        self.mem[addr.as_address() as usize] = val;
     }
 
-    pub fn inc_and_write_at(&mut self, addr: QWord, val: QWord) -> QWord {
-        let a = addr.inc();
-        self.write_at(a, val);
+    // pub fn inc_and_write_at(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
+    //     let a = addr.inc();
+    //     self.write_at(a, val);
 
-        return a;
+    //     return a;
+    // }
+
+    // pub fn write_at_and_inc(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
+    //     self.write_at(addr, val);
+    //     return addr.inc();
+    // }
+
+    pub fn read_at(self, addr: MemoryCell) -> MemoryCell {
+        return self.mem[addr.as_address()];
     }
 
-    pub fn write_at_and_inc(&mut self, addr: QWord, val: QWord) -> QWord {
-        self.write_at(addr, val);
-        return addr.inc();
-    }
+    // pub fn inc_and_read_at(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
+    //     let a = addr.inc();
+    //     return (self.read_at(a), a);
+    // }
 
-    pub fn read_at(self, addr: QWord) -> QWord {
-        return self.mem[addr.a().unwrap() as usize];
-    }
-
-    pub fn inc_and_read_at(&mut self, addr: QWord) -> (QWord, QWord) {
-        let a = addr.inc();
-        return (self.read_at(a), a);
-    }
-
-    pub fn read_at_and_inc(&mut self, addr: QWord) -> (QWord, QWord) {
-        let a = addr.inc();
-        return (self.read_at(addr), a);
-    }
+    // pub fn read_at_and_inc(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
+    //     let a = addr.inc();
+    //     return (self.read_at(addr), a);
+    // }
 
     /// Push one empty frame
     /// See IMAS p 242 for frame format
@@ -381,7 +376,7 @@ impl<'a> GlobalContext<'a> {
     }
 
     fn open_world_file(&mut self, punt_on_errors: bool) -> bool {
-        let mut page_bases: QWord = QWord::default();
+        let mut page_bases: MemoryCell = MemoryCell::default();
         let mut wired_count_q: u32 = 0;
         let mut unwired_count_q: u32 = 0;
         let mut pages_base_q: u32 = 0;
@@ -426,7 +421,7 @@ impl<'a> GlobalContext<'a> {
             }
         }
 
-        w.ivory_data_page = vec![QWord::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
+        w.ivory_data_page = vec![MemoryCell::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
         // w.current_page_number = 0;
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
@@ -460,7 +455,7 @@ impl<'a> GlobalContext<'a> {
         if w.format == LoadFileFormat::VLMWorldFormat {
             page_bases = read_ivory_world_file_q(&w, pages_base_q);
             w.data_page_base = page_bases.u().unwrap();
-            w.tags_page_base = unsafe { page_bases.tag().unwrap() as u32 };
+            w.tags_page_base = page_bases.tag() as u32;
         }
 
         if first_sysout_q != 0 {
@@ -774,7 +769,7 @@ impl<'a> GlobalContext<'a> {
         // world.current_page_number = page_number;
     }
 
-    fn read_swapped_vlm_world_file_q(&self, mut q_number: u32) -> QWord {
+    fn read_swapped_vlm_world_file_q(&self, mut q_number: u32) -> MemoryCell {
         let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
         let mut datum: u32 = 0;
 
@@ -794,7 +789,7 @@ impl<'a> GlobalContext<'a> {
         return make_lisp_obj_u(CDR::Jump, tag, datum);
     }
 
-    fn read_swapped_vlm_world_file_next_q(&self) -> QWord {
+    fn read_swapped_vlm_world_file_next_q(&self) -> MemoryCell {
         let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
 
         // while w.current_q_number >= VLMPAGE_SIZE_QS {
@@ -805,7 +800,7 @@ impl<'a> GlobalContext<'a> {
         // w.current_q_number += 1;
 
         // return q;
-        return QWord::Whole(0);
+        return MemoryCell::Whole(0);
     }
 
     //  Canonicalize the load map entries for a VLM world:  Look for load map entries
@@ -851,8 +846,7 @@ impl<'a> GlobalContext<'a> {
                 for j in 0..current_map_entry.count {
                     let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
 
-                    new_wired_map_entry.addr =
-                        world.wired_map_entries.data[i as usize].addr + j;
+                    new_wired_map_entry.addr = world.wired_map_entries.data[i as usize].addr + j;
                     new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
                     new_wired_map_entry.count = 1;
                     new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.addr);

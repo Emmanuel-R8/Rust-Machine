@@ -1,3 +1,4 @@
+
 use crate::common::constants::{
     QTag,
     VMAttribute,
@@ -20,17 +21,17 @@ use crate::common::constants::{
     VMATTRIBUTE_TRANSPORT_FAULT,
     VMATTRIBUTE_WRITE_FAULT,
 };
-use crate::common::types::{ Address, QCDRTagData, QImmediate, QWord, MemoryCell };
+use crate::common::types::{ Address, QCDRTagData, MemoryCell };
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::{ dpb, ldb };
 
 // From https://github.com/mohanson/gameboy/blob/master/src/memory.rs
 pub trait Memory {
-    fn get(&self, a: Address) -> QWord;
+    fn get(&self, a: Address) -> MemoryCell;
 
-    fn set(&mut self, a: Address, v: QWord);
+    fn set(&mut self, a: Address, v: MemoryCell);
 
-    // fn get_word(&self, a: Address) -> QWord {
+    // fn get_word(&self, a: Address) -> MemoryCell {
     //     u16::from(self.get(a)) | (u16::from(self.get(a + 1)) << 8)
     // }
 
@@ -47,103 +48,103 @@ pub const CELL_NIL: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Symb
 
 pub const CELL_CDRMASK: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::TagCdrMask, 0);
 
-const OBJECT_T: QWord = QWord::CdrTagData(QCDRTagData {
-    cdr: CDR::Jump,
-    tag: QTag::Symbol,
-    data: QImmediate::Addr(ADDRESS_T),
-});
+// const OBJECT_T: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
+//     cdr: CDR::Jump,
+//     tag: QTag::Symbol,
+//     data: u32::Addr(ADDRESS_T),
+// });
 
-const OBJECT_NIL: QWord = QWord::CdrTagData(QCDRTagData {
-    cdr: CDR::Jump,
-    tag: QTag::Symbol,
-    data: QImmediate::Addr(ADDRESS_NIL),
-});
+// const OBJECT_NIL: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
+//     cdr: CDR::Jump,
+//     tag: QTag::Symbol,
+//     data: u32::Addr(ADDRESS_NIL),
+// });
 
-const OBJECT_CDR_MASK: QWord = QWord::CdrTagData(QCDRTagData {
-    cdr: CDR::Jump,
-    tag: QTag::TagCdrMask,
-    data: QImmediate::Unsigned(0),
-});
+// const OBJECT_CDR_MASK: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
+//     cdr: CDR::Jump,
+//     tag: QTag::TagCdrMask,
+//     data: u32::Unsigned(0),
+// });
 
-pub fn make_lisp_obj(c: CDR, t: QTag, d: QImmediate) -> QWord {
-    return QWord::CdrTagData(QCDRTagData {
-        cdr: c,
-        tag: t,
-        data: d,
-    });
-}
+// pub fn make_lisp_obj(c: CDR, t: QTag, d: u32) -> MemoryCell {
+//     return MemoryCell::CdrTagData(QCDRTagData {
+//         cdr: c,
+//         tag: t,
+//         data: d,
+//     });
+// }
 
-pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> QWord {
-    return QWord::CdrTagData(QCDRTagData {
-        cdr: c,
-        tag: t,
-        data: QImmediate::Unsigned(val),
-    });
-}
+// pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> MemoryCell {
+//     return MemoryCell::CdrTagData(QCDRTagData {
+//         cdr: c,
+//         tag: t,
+//         data: u32::Unsigned(val),
+//     });
+// }
 
-pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> QWord {
-    return QWord::CdrTagData(QCDRTagData {
-        cdr: c,
-        tag: t,
-        data: QImmediate::Signed(val),
-    });
-}
+// pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> MemoryCell {
+//     return MemoryCell::CdrTagData(QCDRTagData {
+//         cdr: c,
+//         tag: t,
+//         data: u32::Signed(val),
+//     });
+// }
 
-pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> QWord {
-    return QWord::CdrTagData(QCDRTagData {
-        cdr: c,
-        tag: t,
-        data: QImmediate::Float(val),
-    });
-}
+// pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> MemoryCell {
+//     return MemoryCell::CdrTagData(QCDRTagData {
+//         cdr: c,
+//         tag: t,
+//         data: u32::Float(val),
+//     });
+// }
 
-pub fn get_cdr(q: QWord) -> Option<CDR> {
-    return match q {
-        QWord::CdrTagData(p) => Some(p.cdr),
-        _ => None,
-    };
-}
+// pub fn get_cdr(q: MemoryCell) -> Option<CDR> {
+//     return match q {
+//         MemoryCell::CdrTagData(p) => Some(p.cdr),
+//         _ => None,
+//     };
+// }
 
-pub fn get_tag(q: QWord) -> Option<QTag> {
-    return match q {
-        QWord::CdrTagData(p) => Some(p.tag),
-        _ => None,
-    };
-}
+// pub fn get_tag(q: MemoryCell) -> Option<QTag> {
+//     return match q {
+//         MemoryCell::CdrTagData(p) => Some(p.tag),
+//         _ => None,
+//     };
+// }
 
-pub fn get_data(q: QWord) -> Option<QImmediate> {
-    return match q {
-        QWord::CdrTagData(p) => Some(p.data),
-        _ => None,
-    };
-}
+// pub fn get_data(q: MemoryCell) -> Option<u32> {
+//     return match q {
+//         MemoryCell::CdrTagData(p) => Some(p.data),
+//         _ => None,
+//     };
+// }
 
-pub fn set_cdr(q: &mut QWord, newcdr: CDR) {
-    match q {
-        QWord::CdrTagData(mut p) => {
-            p.cdr = newcdr;
-        }
-        _ => {}
-    }
-}
+// pub fn set_cdr(q: &mut MemoryCell, newcdr: CDR) {
+//     match q {
+//         MemoryCell::CdrTagData(mut p) => {
+//             p.cdr = newcdr;
+//         }
+//         _ => {}
+//     }
+// }
 
-pub fn set_tag(q: &mut QWord, newtag: QTag) {
-    match q {
-        QWord::CdrTagData(mut p) => {
-            p.tag = newtag;
-        }
-        _ => {}
-    }
-}
+// pub fn set_tag(q: &mut MemoryCell, newtag: QTag) {
+//     match q {
+//         MemoryCell::CdrTagData(mut p) => {
+//             p.tag = newtag;
+//         }
+//         _ => {}
+//     }
+// }
 
-pub fn set_data(q: &mut QWord, newdata: u32) {
-    match q {
-        QWord::CdrTagData(mut p) => {
-            p.data = QImmediate::Unsigned(newdata);
-        }
-        _ => {}
-    }
-}
+// pub fn set_data(q: &mut MemoryCell, newdata: u32) {
+//     match q {
+//         MemoryCell::CdrTagData(mut p) => {
+//             p.data = u32::Unsigned(newdata);
+//         }
+//         _ => {}
+//     }
+// }
 
 pub fn memory_page_number(vma: u32) -> u32 {
     return vma >> MEMORY_ADDRESS_PAGE_SHIFT;
@@ -252,18 +253,23 @@ pub fn clear_vmexists(mut vma: VMAttribute) {
 #[derive(Debug)]
 pub struct VMMemory {
     pub tags: [u8; 1 << 31] /* 2^32 bytes of tags + data */,
-    pub data: [QImmediate; 1 << 31] /* 2^32 bytes of tags + data */,
+    pub data: [u32; 1 << 31] /* 2^32 bytes of tags + data */,
     pub attribute: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 }
 
 impl VMMemory {
-    pub fn map_virtual_address_data(&self, start: usize, count: usize) -> Option<Vec<QWord>> {
+    pub fn map_virtual_address_data(&self, start: usize, count: usize) -> Option<Vec<MemoryCell>> {
         let s = self.data;
 
         if count == 0 {
             None
         } else {
-            Some(s[start..start + count].to_vec())
+            let m = s[start..start + count]
+                .into_iter()
+                .map(|&u| MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, u))
+                .collect();
+
+            Some(m)
         }
     }
 }
