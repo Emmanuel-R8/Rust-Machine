@@ -121,31 +121,31 @@ impl<'a> GlobalContext<'a> {
         self.mem[addr.as_address() as usize] = val;
     }
 
-    // pub fn inc_and_write_at(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
-    //     let a = addr.inc();
-    //     self.write_at(a, val);
+    pub fn inc_and_write_at(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
+        let a = addr.inc();
+        self.write_at(a, val);
 
-    //     return a;
-    // }
+        return a;
+    }
 
-    // pub fn write_at_and_inc(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
-    //     self.write_at(addr, val);
-    //     return addr.inc();
-    // }
+    pub fn write_at_and_inc(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
+        self.write_at(addr, val);
+        return addr.inc();
+    }
 
-    pub fn read_at(self, addr: MemoryCell) -> MemoryCell {
+    pub fn read_at(&self, addr: MemoryCell) -> MemoryCell {
         return self.mem[addr.as_address()];
     }
 
-    // pub fn inc_and_read_at(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
-    //     let a = addr.inc();
-    //     return (self.read_at(a), a);
-    // }
+    pub fn inc_and_read_at(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
+        let a = addr.inc();
+        return (self.read_at(a), a);
+    }
 
-    // pub fn read_at_and_inc(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
-    //     let a = addr.inc();
-    //     return (self.read_at(addr), a);
-    // }
+    pub fn read_at_and_inc(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
+        let a = addr.inc();
+        return (self.read_at(addr), a);
+    }
 
     /// Push one empty frame
     /// See IMAS p 242 for frame format
@@ -375,7 +375,7 @@ impl<'a> GlobalContext<'a> {
         // EnsureVirtualAddressRange(0xf8062000, 0x9e000, false);
     }
 
-    fn open_world_file(&mut self, punt_on_errors: bool) -> bool {
+    fn open_world_file(&mut self, punt_on_errors: bool) -> &World {
         let mut page_bases: MemoryCell = MemoryCell::default();
         let mut wired_count_q: u32 = 0;
         let mut unwired_count_q: u32 = 0;
@@ -383,16 +383,16 @@ impl<'a> GlobalContext<'a> {
         let mut first_sysout_q: u32 = 0;
         let mut first_map_q: u32 = 0;
 
-        let mut w = World::new();
+        let mut w: World = World::new();
 
         let path = &w.pathname;
-        w.fd = Some(File::open(path).expect("Could not open file"));
+        let mut f = Some(File::open(path).expect("Could not open file")).unwrap();
 
         let mut cookie: [u8; 4] = [0 as u8; 4];
-        if w.fd.unwrap().read_exact(&mut cookie).is_err() && punt_on_errors {
+        if f.read_exact(&mut cookie).is_err() && punt_on_errors {
             panic_exit(format!("Reading world file {} cookie.", path.display()));
         } else {
-            return false;
+            return &w;
         }
 
         match pack_8_to_32(cookie) {
@@ -426,7 +426,7 @@ impl<'a> GlobalContext<'a> {
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
         if w.format == LoadFileFormat::VLMWorldFormat {
-            match get_data(read_ivory_world_file_q(&w, 0)).unwrap().u().unwrap() {
+            match read_ivory_world_file_q(&w, 0).as_raw() {
                 VLMVERSION1_AND_ARCHITECTURE => {
                     wired_count_q = 1;
                     unwired_count_q = 0;
@@ -454,7 +454,7 @@ impl<'a> GlobalContext<'a> {
 
         if w.format == LoadFileFormat::VLMWorldFormat {
             page_bases = read_ivory_world_file_q(&w, pages_base_q);
-            w.data_page_base = page_bases.u().unwrap();
+            w.data_page_base = page_bases.as_raw();
             w.tags_page_base = page_bases.tag() as u32;
         }
 
@@ -490,7 +490,9 @@ impl<'a> GlobalContext<'a> {
         let key = self.world;
         self.worlds.insert(key, &w);
 
-        return true;
+        w.fd = Some(f);
+
+        return &w;
     }
 
     ///
@@ -809,10 +811,7 @@ impl<'a> GlobalContext<'a> {
     //  will be page-aligned to allow for direct mapping of the world load file into
     //  memory.  (Eventually, we may also merge adjacent load map rentries.)
     fn canonicalize_vlm_load_map_entries(&mut self) -> Set<LoadMapEntry> {
-        let mut new_wired_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(
-            &[],
-            true
-        );
+        let new_wired_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
 
         let world_id = self.world;
 
@@ -837,7 +836,11 @@ impl<'a> GlobalContext<'a> {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
                 // assign the page number within the file
                 let mut new_wired_map_entry = world.wired_map_entries.data[i as usize];
-                new_wired_map_entry.data = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+                new_wired_map_entry.data = MemoryCell::new_cdr_tag_u(
+                    CDR::Jump,
+                    QTag::Fixnum,
+                    page_number
+                ); // Tag 8
                 new_wired_map_entries.insert(new_wired_map_entry);
                 page_number = page_number + page_count;
                 i += 1;
