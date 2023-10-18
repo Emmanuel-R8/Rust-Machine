@@ -1,0 +1,312 @@
+### Instance Variable Accessors
+
+push-instance-variable, pop-instance-variable, movem-instance-variable, push-address-instance-variable, push-instance-variable-ordered, pop-instance-variable-ordered, movem-instance-variable-ordered, push-address-instance-variable-ordered, %instance-ref, %instance-set, %instance-loc :
+
+#### Mapped Accesses to Self
+
+The next four instructions are called within methods or defun-in-flavors. Each of these instructions is an access to self, mapped.
+
+With the instance in FP\|3 and the mapping table in FP\|2, the instruction uses the immediate argument, J, as the index inte the mapping table to get the offset to an instance variable. The type of the value in the mapping table must be `dtp-fixnum`; reference to a deleted variable results in nil being found in the mapping table, which causes an error trap.
+
+These instructions check that the argument I is within the bounds of the mapping table. If it is not, an error trap occurs. The bounds check is performed by fetching the array header of the mapping table, assuming it is a short-prefix array, and comparing J against the array-short-length field. These instructions do check that. the data type of the mapping table (FP\|2) is `dtp-array`, but do not check to make sure that the mapping table is a short-prefix array, though this is required for correct operation. :
+
+Each of these instructions checks the offset to insure that it is a fixnum, but does not check whether it is within bounds. Note that this check is of the element of the mapping table, not of the index into the mapping table. This type of instruction does not check to make sure that the mapping table is a short-prefix array, though this is required for correct operation. That is, the instruction checks that the data type of the mapping table (FP\|2) is `dtp-array` and then proceeds with the assumption that the array is a non-forwarded, short-prefix array.
+
+Each of these instructions checks the offset obtained from the mapping table to insure that it is a fixmum. They do not check whether the offset is within bounds of the instance; the flavor system software guarantees that all offsets are within bounds.
+
+These instructions use the following forwarding procedures:
+
+If the cdr code of self (FP{3) is 1, accesses the location in the instance that is selected by the mapping table.
+
+If the cdr code of self (FP{3) is 0, does a structure-offset memory reference to the header of the instance to check forwarding. If there is no forwarding pointer, sets the cdr code of FP\|3 to 1 and proceeds. Otherwise, uses the forwarded address in place of FP\|3 (does not change FPj8).
+
+pred
+
+
+### Instance Variable Accessors
+
+push-instance-variable, pop-instance-variable, movem- -instance-variable, push-address-instance-variable, push-instance-variable-ordered,
+
+\_ pop-instance-variable-ordered, movem-instance-variable-ordered, \|
+
+/ . instance variable; 'Refersnite to a "deleted variable results in nil being foun Lanethe-------" mapping table; Ww which causes an error trap the' type of. the value in-thé 1 mapping '
+
+push-address-instance-variable-ordered, Zinstance- ref, %instance-set,
+
+-   %instance-loe
+
+#### Mapped Accesses to Self
+
+'The next four instructions are called within methods. or defun- in-flavors. Fach of
+
+these instructions is an access to self, mapped.
+
+With the instance. in FP\|3 and the mapping table in FP)2, the instruction uses' the immediate argument, J,. as the index into the mapping t: table to get the offset to an
+
+table must be `dtp-fixnum`. ee ZL
+
+Each of these instructions checks the. offset to insure "that it is a fixnum, but does not check whether it- as within bounds. Note that 'this check is of the element of the mapping table, not of- the index into. thé mapping table. This type of \|
+
+instruction does not check to make. sure that the mapping table is a short-prefix
+
+array, though this is required for correct. operation, That is, the instruction checks --- that the data type of the mapping 'table {CFP\]2) is `dtp-array`, and then. proceeds \| with\| the assumption that" the array is a non-forwarded, short-prefix array..
+
+. These instructions. éheck that the argument I is within the bounds of the mapping
+
+table. If jit is not, a trap occurs. The bounds check is performed by fetching the
+
+-   array header' 'of the mapping table, assuming it is a short-prefix. array, and
+
+comparing I against the array-short-length field. Implementation note: it is useful to caehe the array header. to avoid making a memory reference to get it-évery time, For an example of how to do this using two scratchpad locations and one , cycle of overhead, see.the 3600 microcode, cc ccee tt ore meme cree
+
+money
+
+These instructions use the following forwarding procedures:
+
+If the cdr code of self (FP\|3) is 1, accesses the location in the instance that is selected by the mapping table. \| a
+
+If the cdr code of self (FP{3) is 0, does : a 'structure-offset memory reference to the \|
+
+\_ header of the instance to check forwarding. If there is no forwarding pointer, sets
+
+the cdr code of FP\]3 to 1 and proceeds. Otherwise, uses the forwarded address in place of FP\|3 (does not change FP\|8).
+
+push-instance-variable I Instruction
+
+Format Operand from stack, immediate . Value(s) Returned 1
+
+Argument(s) 1: Opcode 110 I dtp-fixmum (Note that the
+
+implicit. argument self must be an
+
+instance data type and the mapping
+
+table must be a one-dimensional array.)
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pushes the instance variable indexed by I on the stack. See the section "Mapped Accesses to Self". page 201.
+
+Exception None
+
+Memory Reference Header-read (to header of mapping table), data-read (to. mapping table), data-read
+
+Register Effects TOS: Valid after
+
+pop-instance-variable J Instruction
+
+Format Operand from stack, immediate © Value(s) Returned 0
+
+Argumeni(s) 2: Opcode 320 argl any Lisp data: type
+
+I `dtp-fixnum`
+
+(Note that the implicit argument
+
+self must be an instance data type
+
+and the mapping table must be a
+
+one-dimensional array.)
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pops argi off of the top of stack and stores it into the instance variable. See the section "Mapped Accesses to Self". page 201. Note that only 38 bits are stored: the cdr-code bits of memory are unchanged.
+
+Exception None
+
+Memory Reference Header-read (to header of mapping table), data-read (to mapping table), data-write
+
+Register Effects TOS: Invalid after
+
+movem-instance-variable I Instruction
+
+Format Operand from stack, immediate Value(s) Returned 1
+
+Argument(s) 2: Opcode 321 argl any Lisp data type
+
+I `dtp-fixnum`
+
+Note that the implicit argument
+
+self must be an instance data type
+
+and the mapping table must be a
+
+one-dimensional array.)
+
+Immediate Argument Type Unsigned
+
+Description
+
+Stores ang1, the contents of the top of stack, into the instance variable indexed by the immediate argument J. Does not pop the stack. See the section".Mapped Accesses to Self". page 201. Note that only 38 bits are stored: the cdr-code bits of memory are unchanged.
+
+Exception None
+
+Memory Reference Header-read (to header of mapping table), data-read (to mapping table), data-write
+
+Register Effects TOS: Valid after
+
+push-address-instance-variable \[I Instruction
+
+Format Operand from stack, immediate . Value(s) Returned 1
+
+Argument(s) 1: Opcode 111 I `dtp-fixnum`
+
+(Note that the implicit argument
+
+self must be an instance data type
+
+and the mapping table must be a
+
+one-dimensional array.)
+
+Immediate Argument Type Unsigned
+
+Description Pushes the address. of the instance variable indexed by J on the stack. See the section".Mapped Accesses to Self". page 201.
+
+Exception None
+
+Memory Reference Header-read (to header of mapping table), data-read (to mapping table)
+
+Register Effects TOS: Valid after
+
+#### Unmapped Accesses to Self
+
+The next four instructions are called within methods or defun-in-flavor. Each of these instructions is an access to self; unmapped.
+
+With the instance in FP, such an instruction uses the operand-from-stack immediate-mode argument J as the offset to an instance variable. These instructions do not check whether the offset is within bounds.
+
+push-instance-variable-ordered \| I Instruction
+
+Format Operand from stack, immediate Value(s) Returned 1 Argument(s) 1: Opcode 322 I `dtp-fixnum` Must not be 0.
+
+(Note that the implicit argument self must be an instance data type.)
+
+Immediate Argument Type Unsigned - Description Pushes the variable indexed by J on the stack. See. the-section".Unmapped Accesses to Self". page 205. Exception None
+
+Memory Reference Data-read
+
+Register Effects TOS: Valid after
+
+pop-instance-variable-ordered I Instruction
+
+Format Operand from stack, immediate Values) Returned 0
+
+Argument(s) 2: Opcode 322 argl any Lisp data' type
+
+l arg? `dtp-fixnum`, must not be 0
+
+(Note that the implicit argument
+
+self must be an instance data type.)
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pops argl off the top of stack and stores it into the instance. variable indexed by I. Note that only 38 bits. are stored: the cdr-code bits of memory are unchanged. See the section".Unmapped Accesses to: Self". page 205. Exception None
+
+Memory Reference Data-write
+
+Register Effects TOS: Invalid after
+
+movem-instance-variable-ordered I Instruction.
+
+Format Operand from stack, immediate Velue(s) Returned 1
+
+Argumeni(s). 2: Opcode 323
+
+argl any Lisp data type
+
+arg2 `dtp-fixnum` Must not be 0.
+
+(Note that the implicit argument self must be an instance data type.)
+
+Immediate Argument Type Unsigned
+
+Description
+
+Stores argi, the contents of the top of stack, inte the instance variable indexed by J. Does not pop the stack. Note that only 38 bits are stored: the cdr-code bits of memory are-unchanged. See the section".Unmapped Accesses to Self". page 205,
+
+Exception None
+
+Memory Reference Data-write
+
+Register Effects TOS: Valid after
+
+push-address-instance-variable-ordered J Instruction
+
+Format Operand from stack, immediate Value(s) Returned 1
+
+Argument(s) 1: Opcode 113 I `dtp-fixnum`, 'must not be 0
+
+(Note that the implicit argument
+
+self must be an instance data type.)
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pushes the address of the instance variable indexed by J on the stack. See the section".Unmapped. Accesses to Self". page 205.
+
+Exception None Memory. Reference None
+
+Register Effects TOS: Valid after
+
+#### Accesses to Arbitrary Instances
+
+A sa side effect of the bounds checking, each of these. instructions. makes a structure-offset reference to the header of the instance and, if the instance has been forwarded, uses the forwarded address as the base to which arg2 is added.
+
+Sinstance-ref Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: --- Opcode 324
+
+argl `dtp-instance`, `dtp-list-instance`, `dtp-array-instance`, or `dtp-string-instance` arg2 dtp-fixmum
+
+Immediate. Argument Type Unsigned
+
+Description
+
+Pushes on the stack the instance variable of instance argI at the offset specified by arg2. Takes an error pre-trap if arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section".Accesses to Arbitrary Instances," page 209.
+
+Exception None
+
+Memory Reference Header-read, data-read (to flavor descriptor), data-read (to instance-variable slot)
+
+Register Effects TOS: Valid before, valid after
+
+instance-set Instruction Format. Operand from stack Value(s) Returned 0 Argument(s) 3: Opcode 325
+
+argl'any Lisp data type;
+
+arg2 `dtp-instance`, `dtp-list-instance`, `dtp-array-instance`, or `dtp-string-instance`; args `dtp-fixnum`
+
+Immediate Argument Type Unsigned
+
+Description a oS 5 Pops argi off of the stack and stores it into the instance variable-of------ 2ino\~ Qe La, instance arg2 at the offset specified by arg3,Takes an error pre-trap if S
+
+arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section".Accesses to Arbitrary Instances," page. 209.
+
+al wo
+
+Exception None Memory Reference Header-read, data-read, data-write
+
+Register Effects TOS: Valid before, invalid after
+
+%instance-loc Instruction Format Opérand from stack Value(s) Returned 1 Argument(s) 2: Opcode 326
+
+arg! `dtp-instance`, `dtp-list-instance`, `dtp-array-instance`, or `dtp-string-instance`; arg2 dtp-fimum
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pushes on the stack the address of the instance variable of instance arg at the offset specified by arg2. Takes an error pre-trap if arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section "Accesses to Arbitrary Instances". page 209.
+
+Exception None Memory Reference Header-read, data-read
+
+Register Effects TOS: Valid before, valid after

@@ -1,0 +1,715 @@
+### Subprimitive Instructions
+
+%ephemeralp, %unsigned-lessp, %unsigned-lessp-no-pop, %allocate-list-block, %allocate-structure-block, %pointer-plus, %pointer-difference, %pointer-increment, %read-internal-register, %owrite-internal-register, no-op, %coprocessor-read, %coprocessor-write, %memory-read, %memory-read-address, %memory-write, %tag, `%set-tag`, store-conditional, %p-store-contents, %set-cdr-code-n (two instructions), %merge-cdr-no-pop, `%generic-dispatch`, `%message-dispatch`, %jump, %check-preempt-request; %halt
+
+%ephemeralp Instruction Format Operand from stack : Value(s). Returned 1 Argumeni(s) 1: Opcode 7
+
+arg any data type
+
+Immediate Argument Type Signed
+
+Description
+
+Pushes t on the stack if the data type of the argument is a pointer data \_type and the address lies in ephemeral. space (bits \<81:27\> are 0); otherwise pushes nil on the stack.
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+Funsigned-iessp Instruction
+
+unsigned-lessp-no-pop
+
+Format Operand from stack , Value(s) Returned 1 (2 for no-pop)
+
+Argument(s) 2: Opcode 331 (835 for no-pop) arg! `dtp-fixnum`
+
+arg2 dtp-fimmum
+
+Immediate Argument Type Unsigned
+
+Description
+
+Tests if, as 32-bit unsigned numbers, arg1 \< erg2, and pushes t or nil on the stack according to the result. The no-pop version of this instruction leaves the first argument on the stack.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+%allocate-list-block Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcode 811 argl any type
+
+arg2 `dtp-fixnum` Immediate Argument Type Unsigned
+
+Description Using three internal registers, named list-cache-area, list-cache-length, and list-cache-address, this instruction:
+
+1.  Takes an instruction exception (post trap) unless (eq arg/ list-cache- area).
+
+2, Computes list-cache-length minus arg2. Takes an instruction exception if the result is negative. Stores. the result into list-cache- length unless an exception is taken.
+
+3.  Pops the arguments and pushes the Hst-cache-address. Writes the list-cache-address into BAR-1 (Block-Address-Register-1). Sets the control-register trap-mode field to (max 1 current-trap-mode) so that there can be no interrupts until storage is initialized.
+
+4, Stores (list-cache-address + arg2) into list-cache-address (arg2 must be
+
+latched since the third step may overwrite its original location in the stack).
+
+Example:
+
+```
+(defun cons (car cdr)
+  (%set-cdr-code-normal car)
+  (%set-cdr-code-nil cdr)
+  (%make-pointer dtp-list
+    (prog1 (%allocate-list-block default-cons-area 2)
+            (%block-1-write car)
+            (%block-1-write cdr))))
+```
+
+Exceptions Conditions: arg1 is not eq to list-cache-area. arg2 is greater than list-cache-length. See the section "Revision 0 %Allocate-list-block". page 298.
+
+Arguments: argl, arg2
+
+Values: 1
+
+Note: Trap handler must insure that control-register.trap-mode will be at least 1 after it returns.
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after BAR-1 is modified
+
+%allocate-structure-block Instruction
+
+Format Operand from stack Value(s) Returned 1 Immediate Argument Type Unsigned
+
+Argumeni(s) 2: Opcode 315
+
+argl any type arg2 dtp-fimum
+
+Description Using three internal registers, named sfructure-cache-area, structure-cache-length, and structure-cache-address, this instruction:
+
+1.  Takes an instruction exception unless (eq argl structure-cache-area).
+
+2, Computes structure-cache-length minus arg2. Takes an instruction exception if the result is negative. Stores the result into structure- cache-length unless an exception is taken.
+
+3.  Pops the arguments and pushes. the structure-cache-address. Writes \_ the structure-cache-address into BAR-1 (Block-Address-Register-1). Sets the control-register trap-mode field to (max 1 current-trap-mode) so that there can be no interrupts until storage is initialized.
+
+4, Stores (structure-cache-address + erg2) into structure-cache-address (arg2 must be latched since the third step may overwrite its original location in the stack).
+
+Exception Conditions: erg1 is not eq to structure-cache-area. arg2 is greater than structure-cache-length. See section "Revision 0 %Alocate-structure-block". page 298.
+
+Arguments: argl, arg2
+
+Values: 1
+
+Note: Trap handler must insure that control-register.trap-mode will be at least 1 after it returns.
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+%pointer-plus Instruction Format. Operand from stack. Value(s) Returned 1 Argument(s) 2: Opcode 230
+
+argl can be any data type, but `dtp-locative` is expected; arg2 any data type, but `dtp-fixnum` expected
+
+Immediate Argument Type Signed
+
+Description
+
+Pushes the result of adding arg2 to the pointer field of argi. The data type of the result is the type of argl.
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+%pointer-difference . Instruction ° Format Operand from stack Value(s) Returned 1 Argument(s) 2: : Opcode 231
+
+argl any data type, but a
+
+pointer type is expected;
+
+arg2 any data type, but a
+
+pointer type is expected
+
+Immediate Argument Type Signed
+
+Description
+
+Pushes the result of subtracting the pointer field of arg2 from the pointer field of argi. The data type of the result is `dtp-fixnum`.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+%pointer-increment Instruction.
+
+Format Operand from stack, Value(s) Returned 0 \_ address-operand mode (immediate. and sp-pop addressing modes illegal)
+
+Argument(s) 1: Opcode 145 arg any data type
+
+Immediate Argument Type Not applicable
+
+Description
+
+Adds 1 to the pointer field of arg and stores the result back into the operand. The data-type and cdr-code fields of the operand are not changed. Exception None
+
+Memory Reference None
+
+Register Effects TOS: Unchanged
+
+%read-internal-register I Instruction Format 10-bit immediate Value(s) Returned 1 Argumeni(s) 1: Opcode 154
+
+1 10-bit immediate
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pushes the contents of the internal register specified by arg on top of the stack, with the cdr code set to `cdr-next`. See the section "Internal Registers". page 75.
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+%write-internal-register I , - Instruction Format 10-bit immediate : Value(s) Returned 0 Argument(s) 2: Opcode 155
+
+ne-op
+
+argl any data type I 10-bit immediate
+
+Immediate Argument Type Unsigned
+
+Description Pops argi off the top of the stack and writes it into the internal register specified by I. See the section".Internal Registers," page 75.
+
+Exception None Memory Reference None Register Effects TOS: Invalid after
+
+Instruction
+
+Format Operand from stack Value(s) Returned 0 Argument(s) 0 Opcode 56
+
+Immediate Argument Type Not applicable
+
+Description Does nothing. Used when the implementation requires a delay.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Unchanged
+
+%ecoprocessor-read I Instruction Format 10-bit immediate Value(s) Returned 1 Argument(s) 1: Opcode 156 I `dtp-fixnum` Description
+
+Reads the coprocessor register specified by the immediate field J and pushes the result on the stack, with the cdr code set to `cdr-next`.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+%ecoprocessor-write I / - instruction Format 10-bit immediate Value(s) Returned 0° \~ Argumenti(s) 2: Opcode 157
+
+argl any data type I 10-bit immediate
+
+Description Writes argi into the coprocessor register specified by the immediate field I.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Invalid after
+
+%memory-read. I . Instruction
+
+:   Format 10-bit immediate Value(s) Returned 1 Argument(s) 2: . Opcode 116
+
+argl any Lisp data type I 10-bit immediate (mask)
+
+Immediate Argument Type Not applicable
+
+Description Reads the memory location addressed by argi and pushes its contents on the stack in'accordance with the operation specifiers in the immediate, J:
+
+cycle-type \<9:6\> (4 bits) Select one of the 12 memory-cycle types
+
+fixnum-only \<5\> (1 bit) If set, the instruction will trap if the memory data type is not `dtp-fixnum`.
+
+set-cdr-next \<4\> (1 bit) If set, the cdr code of the result is 0; otherwise, the cdr code of the result is the cdr code of memory.
+
+See the section".Types of Memory References". page 85,
+
+Exception None Memory Reference Controlled by the immediate field.
+
+Register Effects TOS: Valid after
+
+%memory-read-address \[I . Instruction Format 10-bit immediate Value(s) Returned 1 Argument(s) 2: Opcode 117
+
+argl any Lisp data type I 10-bit immediate (mask)
+
+Immediate Argument Type Not. applicable
+
+Description
+
+Reads the memory location addressed by argi, according to the specified cycle type, and returns the updated argument (the address field is changed to be the final address the access arrives at, while the data-type field remains the same) in accordance with the operation specifiers in the immediate, I:
+
+cycle-type \<9:6\> (4 bits)Select one of the 12.memory-cycle types See the section".Memory. References."
+
+fixnum-only \<5\> (1 bit) If set, the instruction will trap if the memory data type is not `dtp-fixnum`.
+
+set-cdr-next \<4\> (1 bit) If set, the cdr code of the result is 0; otherwise, the cdr code of the result is the cdr code of memory.
+
+Exception None Memory Reference Controlled by. the immediate field.
+
+Register Effects TOS: Valid after
+
+224 Ftag
+
+Format Operand from stack
+
+Argument(s) 1: arg any data type
+
+Immediate Argument Type Signed
+
+Description
+
+Returns the tag of arg as a fixnum.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+`%set-tag`
+
+Format Operand from stack
+
+Argumeni(s) 2: argi any data type arg2 `dtp-fixnum`
+
+Immediate Argument Type Unsigned
+
+Description
+
+Instruction
+
+Value(s) Returned 1
+
+Opcode 12
+
+Instruction
+
+Value(s) Returned 1
+
+Opcode 327
+
+Sets the 8 tag bits of argi to be the bottom eight bits of arg2, This is %make-pointer, with the arguments reversed so that immediates can be
+
+used,
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+store-conditional : Instruction
+
+Format Operand from stack Value(s) Returned 1 Immediate Argument Type Signed
+
+Argument(s) 3: Opcode 233 arg `dtp-locative`
+
+arg2 any type
+
+arg3 any type
+
+Description
+
+If the content of the location specified by argI is eq to arg2, then stores arg3 into that location and returns t; otherwise, leaves the location unchanged and returns nil. Note that store-conditional does not write to memory when it returns nil. The cdr code of the specified location is not changed. Other processes (and other hardware processors, te the extent made possible by the system architecture) are prevented from modifying the location between the read and the write.
+
+Exception None
+
+Memory Reference Data-read, followed by raw-write (using the possibly followed pointer) with interlock
+
+Register Effects TOS: Valid before, invalid after
+
+%p-store-contents : Instruction Format Operand from. stack Value(s) Returned 0 Argument(s) 2: Opcode 235
+
+argl any data type arg? any data type
+
+Immediate Argument Type Signed
+
+Description :
+
+Stores arg2 into memory location addressed by argl, preserving the cdr-code but not following invisible pointers.
+
+Exception None
+
+Memory Reference Raw-read followed by raw-write
+
+Register Effects TOS: Valid before, invalid after
+
+%memory-write . Instruction Format Operand-from-stack Value(s) Returned 0 Argument(s) 2: Opcode 234
+
+argl any data type arg2 any data type
+
+Immediate Argument Type Signed
+
+Description
+
+Stores arg2 into the. memory location addressed by argl, storing all 40 bits including the cdr code, and not following invisible pointers. This replaces the 3600's %p-store-cdr-and-contents and %p-store-tag-and-pointer instructions. The second argument is typically constructed with the `%set-tag` instruction; in the I-Machine it is legal to have invisible pointers and special markers in the stack temporarily for this purpose.
+
+Exception None Memory Reference Raw-write
+
+Register Effects TOS: Valid before, invalid after %set-cdr-code-n : Instruction
+
+Format Operand from stack, Value(s) Returned 0 address-operand mode (immediate and sp-pop addressing modes illegal)
+
+Argument(s) 1: Opcodes 146 (n=1),.147 (n=2)
+
+arg any data type
+
+Description
+
+N, which is part of the opcode, is either 1 or 2. Sets the cdr code field of arg to N. :
+
+Exception None Memory Reference None
+
+Register Effects TOS: Unchanged %merge-cdr-no-pop Instruction
+
+Format Operand from stack, Value(s) Returned 1 address-operand mode (immediate and sp-pop addressing modes illegal)
+
+Argument(s) 2: Opcode 342
+
+argl any data type
+
+arg2 (address operand) any data type
+
+Description
+
+Sets the cdr-code field of arg? to the cdr-code field of argi. argi is not popped off the stack.
+
+Exception None
+
+Memory Reference .None
+
+Register Effects TOS: Valid: before, valid after
+
+`%generic-dispatch` Instruction Format Operand from. stack Value(s) Returned 0 Argument(s) 0 Opcode 52
+
+Immediate Argument Type Not applicable
+
+Description
+
+This is used in calling a genéric function. The details of its operation are completely described in the function-calling chapter. In brief, it performs the following operations:
+
+Makes sure that the number of spread arguments is at least 2, doing a pull-lexpr-args operation if necessary.
+
+Gets the address of the interesting part of the flavor, which specifies the size and address of the handler hash table. Checks whether the data type of FP\|8 is one of the instance data types and performs the appropriate operations in any case. See the section "Calling a Generic Function," page 277. Fetches.two words from the flavor and performs a handler hash table search using the (usually) generic function in FP\|2 as the key. Takes an error trap if the method found is not `dtp-even-pc` or `dtp-odd-pc`. Continues execution at the PC.
+
+Exception None Memory Reference Several data-reads
+
+Register Effects TOS: Invalid after
+
+Jmessage-dispatch : Instruction Format Operand from stack Value(s) Returned 0
+
+Argument(s) .0 Opcode 53
+
+Immediate Argument Type Not applicable
+
+Description
+
+This is used in sending a message. The details of its operation are completely described in the function-calling chapter. See the section".Sending a Message". page 278. In brief, it performs the following operations:
+
+Makes sure that the number of spread arguments is at. least 2..Performs a pull-lexpr-args operation if necessary.
+
+Gets the address of the interesting part of the flavor, which specifies the size and address of the handler hash table. Checks whether the data type of FP/2 is one of the instance data types and performs the appropriate operations in any case. .
+
+Fetches two words from the flavor and performs a handler hash table search using the message in FP/8 as the key. Takes an error trap if the method found is not.`dtp-even-pc` or `dtp-odd-pc`. Puts the instance (from FP/2) in FP\|8 and the parameter in FP\|2, then continues execution at the fetched PC.
+
+Exception None
+
+Memory Reference Several data-reads
+
+Register Effects TOS: Invalid after
+
+%jump Instruction
+
+Format Operand from stack Value(s) Returned 0
+
+Argumeni(s) 1: Opcode 11
+
+arg `dtp-even-pc` or `dtp-odd-pc`
+
+Immediate Argument Type Signed
+
+Description
+
+Causes the processor to start executing macroinstructions at the specified PC. This instruction checks that the data type of arg is.`dtp-even-pc` or `dtp-odd-pc` and jumps to the address. In addition, if bit 39 of arg is 1, this instruction stores bit 38 of that word into control-register.cleanup-in- progress. If bit 39 is 0, it leaves the `Control` register alone. An unwind- protect cleanup handler terminates with a %jump instruction.
+
+Exception None Memory Reference 'None
+
+Register Effects TOS: Valid after
+
+%check-preempt-request Instruction Format Operand.from stack Value(s) Returned 0 Argumeni(s) 0 Opcode 54
+
+Immediate Argument Type Not. applicable
+
+Description
+
+Performs a check-preempt-request operation, that is, sets the preempt- pending flag if the preempt-request flag is set. This causes a trap at the end of the current instruction if the processor is in emulator mode, or when control returns to emulator mode if the processor is in extra-stack mode. See the section".Preemption". page 291.
+
+Exception None Memory Reference None Register Effects TOS: Unchanged
+
+Ghalt Instruction
+
+Format Operand from stack Value(s) Returned 0 Argument(s) 0 Opcode 377 Immediate Argument Type Not. applicable
+
+Description Always takes an exception.
+
+Exception Always Memory Reference None
+
+Register Effects TOS: Unchanged
+
+L Machine: 438 instructions I Machine: 218 instructions "415° list-function 1\@ list-function 8 symbol
+
+25 predicate 24 predicate
+
+57 numeric 29 numeric
+
+24 data-movement 18 data-movement
+
+? field-extractian 8 field-extraction
+
+33 array-operation 18 array-operation
+
+15 branch-and-1loop 19 branch-and-1oop
+
+6 miscellaneous special-purpose
+
+75 function-calling 12 function-calling (+8 dtps) 48 binding and function-entry 4 binding
+
+7? catch 2 catch
+
+27 lexical-variable-accessing 24 lexical-variable-accessing
+
+11 instance-variable-accessing . 11 instance-variable-accessing
+
+34 subprimitive 27 subprimitive
+
+36 hardware subprimitive
+
+8 graphics
+
+26 Prolog Note: instructions that are listed as being the same in both architectures are those that have identical names. This does not necessarily imply that those instructions perform exactly the same operations.
+
+List-Function Operations
+
+Instructions common to I and LIG:
+
+car, cdr, rplaca, `rplacd`, member, assoc
+
+Similar instructions:
+
+L/G: getf-internal I: rgetf set-cdr-local set-to-cdr
+
+Only on L: cons, ncons, get, memg, assq,
+
+last, length-internal
+
+Only on I: set-to-car, `set-to-cdr-push-car`
+
+Symbol Operations
+
+Only on LU: alt 8 symbol instructions --
+
+set, symeval, fsymeval, get-pnamé, value-cell-location, function-cel}l-location, property-cell-location, package-cel\]-location
+
+Predicate. Instructions Instructions common. to I and L/G: eq, eq\], equal-number, greaterp, lessp,
+
+endp, plusp, minusp, zerop, Zephemeralp
+
+Similar instructions: L/G: not, atom, fixp, numberp, \| 1: symbolp, single-float-p, array-p,\> cl-listp, double-float-p, floatp
+
+type-member-n
+
+Only on. L: char-equal,.char=, boundp, fboundp, location-boundp
+
+Only on I: logtest, Zunsigned-lessp
+
+Numeric Operations Instructions common to I and L/G:
+
+unary-minus, %32-bit-plus, 232-bit-difference, Zadd-bignum-step, 42sub-bignum-step; Zmultiply-bignum-step, %divide-bignum-step,
+
+4ishc-bignum-step, Zmultiply-double Similar instructions:
+
+L/G: add-stack, add-local, add-immed 1: sub-stack, sub-local, sub-immed increment---local
+
+decrement-locai
+
+multiply-stack, multiply-immed quotient-stack
+
+ceiling-stack
+
+floor-stack
+
+truncate-stack
+
+round-stack
+
+remainder-stack rational-quotient-stack j.ogand-stack
+
+logior-stack
+
+Jogxor-stack
+
+ash-stack
+
+rot-stack
+
+ish-stack
+
+add
+
+sub increment decrement multiply quotient ceiling floor truncate round remainder rational-quotient Jogand Togior Jogxor ash
+
+rot
+
+ish
+
+Only on L: mod-stack, Znumeric-cdispatch-index, aconvert-single-to-double, Zconvert-double-to-single, Zconvert\~double-to-fixnum, Zconvert-fixnum-to-double, Zconvert-single-to-fixnum, float, Zdouble-floating-compare, Z2double-floating-add, Zdouble-floating-subtract, Zdouble-floating-multiply, Zdouble-floating-divide, Zdouble-floating-abs, Zdouble-floating-minus, Zdouble-floating-scale, . set-float-operating-mode, float-operation-status,
+
+set-float-operation-status
+
+Only on £: max, min
+
+Data-Movement. Instructions Instructions common to I and L/G: push-n-nils
+
+Similar instructions:
+
+L7G: push-local, push-immed pop-local
+
+movem-1ocal push-address-1local
+
+I: push pop movem push-address
+
+Only on L: push-indirect, push-constant, push-nil, push-2-nils, push-t, push-character, push-from-beyond-multiple, push-car-Tocal, push-cdr-local, pop-indirect, pop-n, pop-n-save-1, pop-n-save-m, pop-n-save\~-multiple, pop-multiple-save-n, pop-multiple-save-multiple,
+
+movem-indirect, fixup-tos
+
+Only on I: set-sp-to-address, set-sp-to-address-save-tos, push-address-sp-relative, stack-bit, stack-bit-address
+
+Fieid-Extraction Instructions Instructions common to I and LIG: Similar instructions:
+
+L/G: 1db-immed 1: Idb
+
+dpb- immed dpb char-1db-immed char-idb Zp\~1db-immed %p-1db Zp-dpb- immed Zp-1db Zp-tag-1db- immed Zp-tag-ldb 2p-tag-dpb- immed Z`%p-tag-dpb`
+
+Only on L: Only on I: char-dpb
+
+Array Operations
+
+Instructions common to I and L/G: setup-1d-array, setup-force-1d-array,
+
+array-leader,. store-array-leader
+
+Similar instructions:
+
+L/G: ar\~1, ar-1-immed, ar\~1-local as-1, as-i-immed, as-1-local
+
+ap-1
+
+fast-aref
+
+fast-aset
+
+aref-1 aset\~i aloc-\~1 fast-aref-1 fast-aset-1
+
+e.
+
+ap-leader aloc-leader
+
+Only on L: ar-2, as-2, ap-2, setup-1d-array-sequential, setup-force-1d-array-sequential, array-register-event, array-leader-immed, store-array-leader-immed, 2id-aref, Zid-aset, Zid-aloc, array-length, array-active-length, ftn-ar-1, ftn-as-1, fin-ap-1,. ftn~load-array~register, ftn\~double-ar-1, ftn-double-ar-1
+
+Branch Instructions Instructions common to I and L/G: branch
+
+Similar instructions: L/G: branch-true I: branch-true-no-pop 'pranch-false branch-false-no-pop
+
+. branch-true-else-paop branch=true\~and-no-pop branch-false-else-pop branch-false-and-no-pop branch-true-and-pop branch-true-else-no-pop branch-false-and-pop branch-false-else-no-pop
+
+Only on L: branch-eq, branch-not-eq, branch-atom, branch-not-atom, branch-endp, branch-not-endp, long-branch, long-branch-immed
+
+Only on I: branch-true, branch-false, branch-true-and-extra-pop, branch-false-and-extra-pop, branch-true-else-extra-pop, branch-false-else-extra-pop, branch-true-extra-pop, branch-false-extra-pop, (branch-true-no-pop-extra-pop, branch-false-no-pop-extra-pop) , Joop-decrement-tos, loop-increment-tos-Tess---than
+
+Miscellaneous Special-Purpose Instructions Similar instructions: L/G: error\~if-true I: branch-true (8 offset) error-if-false branch-false (8 offset) Only on L: all 6 special-purpose. instructions -- push-microcode-escape-constant, funcall-microcode-escape-constant, instruction, Zfuncal \]\~in-auxil iary-stack-buffer
+
+Function-Calling Instructions Instructions common to I and L/G: `return-multiple`, take-values
+
+Similar instructions: L/G: return-stack/return-nil T: `return-single`
+
+Only on E: call\~(8/1/2/3}-(Cignore/stack/return/multiple}, call-n-{ignore/stack/return/multiple}, funcal1-n\~{ignore/stack/return/multiple}, funcall\~ni-{ignore/stack/return/multiple},
+
+lexpr-funeal 1-{ignore/stack/return/multiple},
+
+Jexpr-funcal }-n-{ignore/stack/return/multiple}, return-n, popj, popj-n, popj-nultiple, restart-trapped-call, un-ltexpr-funcal\], stack-dump, stack-load, Zassure-pdl-room
+
+Only on I: `dtp-call-compiled-even`, `dtp-call-compiled-odd`, `dtp-call-indirect`, `dtp-call-generic`, `dtp-call-compiled-even-prefetch`, `dtp-call-compiled-odd`-prefetch, `dtp-call-indirect-prefetch`, `dtp-call-generic-prefetch`, start-call, finish-call-n, Finish-call-apply-n, finish-call-tos, locate-locals,
+
+`return-kludge`
+
+Binding and Function-Entry Instructions instructions common to I and L/G: unbind-n, Zrestore-binding-stack, take-values
+
+Similar instructions: L/6: Zrestore-binding-stack-Tevel I: Zrestore-binding-stack bind-loeative bind-locative-to-value
+
+Only on L: bind-specvar, %save-binding-stack-level, optional-arg-supplied-p, append-multiple-groups, take-arg, require-args, take-keyword-argument, take-n-args, take-n-args-rest, take-rest-arg, take-n-optional-args, take-n-optional-args-rest, take-m-required-n-optional\~args, take-m-required-n-optional-args-rest
+
+Only on I: bind-locative, entry-rest-accepted, entry-rest-not-accepted
+
+Catch Instructions Instructions common to I and L/G: none
+
+Similar instructions:
+
+L/G: `catch-open`-{ignore/stack/return/multiple}/ unwind-protect-open I: `catch-open`
+
+`catch-close`, catch-close-multiple `catch-close`
+
+Lexical Variable Accessors
+
+Instructions common to. I and L/G: 'none Similar instructions:
+
+L/G: I: fetch-freevar-n, fetch-freevar-{\@/1/2/3/4/5/6/7}. push-lexical-var-n Zpop-freevar-n, Zpop-freevar-{8/1/2/3/4/5/6/7} pop-lexical-var-n
+
+Zmovem-freevar-n, Zmovem-freevar-{8/1/2/3/4/5/6/7}. movem-lexical-var\~n
+
+Instance Variable Accessors
+
+Instructions common to I and L/G: al) 11 instructions -- push\~instance-variable, pop-instance-variable, movem-instance-variable, push-address-instance-variable, push-instance-variable-ordered, pop-instance-variable-ordered, movem-instance-variable-ordered, push-address-instance-variable-ordered, Zinstance-ref, Zinstance-set, %instance-1oc
+
+Subprimitive Instructions :
+
+Instructions common. to I and L/G: Za) locate-list-block,
+
+Za\] locate-structure-biock, Zpointer-difference, store-conditional, Zp-store-contents, Zhalt :
+
+Similar instructions:
+
+L/G: %set-cdr-code-1, Zset-cdr-code-2 I: %set-cdr-code-n
+
+popj Zjump Zcheck-preempt---pending Zcheck-preempt-request
+
+Only on L: Zframe-consing-done, Zallocate-1ist-transport-block, Zal locate-structure-transport-block, Zpointer, Zmake-pointer, Zmake-pointer-immed, Zmake-pointer-immed-offset, Zp-store-contents-increment-pointer , Zp-store-contents-pointer-decrement, Zp-store-tag-and-pointer, Zp-store-cdr-and-contents, Zp-contents-as-locative, Zp-contents-increment-pointer, Zp-contents-pointer-decrement , Zp-structure-offset, Zset-preempt-pending, Zdata-type, Zfixnum, Zflonum, Zstack-group-switch, follow-structure-forwarding, follow-cell-forwarding, %block\~store-cdr-and-contents, %block-store-tag-and-pointer, Zblock-search-eq-internal, Ztrap-on-instance
+
+Only on F: Zunsigned-lessp, Zpointer-plus, Zpointer-increment, gZread-internal-register, Zwrite-internal-register, Zcoprocessor\~read, Z%coprocessor-write, Zmemory-read, Zmemory-read-address, Zmemory-write, Ztag, Zset-tag, Zmerge-cdr-no-pop, Zgeneric-dispatch, Zmessage-dispatch, no-op-
+
+Hardware Subprimitives '- Instructions common to I and L/G: Zephemeralp
+
+Only on L: 35 remaining hardware subprimitives -- %map-cache-write, Zphtc-read, Zphtc-write, Zphtc\~setup, Zreference\~tag-read, Zreference-tag-write, ecan-reference-tags, Zgc- -tag-read, 2gc-tag-write, . Z8can-ge-tags, Zgc-map-write, Zmeter\~ on, "meter-off, Zblock-gc- copy,"block-transport, Zscan-for-oldspace, Zclear-caches, a2physical-address- -cache, %scan----for\~ephemeral-space, Zclear-instruction-cache, %scan-\~ for- ecc-error, \*io-read-unti)-bit-test, %io\~read-while-bit-test, Zio-read, Zio-write, aunsynchronized-device-read, zmicrosecond-clock, Zblock-checksum- -copy, --- %b? ock-32\~-36-checksum-copy, %block-36- 32-checksum- \~copy, Zaudio-start, afep-deorbell, Zdisk-start, %net\~wakeup, Ztape----wakeup
+
+Graphics Instructions: - Instructions common to i and L/G: none
+
+Only on L: all. the graphics instructions -- Zbitbit-short-row, abithlt-long-row, %bitb) t-long-row-backwards, Zbitb1t- decode-arrays, zZdraw-lLine-loop, Zdraw-string-step, Zdraw-triangle- "segment,
+
+| Zbitbit-short, Zbitbit-long, Zdraw-string- loop,
+
+soft-matte-decode-arrays, soft-matte-internal
+
+Prolog Instructions : Instructions common. to I and L/G: none
+
+Only on L: al} 26 Prolog instructions -- proceed, assure-prolog-frame-room, 'push- -choice-pointer, cut, neck-cut, fail, fail-if-faise, fail-if-true, push-goal, execute-goal, execute-stack, dereference-ftocal\|, dereference-stack, globalize-var, .
+
+global ize-var-for-neck-cut, push-var, push-void, push-list, push- -listx, unify-nil, unify-constant, unify-immediate, unify-tocal, unify-list, unify-lists, uni Fyelistee1

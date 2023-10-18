@@ -1,0 +1,51 @@
+### Lexical Variable Accessors
+
+push-lexical-var-n. (eight instructions), pop-lexical-var-n (eight instructions), movem-lexical-var-n (eight instructions).
+
+The three instructions described in this section allow the first eight lexical variables in a lexical environment to be accessed.
+
+((push-lexical-var-n)) Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 1: Opcodes 20-27
+
+arg `dtp-list` or `dtp-locative`
+
+Immediate Argument Type Signed
+
+Description . .
+
+Pushes on the stack the lexical variable of environment erg indexed by n. arg must be a cdr-coded lexical environment, but this is not checked. n is a number between 0 and 7 that is stored in the bottom three bits of the opcode.
+
+Exception None Memory Reference Data-read
+
+Register Effects TOS: Valid after
+
+pop-lexical-var-n uo Instruction Format Operand from stack Value(s). Returned 0 Argument(s) '2: Opcodes 240-247
+
+.argi any data type arg2 `dtp-list` or `dtp-locative`
+
+Immediate Argument. Type Signed
+
+Description
+
+Pops argl off the stack and stores the result into the lexical variable of environment arg2 indexed by n. arg2 must be a cdr-coded lexical environment, but this is not checked. n-is a number between 0 and 7 that is stored in the bottom three bits of the opcode. Note that only 38 bits are stored: the cdr-code bits of memory are unchanged.
+
+Exception None Memory Reference Data-write
+
+Register Effects TOS: Valid. before, invalid after
+
+movem-lexical-var-n. - Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcodes 250-257
+
+argl any data type arg2 `dtp-list` or `dtp-locative`
+
+Immediate Argument Type Signed
+
+Description
+
+Stores argi, without popping, into the lexical variable of environment arg2 indexed by n. arg2 must be a cdr-coded lexical environment, but this is not checked.n is a number between 0 and 7 that is stored in the bottom three bits of the opcode. Note that only 38 bits are stored: the cdr-code bits of memory are unchanged.
+
+Exception None Memory Reference Data-write
+
+Register Effects TOS: Valid before, valid after
+
+osc «0 umm
+
+--- eee

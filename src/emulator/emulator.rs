@@ -12,22 +12,16 @@ use sets::Set;
 use uuid::Uuid;
 
 use crate::common::constants::{
-    LoadFileFormat,
     QTag,
     VMAttribute,
     CDR,
     IVORY_PAGE_SIZE_BYTES,
     IVORY_PAGE_SIZE_QS,
-    IVORY_WORLD_FILE_COOKIE,
     MEMORYWAD_SIZE,
     MEMORY_ADDRESS_PAGE_SHIFT,
     MEMORY_PAGE_SIZE,
     VLMMAXIMUM_HEADER_BLOCKS,
     VLMPAGE_SIZE_QS,
-    VLMVERSION1_AND_ARCHITECTURE,
-    VLMVERSION2_AND_ARCHITECTURE,
-    VLMWORLD_FILE_COOKIE,
-    VLMWORLD_FILE_COOKIE_SWAPPED,
     VLMWORLD_FILE_V2_FIRST_MAP_Q,
     VLMWORLD_SUFFIX,
     VMATTRIBUTE_CREATED_DEFAULT,
@@ -48,13 +42,10 @@ use crate::hardware::memory::{
     memory_page_offset,
     memory_wad_offset,
 };
-use crate::utils::{ byte_swap_32, pack_8_to_32 };
+use crate::utils::byte_swap_32;
 use crate::world::world::{
     merge_a_map,
     panic_exit,
-    read_ivory_world_file_q,
-    // read_ivory_world_file_next_q,
-    // read_load_map,
     virtual_memory_read,
     LoadMapEntry,
     LoadMapEntryOpcode,
@@ -375,7 +366,6 @@ impl<'a> GlobalContext<'a> {
         // EnsureVirtualAddressRange(0xf8062000, 0x9e000, false);
     }
 
-
     ///
     /// Load a map in to the GlobalContext world structure
     pub fn map_world_load(&mut self, start: u32, length: u32, offset: u32) -> u32 {
@@ -610,7 +600,7 @@ impl<'a> GlobalContext<'a> {
     //     return entry.count;
     // }
 
-    fn read_swapped_vlm_world_file_page(&self, mut page_number: u32) {
+    fn read_swapped_vlm_world_file_page(&self, page_number: u32) {
         unimplemented!()
 
         // // If the page current loaded in the world is the page we are looking for, then nothing to do
@@ -708,6 +698,8 @@ impl<'a> GlobalContext<'a> {
 
         let mut page_number: u32 = 0;
         let mut i: u32 = 0;
+
+        // Iterate through every single map entries
         while i < n_wired_entries {
             let current_map_entry = &world.wired_map_entries.data[i as usize];
 

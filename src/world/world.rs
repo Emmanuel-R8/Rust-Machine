@@ -180,7 +180,7 @@ impl World {
         let mut first_sysout_q: u32 = 0;
         let mut first_map_q: u32 = 0;
 
-        let mut f = File::open(pathname)?;
+        let mut f = File::open(pathname).unwrap();
 
         // Read 4 bytes for the file magic cookie
         let mut cookie = [0 as u8; 4];
@@ -236,7 +236,7 @@ impl World {
                     panic_exit(
                         format!(
                             "Format magic code of world file {} is unrecognized",
-                            path.display()
+                            pathname
                         )
                     );
                 }

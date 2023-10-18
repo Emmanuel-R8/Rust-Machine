@@ -1,0 +1,109 @@
+### Block Instructions
+
+%block-n-read (four instructions), %block-n-read-shift (four instructions), %block-n-read-alu (four instructions), %block-n-read-test (four instructions), %block-n-write (four instructions).
+
+A block instruction uses part. of its opcode to select the desired. Block Address Register (BAR). A BAR is an internal register that must be loaded by. means of a %write-internal-register instruction before any of the block instructions are executed. For the instructions that use the 10-bit immediate format, the argument is the following mask of bits: -
+
+eycle-type \<9:6\> (4 bits) Select one of the twelve memory-cycle types. See the section".Types of Memory References".
+
+fixnum-only \<5\>. (1 bit) If set, the instruction will take an error trap if the memory data type is not `dtp-fixnum`.
+
+set-cdr-next \<4\> (1 bit) For %block-n-read.:and %block-n-read-shift: if set, the cdr code of the result is 0; otherwise, the cdr code of the result is the cdr code of memory.
+
+last-word \<3\> (1 bit) If set, do not prefetch words after this one.
+
+no-increment \<2\> (1 bit) If set, do not increment the Block Address Register (BAR) after executing this instruction.
+
+If an invisible pointer is fetched from memory, and the memory-cycle type specifies that the invisible pointer should be.followed, the BAR is always changed to point to the new location. If the BAR is incremented, that happens afterwards.
+
+The %block-n-read-shift. instruction uses the rotate-latch register and the byte-r and byte-s fields of the DP Op register. DP Op is an internal register that must be loaded by means of a %write-internal-register instruction before the %block-n-read-shift, %block-n-read-alu, or @block-n-read-test instruction is executed,
+
+%block-n-read I Instruction. Format 10-bit immediate Value(s) Returned 1 - Argument(s) 1: Opcodes 120-123
+
+I 10-bit immediate
+
+Immediate Argument Type Not applicable
+
+Description
+
+In accordance with the setting of the bits in the immediate control mask, reads the word addressed by the contents of the Block Address Register (BAR) specified by n, and pushes it on the stack. n is a number between 0 and 3 inclusive that is part of the opcode. The specified BAR is incremented according to the bit in the mask as a side effect.
+
+Exception None Memory Reference Cycle-type specified by instruction
+
+Register Effects TOS: Valid after
+
+%block-n-read-shift I Instruction Format 10-bit. immediate Value(s) Returned 1 Arguments) 1: Opcodes 124-127
+
+I 10-bit immediate
+
+Immediate Argument Type Not applicable
+
+Description
+
+Reads the word addressed by the contents of the Block Address Register (BAR) specified by n and rotates it left by the amount specified in the byte- r field of the DP Op register. The top (byte-s + 1) bits come from this rotated word, and the bottom bits come from the rotate-latch register, and this value is pushed onto the stack. The rotate-latch register is then loaded from rotated memory word. The effect of this operation is to perform a dpb (deposit-byte) of the word from. memory into the rotate-latch register. n is a number between 0 and 3 inclusive that is part of the opcode. The / specified BAR is incremented according to the bit in the immediate-operand mask as a side effect. See the section".Revision 0 %Block-n-read-shift". page 298.
+
+Exception None Memory Reference Cycle-type specified
+
+Register Effects TOS: Valid after
+
+%block-n-read-alu Instruction
+
+Format Operand from stack, Value(s) Returned. 0 address-operand mode (immediate and sp-pop addressing modes illegal)
+
+Argument(s) 1: Opcodes 160-163 arg is any numeric data type
+
+Immediate Argument Type Not applicable
+
+Description.
+
+Performs the ALU operation specified in the alu-op field of the DP Op register using arg and the word addressed by the contents of the Block Address Register (BAR) specified by n as operands. n is a number between 0 and 3 inclusive that is part of the opcode. Writes the result of the ALU operation back into the addressed operand, arg. The cdr code of the operand is set to the cdr code from memory. The specified BAR is incremented as.a side effect.
+
+The values used for the block instruction mask bits are
+
+CYCLE TYPE \~- data read
+
+FIXNUM-ONLY -- the usual generic-arithmetic. post traps apply SET-CDR-NEXT -- not applicable
+
+LAST-WORD -- false
+
+NO-INCREMENT -- false
+
+Exception Conditions: Traps according to the generic-arithmetic traps associated with the specified ALU operation. Arguments: arg (address operand as locative) Values: 0 Gnerements the BAR) . Note: The operation to be performed is indicated by the DP Op register. The trap handler must save this away before it can get clobbered by other processes, interrupt handlers, or complex instructions. See the section".Revision 0 %Block-n-read-alu". page 298.
+
+Memory Reference Data-read
+
+Register Effects TOS: Unchanged
+
+%block-n-read-test I , Instruction Format 10-bit immediate Value(s) Returned 1 Argument(s) 2: Opcodes 130-183
+
+arg(s) can be any Lisp data type, except for when a test that requires `dtp-fixnum` is selected
+
+Immediate Argument Type Not applicable
+
+Description
+
+Performs the test selected by the contents of the condition field and alu-op fields of the DP Op register.. See the section".Revision 0 %Block-n-read- test". page 299. Some of the tests that could be performed are:
+
+ephemeralp(memory (BAR)) oldspacep(memory (BAR)) eq(memory(BAR), top-of-stack) logtest(@memory(BAR), top-of-stack)
+
+where memory(BAR) specifies the object reference addressed by the nth BAR. (7 is a number between 0 and 3 inclusive that is part of the. opcode.) Does not pop arguments off the stack.
+
+If the test succeeds, transfers control to the program counter next on the stack If the test fails, increments the BAR contents. Execution then proceeds with the-next instruction.
+
+This instruction is typically used for searching tables and bitmaps, and by the garbage collector. Note that the logtest option produces meaningful results only for `dtp-fixnum` operands; in particular, it does not work for `dtp-bignum` operands. (Actually, the logtest test ignores the data type of its operand.) Typically, the programmer would set the fixnum-only bit in the 10-bit immediate field when using this test. See the section".Block Instructions". page 169. The oldspacep test is true exactly when a. transport trap would occur if the cycle type allowed it. For this to be useful, the cycle type selected for %block-n-read-test oldspacep test must disallow transport traps. See the section".Revision 0 %Block-n-read-test". page 299.
+
+Exception None Memory Reference Cycle-type specified. Register Effects TOS: Valid before for 2-operand tests, valid after
+
+%block-n-write Instruction Format Operand from stack Value(s) Returned 0 Argument(s) 1: Opcodes 30-33
+
+arg can be any Lisp data type
+
+immediate Argument Type Signed
+
+Description :
+
+Writes arg into the word addressed by the contents of the Block Address Register (BAR) specified by n..n is a number between 0 and 3 inclusive that is part of the opcode. All 40 bits, including cdr code, of this word are written into memory. The specified BAR is incremented as a side effect. If arg is immediate, the tag bits will specify dtp-fixmnmum and `cdr-next`. Exception None
+
+Memory Reference Raw-write
+
+Register Effects TOS: Unchanged

@@ -909,11 +909,11 @@ pub const VLMWORLD_FILE_COOKIE: u32 = 0xA3_8A_89_88; // 0o24_342_504_610
 pub const VLMWORLD_FILE_COOKIE_SWAPPED: u32 = 0x88_89_8A_A3; // 0o21_042_305_243
 pub const VLMBLOCK_SIZE: u32 = 0x2_000; // 8192, 0o20_000
 pub const VLMBLOCKS_PER_DATA_PAGE: u32 = 4;
-pub const VLMBLOCKS_PER_TAGS_PAGE: u32 = 1;
+pub const VLMBLOCKS_PER_TAGS_PAGE: u32 = 1; // tag+cdr = 1 byte
 pub const VLMMAXIMUM_HEADER_BLOCKS: u32 = 14;
 pub const VLMPAGE_SIZE_QS: u32 = 0x2_000; // 8192, 0o20_000
 pub const VLMDATA_PAGE_SIZE_BYTES: u32 = 4 * VLMPAGE_SIZE_QS;
-pub const VLMTAGS_PAGE_SIZE_BYTES: u32 = VLMPAGE_SIZE_QS;
+pub const VLMTAGS_PAGE_SIZE_BYTES: u32 = 1 * VLMPAGE_SIZE_QS;
 
 pub const VLMVERSION1_AND_ARCHITECTURE: u32 = 0x80_00_80; // 0o40_000_200
 pub const VLMWORLD_FILE_V1_UNWIRED_COUNT_Q: u32 = 0;
@@ -938,7 +938,7 @@ pub const IVORY_WORLD_FILE_COOKIE: u32 = 0x63_4A_49_48; // 0o14_322_444_510;
                                                         // pub const  IvoryWorldFileCookie  : u32 = 0x48_49_4A_63; // 011022245143L
                                                         // #endif
 pub const IVORY_PAGE_SIZE_QS: u32 = 0x100;
-pub const IVORY_PAGE_SIZE_BYTES: u32 = 0x500; // 1280
+pub const IVORY_PAGE_SIZE_BYTES: u32 = 0x100 + 4 * 0x100; // 1280 bytes. For each Q, 1 byte for tag+cdr, 4 bytes for the data
 pub const IVORY_WORLD_FILE_WIRED_COUNT_Q: u32 = 1;
 pub const IVORY_WORLD_FILE_UNWIRED_COUNT_Q: u32 = 2;
 pub const IVORY_WORLD_FILE_FIRST_SYSOUT_Q: u32 = 0;

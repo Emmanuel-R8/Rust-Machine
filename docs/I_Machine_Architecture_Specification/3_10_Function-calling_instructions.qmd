@@ -1,0 +1,248 @@
+### Function-Calling Instructions
+
+oe dtp- call-compiled- -even,. dtp-call-compiled-oda, `dtp-call-indirect`, atp-cal-generie, and the -prefetch versions of these last four,. start-call, finish-call-n, - finish-call-apply-n, finish-call-tos, finish-call-apply-tos, entry-rest-accepted, \_ entry-rest-not-accepted, locate-locals, `return-single`, `return-multiple`,
+
+a return- "kludge, take-values \|
+
+#### Function-Calling Data Types
+
+\_ Each of the. following data types when executed as an instruction starts a function call. Only very brief descriptions of these instructions are presented in this - chapter. Complete information is contained in a separate chapter. See. the section".Function Calling, Message Passing, Stack-Group Switching".". page 241,
+
+`dtp-call-compiled-even` 7 a a \| - Instruetion \| dtp-eall-compiled-even-prefetch 7 \_--- : a - Instruction / \| Format Full-word instruction © . Value(s) 'Returned 'Not applicable
+
+Argument(s) 1: -\~ Included in the instruction is addr, \_ the address of the first instruction. to be executed in the target function..
+
+|                                        |
+|----------------------------------------|
+| Immediate Argument Type Not applicable |
+
+7 Description : - Starts a function call that will commence , execution at the even instruction of the word addressed by addr. The prefetch version of this instruction - indicates that the hardware should initiate an instruction-prefetch \| operation. See the section".Starting a Function ( Cail". 'page 249.
+
+-   Exception None Memory Reference None
+
+Register Effects TOS: Valid after ---
+
+`dtp-call-compiled-odd` Instruction `dtp-call-compiled-odd-prefetch` Instruction Format Full-word instruction Value(s) Returned Not applicable
+
+Argument(s) 1:
+
+Included in the instruction is addr, the address of the first
+
+instruction to be executed
+
+in the target function
+
+Immediate Argument Type Not applicable
+
+Description .
+
+Starts a function call that will commence execution at the odd instruction of the word addressed by addr. The prefetch version of this instruction indicates that the hardware should initiate an instruction-prefetch operation. See the section".Starting a Function Call". page 249. Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+`dtp-call-indirect` Instruction `dtp-call-indirect-prefetch` Instruction Format Full-word instruction Value(s). Returned Not applicable
+
+Argumeni(s) 1
+
+Included in the instruction is addr, the address of a word, whose contents can be of any data type. The contents of the word is the function to call.
+
+Immediate Argument Type Not. applicable
+
+Description
+
+Starts a call of the function addressed by addr or by a forwarding pointer addressed by addr. Use of the prefetch version suggests to the hardware that an instruction-prefetch operation is desirable. See the section".Starting a Function Call". page 249,
+
+Exception None
+
+Memory Reference Data-read
+
+" Register Effects TOS: Valid after
+
+`dtp-call-generic` : Instruction `dtp-call-generic-prefetch` Instruction Format Full-word instruction Value(s) Returned Not applicable
+
+Argument(s) 1: Included in the function is addr,.the address of a generic function
+
+Immediate Argument Type Not applicable
+
+Description
+
+Starts a call of the generic function addressed by addr. Use of the prefetch version suggests to the hardware that an instruction-prefetch operation is desirable. See the section".Calling a Generic Function". page 277.
+
+Exception None Memory. Reference None
+
+Register Effects TOS: Valid after
+
+#### Instructions for Starting and Finishing Calls
+
+The following instructions are used to implement function calling, Only brief descriptions of these are presented here. See the section \`\`Function Calling, Message Passing, Stack-Group Switching". page 241.
+
+start-call Instruction Format Operand from stack Value(s) Returned Not applicable Argument(s) 1: Opcode 10
+
+arg is any data type
+
+Immediate Argument Type Signed
+
+Description
+
+Starts a function call of the function specified by arg. See the section \`\`Starting a Function Call". page 249.
+
+Exception None
+
+Memory Reference Data-read (sometimes)
+
+Register Effects TOS: Valid after
+
+finish-call-n Instruction
+
+finish-call-n-apply J
+
+Format 10-bit immediate Value(s) Returned Not applicable Argument(s) 1: Opcode 134 (135 for apply) I `dtp-fixnum`
+
+Immediate Argument Type. Unsigned
+
+Description
+
+Finishes a function-calling sequence: builds the new stack frame, checks for control stack overflow, and enters the called function at the appropriate starting instruction. The low-order eight bits of the immediate argument J specify a number that is equal to one more than the number of arguments explicitly supplied with the call, including the apply argument but not including the extra argument if any. For example, if one argument is supplied with finish-call-n, then I\<7:0\> = 2.
+
+The two high-order bits of J are the value-disposition, which specifies what should be done with the result of the called function. The possible values of value-disposition are: \_ .
+
+« Effect
+
+-   Value
+-   Return
+
+e Multiple
+
+The function-calling chapter explains the meaning of this field. See the section".Finishing the Call". page 253.
+
+finish-eall-n-apply is the same.as finish-call-n, except that its use indicates that the top word of the stack is a list of arguments.
+
+Exception None Memory. Reference None
+
+Register Effects TOS: Unchanged
+
+\_ finish-call-tos 7 . Instruction
+
+finish-call-tos-apply I
+
+Format 10-bit immediate Value(s) Returned Not applicable Argument(s) 2: Opcode 186 (187 for apply)
+
+I `dtp-fixnum`
+
+arg `dtp-fixnum`
+
+Immediate Argument Type Unsigned
+
+Description
+
+Finishes a.function-calling sequence: builds the new stack frame, checks for control stack overflow, and enters the called function at the appropriate starting instruction. arg, which is popped off the top of stack, specifies the number of arguments explicitly supplied with the call,including the apply argument in the case of finish-call-tos-apply. Note that arg differs from the immediate argument. count in finish-call-n by not including the bias of +L.
+
+The two high-order bits of the immediate argument J are the value-disposition, which specifies what should be done with the result of the called function: The possible values of value-disposition are:
+
+e Effect « Value ¢ Return « Multiple The function-calling chapter explains the meaning of this field. The low-
+
+order eight bits of I are. ignored by this instruction. See the section \`\`Finishing the Call". page 253.
+
+finish-call-tos-apply is the same as finish-call-tos, except that its use indicates that the top word of the stack is a list of arguments.
+
+Exception None Memory Reference None Register Effects TOS: Unchanged
+
+entry-rest-accepted. Instruction
+
+entry-rest-not-accepted.
+
+Format Entry instruction Value(s) Returned Not applicable
+
+Argument(s) 2: Opcode 176 (177 for not-accepted) argl 8-bit immediate arg2 &-bit immediate
+
+Immediate Argument Type Unsigned
+
+Description
+
+Performs an argument match-up process that either takes an error trap, if the wrong number of arguments has been supplied, or adjusts the control stack and branches to the appropriate instruction of the entry vector or to the instruction after the entry vector.
+
+argl is two greater than the number of arguments that the function requires, and arg? is two. greater than the number of required arguments
+
+plus the number of optional arguments that the function will accept. See the section"."Entry-Instruction Format". page 81.
+
+The difference between entry-rest-accepted and entry-rest-not-accepted is in how the argument matchup and stack-adjustment process are controlled as explained in the chapter on funetion calling. See the section".Function Entry". page 257. See the section".Revision 0 Entry-rest-accepted". page 299,
+
+Exception See the section".Trapping Out of Entry and Restarting". page 266.
+
+Memory Reference See the section".`pull-apply-args`". page 261.
+
+Register Effects TOS: Invalid after
+
+locate-locals Instruction Format Operand from stack Value(s) Returned Not applicable Argument(s) 0 Opcode 50
+
+Immediate Argument Type Not applicable
+
+Description
+
+Pushes (control-register.arg_size - 2) onto the stack, as a fixnum. This is the number of spread arguments that were supplied (this is less than the number of spread arguments now in the stack if some &optional arguments were defaulted); sets LP to (new-SP - 1) so that LP/O. is now the &rest argument. and LP\|1 is the argument count; and sets control- register.arg_size to (LP - FP). Note that (new-SP - 1) here refers to the SP after the incrementation caused by this instruction pushing its result. Thus the value of LP after the instruction is equal to the value in the SP before the instruction. See the section".`pull-apply-args`". page 261.
+
+Exception None Memory Reference. None
+
+. Register Effects TOS: 'Valid after
+
+`return-single` I Instruction Format 10-bit immediate Value(s) Returned Not applicable Argument(s) 1: Opcode 115
+
+I (should be 1000(octal, 1040(octal); or 1041(octal), but not checked)
+
+Immediate Argument Type Unsigned
+
+Description :
+
+Specifies the value to be returned on the top of stack according to the immediate operand: 1000(octal), the current. top of stack; 1040(octal), nil; 1041 (octal), t. When the value disposition is" for value" or "for multiple". the cdr code of the top of stack is set to `cdr-next`. See the section".Revision 0 Return-single". page 299. Removes the returning function's frames from the control and binding stacks; unthreads catch blocks and executes unwind-protects; restores the state of the caller; and resumes execution of the caller with the returned values on the stack in the form specified by the caller. May do a check-preempt-request operation. See the section".Function Returning". page 266.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid before if TOS is the source of the
+
+operand. Status afterwards is determined by value disposition and seer as status. after finish-call in the caller. If the value disposition
+
+is for-effect, then the TOS register is invalid, otherwise, it is valid.
+
+`return-multiple` Instruction
+
+Format Operand from stack, Value(s) Returned Not applicable immediate or sp-pop addressing modes only
+
+Argumeni(s) 1: Opcode 104 arg is `dtp-fixnum`, non-negative
+
+Immediate Argument Type Unsigned
+
+Description
+
+Returns, in accordance with the value disposition specified by the contents of the `Control` register, the number of values specified by arg in a multiple group, which includes as the top entry the number of values returned, on top of the stack. Removes the returning function's frames from the control and binding stacks, unthreads catch blocks, restores the state of the caller, and resumes execution of the caller with the returned values on the stack in the form specified by the caller. May perform a check-preempt-request operation. See the section \`\`Function Returning". page 266.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Status afterwards is determined by value disposition and seen as status after finish-call in caller
+
+`return-kludge` Instruction Format Operand from stack, Value(s) Returned Not applicable immediate or sp-pop addressing modes only
+
+Argumeni(s) 1: Opcode 105 arg `dtp-fixnum`, non-negative
+
+Immediate Argument Type Unsigned
+
+Description
+
+Returns the number of values specified by arg on top of the stack, ignoring the value-disposition, Removes the returning function's frames from the control and binding stacks, unthreads catch blocks, restores the state of the caller, and resumes execution of the caller. May perform a check-preempt- request operation. Used for certain internal stack-manipulating subroutines and for all trap handlers. See the section".Function Returning". page 266.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+take-values I Instruction Format Operand from. stack, Value(s) Returned arg immediate addressing mode only Argument(s) 1: - Opeade 106 I
+
+Immediate Argument Type Unsigned
+
+Description
+
+Pops a multiple group of values off the top of stack, using the first value as the number of additional words to pop. Pushes the number of words specified by arg back on the stack, discarding extras if too many values are in the multiple group, or pushing enough nils to equal the number. desired if too few values are in the multiple group.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after

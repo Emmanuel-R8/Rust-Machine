@@ -1,4 +1,3 @@
-
 use crate::common::constants::{
     QTag,
     VMAttribute,
@@ -42,12 +41,6 @@ pub trait Memory {
 }
 
 // Constants
-pub const CELL_T: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Symbol, ADDRESS_T);
-
-pub const CELL_NIL: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Symbol, ADDRESS_NIL);
-
-pub const CELL_CDRMASK: MemoryCell = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::TagCdrMask, 0);
-
 // const OBJECT_T: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
 //     cdr: CDR::Jump,
 //     tag: QTag::Symbol,

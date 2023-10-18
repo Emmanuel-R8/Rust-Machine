@@ -1,0 +1,157 @@
+### Data-Movement Instructions
+
+push, pop, movem, push-n-nils, push-address, set-sp-to-address, set-sp-to-address-save-tos, push-address-sp-relative, stack-bit, stack-bit-address
+
+push : Instruction
+
+Format Operand from stack Value(s) Returned 1
+
+Argumeni(s) 1: Opcode 100 arg any data type :
+
+Immediate Argument Type Unsigned
+
+Description Pushes arg on stack.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+pop
+
+Instruction
+
+Format Operand from stack, Value(s) Returned 0 address-operand mode (immediate and sp-pop addressing modes illegal)
+
+Argument(s) 2: Opcode 340 argl any data type arg2 address-operand
+
+Immediate Argument Type Not applicable
+
+Description
+
+Pops argi off the top of stack and stores it in the stack location addressed by arg2. Note that all 40 bits of the top of stack are stored into the operand,
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+movem : Instruction
+
+Format Operand from stack, Value(s) Returned 1 address-operand mode (immediate: and sp-pop addressing modes illegal)
+
+Argument(s) 2: Opcode 341
+
+argl any data type arg2 address operand
+
+Immediate Argument Type Not applicable
+
+Description
+
+Writes the contents of arg1, the top of stack, without popping, into the stack location addressed by arg2. Note that all 40 bits of the top of stack are stored into.the operand. This instruction restores the top of stack. The way to fix up the top of stack that is equivalent to executing the 3600 fixup-tos instruction is to execute movem SP(0.
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+push-n-nils 7 . Instruction 'Format Operand from stack, Value(s) Returned I immediate (sp-pop addressing mode illegal)
+
+Argument(s) 1: Opcode 101 I `dtp-fixnum`
+
+Immediate Argument Type Unsigned" Description Pushes f nils on the stack. J is the immediate argument, which must be greater than 1. (Pushing one nil can be done with plusp 0.) Exception None Memory Reference None Register Effects TOS: Valid after
+
+push-address Instruction Format Operand from stack, Value(s) Returned 1 address-operand mode (immediate and
+
+sp-pop addressing modes illega\])
+
+Argument(s) 1: Opcode 150 arg address operand
+
+Immediate. Argument Type Not applicable
+
+Description Pushes a locative that points to arg onto. the top of the stack.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+set-sp-toaddress ssi Instruction
+
+) Format Operand from stack, Be Value(s) Returned 0 -address-operand mode (immediate and ee -sp-pop addressing modes' illegal)
+
+-   Argument(s) 1: \| oo \| Opcode 151 \| arg is address operand. oe Immediate Argument Type Not t applicable .
+
+\_ Description . Sets the stack pointer to , the address of arg. This can be used to Pop a . . constant number of values with - set-sp-to-address SPI- n. : Exception None Memory Reference None Register Effects TOS: Valid after set-sp-to-address-save-tos\_ - \| : Instruction
+
+'Format Operand from stack, OO Value(s) Returned 0 address-operand mode (immediate and
+
+sp-pop addressing modes illegal)
+
+Argument(s) 1: \| oo Opcode 152 © \_ arg is address operand .
+
+Immediate Argument Type Not applicable
+
+Description
+
+-   'Sets the stack pointer to the address of arg. All forty bits of the new top of stack are set to the value that was previously on the top of stack.
+
+Exception None Memory Reference. None
+
+Register Effects TOS: Valid after
+
+pusb-address-sp-relative , Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 1: ; Opcode 102
+
+arg `dtp-fixnum`
+
+Immediate Argument Type Unsigned
+
+Description
+
+Computes (stack-pointer minus arg minus 1) and pushes it on the stack with data type `dtp-locative`. If sp-pop addressing mode is used, the value of the stack-pointer used in caleulating the result is the original value of the stack-pointer before the pop.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+-stack-bit ; . Instruction Format Operand from 'stack Value(s): Returned. 0 Argument(s) 2: Opcode 224
+
+argl `dtp-locative` pointing to a location in the current stack frame; arg2 `dtp-locative` pointing to a location in the current stack frame
+
+Immediate: Argument Type Signed
+
+Description
+
+With. the value of argi being TO and the value of arg2 being FROM, moves all forty bits of the contents of successive locations starting at FROM into successive locations starting at TO until the top of the stack is moved, and then changes the stack-pointer to point to the last location written, The last word moved is the stack location just below arg1.. This instruction is not interruptible. Note that this instruction only works if it moves at least one word. Results are undefined if argi is greater than arg2 (unsigned). See the section".Revision 0 Stack-bit".. page 300.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+stack-bit-address Instruction
+
+Format Operand from stack, : Value(s) Returned 0 address-operand mode (immediate and sp-pop addressing modes illegal)
+
+Argument(s) 2: Opcode 352 argl `dtp-locative`, pointing to a
+
+location in the current stack frame
+
+arg2 is an address operand
+
+Immediate Argument Type Not applicable
+
+Description With the value of arg1 being TO and arg? being FROM-ADDR, moves all forty bits of the contents of successive locations starting at the address in the location pointed to by FROM-ADDR into successive locations starting at TO until the top of the stack is moved, and then changes the stack-pointer to point at the last location written. Note that stack-bit-address is the same as stack-bit except that arg2 of stack-bit-address is the address of the operand, whereas arg2 for stack-bit is the contents of the operand. This instruction is not interruptible. Note that this instruction only works if it moves at least one word. Results are undefined if argi is less than or
+
+. equal to the address of arg2..FROM-ADDR is less than or equal to SP after the arguments have been removed. See the section".Revision 0 Stack-bit- --- address". page 300.
+
+The instruction sequence
+
+push argi stack-bit-address arg2
+
+is equivalent to the instruction sequence
+
+push argi push-address arg2 stack-bTt sp-pop
+
+Where arg? is a stack-frame address such as, for example, FP\|2. Exception None Memory Reference None
+
+Register Effects TOS: Valid before, valid after

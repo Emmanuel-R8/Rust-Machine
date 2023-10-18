@@ -1,0 +1,87 @@
+### Binding Instructions
+
+bind-locative-to-value, bind-locative, unbind-n, Yrestore-binding-stack
+
+Instructions that perform binding operations check for stack overflow using. th
+
+'contents of the Binding-Stack-Limit register as the limit. See the section".Binding Stack". page 244. Those that perform unbinding operations check for stack - underflow. See the section".Revision 0 Binding Instructions". page 298. 'The
+
+5
+
+:
+
+take an error trap if an unbinding instruction tries to undo a binding and con rol-
+
+register.cleanup-binding = 0. There is no fence-post error in the case ofa ---. i - Yrestore-binding-stack that is a no-op because. the two pointers are equal; the
+
+instruction never traps in this case.
+
+bind-locative-to-value
+
+Format Operand from stack Value(s). Returned 0
+
+Arguments) 2: argi `dtp-locative` arg2 any data type
+
+Opcode 236 \|
+
+. immediate Argument Type Signed \|
+
+Description
+
+Late
+
+eet
+
+Instruction
+
+Control register binding-cleanup bit into \> bit 38 of argi on the binding stock and sets this `Control` register bit to 1. Does.not follow external-value-ccil \_ pointers as invisible pointers when reading and writing the cell. Takes an
+
+error trap if the binding-stack pointer would be greater than the contents
+
+of the Binding-Stack-Limit register. See the section".Binding Stack". page
+
+(246 \| 7 \| Exception None ---
+
+Memory Reference Bind-read, followed by two raw-writes, followed \_ by bind-write
+
+Register Effects TOS: Valid before, invalid after . BAR-1 is modified
+
+bind-locative ' Instruction ° Format Operand from stack Value(s)-Returned 0 Argument(s) 1: Opcode 5
+
+arg `dtp-locative` Immediate Argument Type Signed
+
+Description
+
+Pushes arg onto the binding stack, along with the contents of the cell it points to. Copies. the `Control` register binding-cleanup bit inte bit 38 of arg on the binding stack and. sets this `Control` register bit to 1. Does not follow external-value-cell pointers as invisible pointers when reading the cell. Takes an error trap if the binding-stack pointer would be greater than the contents of the Binding-Stack-Limit register. See the section".Binding Stack". page 244.
+
+Exception None Memory Reference Bind-read, followed by two raw-writes
+
+Register Effects TOS: Invalid after BAR-1 is modified
+
+unbind-n Instruction
+
+Format Operand from stack Value(s) Returned. 0 (only sp-pop operands and the immediate constant 1 are legal)
+
+Argumeni(s) 1: Opcode 107 arg dtp-fxmum
+
+Immediate Argument Type Unsigned
+
+Description Unbinds: the top arg variables on the binding stack. It unbinds a variable by popping the variable's old value and the locative to that variable off the binding stack and storing the old value back into the location pointed to by the locative) Copies bit 38 of each locative word on the binding stack into sh 27 the `Control` register binding-cleanup bit as it pops the locative. After all we the unbindings have been accomplished, does a check-preempt-request  operation. See the section".Binding Stack". page 244, See the section".Revision 0 Unbind-n". page 300.
+
+ye Exception None Memory Reference Two bind-reads,. followed by bind-write
+
+Register Effects TOS: Unchanged
+
+%restore-binding-stack Instruction Format Operand from. stack . Value(s) Returned 0 Argumeni(s) 1: Opcode 6
+
+arg `dtp-locative` Immediate Argument Type Signed
+
+Description
+
+Unbinds special variables until the binding-stack pointer equals arg, that is, until all variables up to the one pointed to by arg have been unbound. It unbinds a.variable by popping the variable's old value and the locative to \_ . that variable off the binding stack and storing the old value back into the vais vt location pointed to by the. locative, Copies bit 38 of each locative word on. .}.. ------ the binding stack into the `Control` register binding-cleanup bit as it pops an the locative. After all the unbindings have heen accomplished, does a Or, \_check-preempt-request operation. It is legal for arg to equal the binding- stack pointer at the beginning of the instruction; in this case, the
+
+instruction does nothing. See the section".Binding Stack". page 244,
+
+Exception None Memory Reference Two bind-reads, followed by bind-write
+
+Register Effects TOS: Valid after

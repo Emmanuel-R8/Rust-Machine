@@ -336,7 +336,7 @@ If that probe fails, a linear pseudo-random number generator, initialized to asc
 \* VPN + 1\] and advanced by asciimath:\[17 \* x + 1\], defines the rehash sequence. A Lisp
 expression of the lookup algorithm is given below:
 
-```         
+```
 ;; This is just 17x +1, mod 2^32,
 (defmacro pht-next (state)
   `(sys:%32-bit-plus
@@ -404,7 +404,7 @@ PHT update occurs before or after the reference is implementation dependent.
 
 The translation/access-checking process for a memory read cycle is:
 
-```         
+```
 if VMA is of type dtp-physical-address
     access-bits := write-protect=0,
                      transport-trap=0,
@@ -442,7 +442,7 @@ else
 
 The translation/access-checking process for a memory write cycle is:
 
-```         
+```
 if VMA is of type dtp-physical-address
     access-bits := write-protect=0,
                      transport-trap=0,

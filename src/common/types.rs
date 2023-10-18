@@ -5,8 +5,7 @@ use std::ops::{ Add, AddAssign, Sub, SubAssign };
 use std::{ cell::RefCell, rc::Rc };
 
 // Representation of lisp objects
-use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS };
-
+use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS, ADDRESS_T, ADDRESS_NIL };
 
 // See I-Machine specs p. 4
 #[repr(C)]
@@ -154,6 +153,22 @@ impl MemoryCell {
         let mut bits = (self.half_word1 as u32) << 16;
         bits |= self.half_word2 as u32;
         return bits as Address;
+    }
+
+    pub fn set_address(&mut self, val: Address) {
+        let h1 = ((val & 0xffff_0000) >> 16) as u16;
+        let h2 = (val & 0x0000_ffff) as u16;
+        self.half_word1 = h1;
+        self.half_word2 = h2;
+    }
+
+    // Check constants
+    pub fn is_t(&self) -> bool {
+        self.as_raw() == ADDRESS_T
+    }
+
+    pub fn is_nil(&self) -> bool {
+        self.as_raw() == ADDRESS_NIL
     }
 
     //
@@ -638,8 +653,6 @@ pub struct QCDRTagData {
     pub tag: QTag,
     pub data: QImmediate,
 }
-
-
 
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
 #[repr(C)]
