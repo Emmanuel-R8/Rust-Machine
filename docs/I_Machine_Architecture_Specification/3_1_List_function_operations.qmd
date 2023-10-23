@@ -1,6 +1,6 @@
 ### List-Function Operations
 
-car, cdr, set-to-car, set-to-cdr, `set-to-cdr-push-car`, rplaca, `rplacd`, rgetf, member, assoc
+`car`, `cdr`, `set-to-car`, `set-to-cdr`, `set-to-cdr-push-car`, `rplaca`, `rplacd`, `rgetf`, `member`, `assoc`
 
 The Lisp predicate instructions eq, eql, and endp are documented elsewhere. The Lisp functions cons and ncons are implemented in macrocode. Refer also to the following topics:
 
@@ -10,7 +10,7 @@ car Instruction
 
 Format Operand from stack Value(s) Returned 1 Argumeni(s) 1: Opcode 0
 
-arg dtp-list, `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
+arg `dtp-list`, `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
 
 Immediate Argument Type Signed
 

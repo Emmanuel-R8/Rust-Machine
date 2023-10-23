@@ -642,28 +642,27 @@ impl<'a> GlobalContext<'a> {
         // world.current_page_number = page_number;
     }
 
-    fn read_swapped_vlm_world_file_q(&self, mut q_number: u32) -> MemoryCell {
-        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
-        let mut datum: u32 = 0;
+    fn read_swapped_vlm_world_file_q(&self, q_address: u32) -> MemoryCell {
+        let w =  self.worlds.get(&self.world).unwrap() ;
 
-        if q_number < 0 || q_number >= VLMPAGE_SIZE_QS {
+        if q_address < 0 || q_address >= VLMPAGE_SIZE_QS {
             // self.close(true);
             panic_exit(
                 format!(
                     "Invalid word number {} for world file {}",
-                    q_number,
+                    q_address,
                     w.pathname.display().to_string()
                 )
             );
         }
 
-        datum = byte_swap_32(w.data_page[q_number as usize]);
-        let tag: QTag = unsafe { ::std::mem::transmute(w.tags_page[q_number as usize]) };
+        let datum: u32 = byte_swap_32(w.data_page[q_address as usize]);
+        let tag: QTag = unsafe { ::std::mem::transmute(w.tags_page[q_address as usize]) };
         return MemoryCell::new_cdr_tag_u(CDR::Jump, tag, datum);
     }
 
     fn read_swapped_vlm_world_file_next_q(&self) -> MemoryCell {
-        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
+        let w =  self.worlds.get(&self.world).unwrap() ;
 
         // while w.current_q_number >= VLMPAGE_SIZE_QS {
         //     self.read_swapped_vlm_world_file_page(w.current_page_number + 1);
@@ -676,6 +675,7 @@ impl<'a> GlobalContext<'a> {
         return MemoryCell::default();
     }
 
+    //  align map entries to page boundaries.
     //  Canonicalize the load map entries for a VLM world:  Look for load map entries
     //  that don't start on a page boundary and convert them into a series of
     //  LoadMapConstant entries to load the data.  Thus, all data in the world file
@@ -686,8 +686,8 @@ impl<'a> GlobalContext<'a> {
 
         let world_id = self.world;
 
-        let world: &World = match self.worlds.get_mut(&world_id) {
-            Some(&mut w) => w,
+        let &mut world: &mut &World = match self.worlds.get_mut(&world_id) {
+            Some( w) => w,
 
             None => {
                 return new_wired_map_entries;

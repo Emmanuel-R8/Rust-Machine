@@ -4,12 +4,12 @@ use crate::hardware::network::NetworkInterface;
 
 #[derive(Clone, Debug)]
 pub struct TraceConfig {
-    pub traceP: bool,
-    pub tracePOST: bool,
-    pub bufferSize: u32,
-    pub startPC: u32,
-    pub stopPC: u32,
-    pub outputFile: PathBuf,
+    pub trace_p: bool,
+    pub trace_post: bool,
+    pub buffer_size: u32,
+    pub start_pc: u32,
+    pub stop_pc: u32,
+    pub output_file: PathBuf,
 }
 
 #[derive(Clone, Debug)]
@@ -33,42 +33,42 @@ pub struct VLMConfig<'a> {
     pub comm_area_size: u32,
     pub host_buffer_space: u32,
     pub guest_buffer_space: u32,
-    pub vlmDebuggerPath: PathBuf,
-    pub worldPath: PathBuf,
-    pub worldSearchPath: PathBuf,
+    pub vlm_debugger_path: PathBuf,
+    pub world_path: PathBuf,
+    pub world_search_path: PathBuf,
     pub enableIDS: bool,
-    pub virtualMemory: u32,
-    pub coldLoadXParams: XParams,
-    pub generaXParams: XParams,
-    pub diagnosticIPAddress: u32,
+    pub virtual_memory: u32,
+    pub cold_load_xparams: XParams,
+    pub genera_xparams: XParams,
+    pub diagnostic_ipaddress: u32,
     pub interfaces: [Option<Box<&'a NetworkInterface<'a>>>; 8],
     pub test_function: bool,
 }
 
 impl Default for VLMConfig<'static> {
     fn default() -> Self {
-        let mut trace_config = TraceConfig {
-            traceP: false,
-            tracePOST: false,
-            bufferSize: 0,
-            startPC: 0,
-            stopPC: 0,
-            outputFile: PathBuf::from(""),
+        let     trace_config = TraceConfig {
+            trace_p: false,
+            trace_post: false,
+            buffer_size: 0,
+            start_pc: 0,
+            stop_pc: 0,
+            output_file: PathBuf::from(""),
         };
 
         // Default configuration
-        let mut config = Self {
+        let config = Self {
             enable_spy: false,
             tracing: trace_config,
             comm_area_size: 0x1_FF80,
             host_buffer_space: 15_000,
             guest_buffer_space: 100_000,
-            vlmDebuggerPath: PathBuf::from(""),
-            worldPath: PathBuf::from("./data/world/Genera-8-5-xlib-patched.vlod"),
-            worldSearchPath: PathBuf::from("."),
+            vlm_debugger_path: PathBuf::from(""),
+            world_path: PathBuf::from("./data/world/Genera-8-5-xlib-patched.vlod"),
+            world_search_path: PathBuf::from("."),
             enableIDS: false,
-            virtualMemory: 0,
-            coldLoadXParams: XParams {
+            virtual_memory: 0,
+            cold_load_xparams: XParams {
                 xpHostName: "".to_string(),
                 xpHostAddress: 0,
                 xpDisplay: 0,
@@ -80,7 +80,7 @@ impl Default for VLMConfig<'static> {
                 xpBorderColor: "".to_string(),
                 xpBorderWidth: 0,
             },
-            generaXParams: XParams {
+            genera_xparams: XParams {
                 xpHostName: ",".to_string(),
                 xpHostAddress: 0,
                 xpDisplay: 0,
@@ -92,15 +92,15 @@ impl Default for VLMConfig<'static> {
                 xpBorderColor: "".to_string(),
                 xpBorderWidth: 0,
             },
-            diagnosticIPAddress: 0,
+            diagnostic_ipaddress: 0,
             interfaces: [None, None, None, None, None, None, None, None],
             test_function: false,
         };
 
         // let mut options = 0 as XrmDatabase;
-        let mut homeDir = PathBuf::from("");
-        let mut workingDir = PathBuf::from("");
-        let mut configFile = PathBuf::from("");
+        let mut home_dir = PathBuf::from("");
+        let mut working_dir = PathBuf::from("");
+        let mut config_file = PathBuf::from("");
 
         // XrmInitialize();
         // GetDefaultConfiguration(config, &mut options);

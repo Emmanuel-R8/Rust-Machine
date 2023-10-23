@@ -12,7 +12,6 @@ use crate::common::constants::{
 use crate::common::types::{
     Bar,
     InstructionCacheLine,
-    QCDRTagData,
     MemoryCell,
     INSTRUCTION_CACHE_SIZE, Address,
 };

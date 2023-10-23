@@ -2,8 +2,6 @@ use crate::common::constants::{
     QTag,
     VMAttribute,
     VMResultCode,
-    ADDRESS_NIL,
-    ADDRESS_T,
     CDR,
     MEMORYWAD_ADDRESS_SHIFT,
     MEMORY_ADDRESS_PAGE_SHIFT,
@@ -20,7 +18,7 @@ use crate::common::constants::{
     VMATTRIBUTE_TRANSPORT_FAULT,
     VMATTRIBUTE_WRITE_FAULT,
 };
-use crate::common::types::{ Address, QCDRTagData, MemoryCell };
+use crate::common::types::{ Address, MemoryCell };
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::{ dpb, ldb };
 
@@ -30,14 +28,6 @@ pub trait Memory {
 
     fn set(&mut self, a: Address, v: MemoryCell);
 
-    // fn get_word(&self, a: Address) -> MemoryCell {
-    //     u16::from(self.get(a)) | (u16::from(self.get(a + 1)) << 8)
-    // }
-
-    // fn set_word(&mut self, a: Address, v: u16) {
-    //     self.set(a, (v & 0xFF) as u8);
-    //     self.set(a + 1, (v >> 8) as u8)
-    // }
 }
 
 // Constants

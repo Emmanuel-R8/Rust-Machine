@@ -80,7 +80,7 @@ pub fn main() {
 
     let mut config = VLMConfig::default();
     let mut enable_ids_p = config.enableIDS;
-    let mut trace_p = config.tracing.tracePOST;
+    let mut trace_p = config.tracing.trace_post;
 
     // let TestFunction = config.testFunction;
 

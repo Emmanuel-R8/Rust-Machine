@@ -15,6 +15,22 @@ Instructions are normally executed in the order in which they are stored in memo
 
 :::callout-note
 NOTE: A full word address is split between an **even** half-world address, followed by an **odd** half-word address.
+
+A 32-bit word at a particular address is split into two 16-bit words. The lower
+2 bytes are stored at the __even__ half-word address, and the upper 2 bytes are
+at the __odd__ half-word address.
+
+For example, at word address 100 (in _words_, each address addresses a 4-byte content)
+    EVEN HALF-WORD 100.
+    Byte 100.0
+    Byte 100.1
+
+    ODD HALF-WORD
+    Byte 100.2
+    Byte 100.3
+
+The program counter PC keeps track of the address and of the even/odd status of the current word.
+
 :::
 
 The cdr code field of each word executed contains sequencing information to minimize this waste. The cdr code takes on one of four values, which specify how much the PC is incremented after executing an instruction from this word. Note that the PC contains a half-word address.
@@ -34,7 +50,7 @@ When a constant follows an odd half-word instruction, the half-word instruction 
 For example, straightline execution of the following sequence of instructions:
 
 | Word Address | CDR Code | Instruction(s) (High bits - Low bits) | Comment             |
-|-----------------|-----------------|-----------------|-----------------------|
+|:-------------|:--------:|:-------------------------------------:|:--------------------|
 | 100          | 0        | `B` `A`                               | Packed instructions |
 | 101          | 3        | `C`                                   | Constant            |
 | 102          | 3        | `F` `D`                               | Packed instructions |
@@ -43,16 +59,16 @@ For example, straightline execution of the following sequence of instructions:
 
 proceeds as follows:
 
-| Current PC | Instruction Executed | CDR Code | PC Increment |
-|------------|----------------------|----------|--------------|
-| 100 even   | A                    | 0        | +1           |
-| 100 odd    | B                    | 0        | +1           |
-| 101 even   | C                    | 3        | +2           |
-| 102 even   | D                    | 3        | +2           |
-| 103 even   | E                    | 2        | -1           |
-| 102 odd    | F                    | 3        | +3           |
-| 104 even   | G                    | 0        | +1           |
-| 104 odd    | H                    | 0        | +1           |
+| Current PC | Instruction Executed | CDR Code | PC Increment | Action                                                |
+|:-----------|:--------------------:|:--------:|:------------:|:------------------------------------------------------|
+| 100 even   | A                    | 0        | +1           | Increases to next half-word 100 even -> 100 odd       |
+| 100 odd    | B                    | 0        | +1           | Increases to next half-word 100 odd -> 101 even       |
+| 101 even   | C                    | 3        | +2           | PC is even, so increments by 2 half words to 102 even |
+| 102 even   | D                    | 3        | +2           | PC is even, so increments by 2 half words to 103 even |
+| 103 even   | E                    | 2        | -1           | Decreases by 1 half word to 102 odd                   |
+| 102 odd    | F                    | 3        | +3           | PC is odd, so increments by 3 half words to 104 even  |
+| 104 even   | G                    | 0        | +1           | Increases to next half-word 104 even -> 104 odd       |
+| 104 odd    | H                    | 0        | +1           |                                                       |
 
 A cdr-code value of 1 (`cdr-nil`) is used to mark the end of compiled functions. This value is placed in the word after the final instruction of the function. See the section \<\<\_representation_of_compiled_functions\>\>. It is an error if the processor attempts to execute this word. The chapter on traps and handlers contains more information, See the section \<\<\_exception_handling\>\>.
 
@@ -152,111 +168,125 @@ In the chapter on data representation, words in Lisp-machine memory were interpr
 
 With the exception of the data types specifically designated as instructions, there is no one-to-one correspondence between data types and instruction formats. Instead, the data types are subdivided into classes, and each class forms the basis of an instruction type. The packed half-word instruction data type uses two instruction formats. See the section \<\<\_half_word_instruction_data_types\>\>.
 
-Table 12 summarizes I-machine instruction formats and lists the data types in each class.
+Table 12 @tab-i-machine-instruction-formats summarizes I-machine instruction formats and lists the data types in each class.
 
-.I-Machine Instruction Formats \|=== \| \| \|===
 
-Table 12. .I-Machine Instruction Formats
 
-Class of Packed Half-Word Instructions::
+Class of Packed Half-Word Instructions:
 
-Instruction Type
+| Instruction Type | Data Types Included | Data-type Code |
+|-------------------|---------------------|----------------|
+| Operand from stack format | `dtp-packed-instruction` | 60-77 |
+| 18-bit immed. operand format | `dtp-packed-instruction` |60-77 |
 
-Operand from stack format 18-bit immed. operand format
 
-Data Types Included
+Class of Full-Word. Instructions (all full-word format):
 
-DTP-PACKED- INSTRUCTION DTP-PACKED-\~INSTRUCTION
+| Instruction Type               | Data Types Included      | Data-type Code |
+|--------------------------------|--------------------------|----------------|
+| Entry instruction              | `dtp-packed-instruction` | 60-77          |
+| Function-calling instructions  |                          |                |
+|                                | `dtp-call-compiled-even` | 50             |
+|                                | `dtp-call-compiled-odd` | 51             |
+|                                | `dtp-call-indirect` | 52             |
+|                                | `dtp-call-generic` | 53             |
+|                                | `dtp-call-compiled-even-prefetch` | 54             |
+|                                | `dtp-call-compiled-odd-prefetch` | 55             |
+|                                | `dtp-call-indirect-prefetch` | 56             |
+|                                | `dtp-call-generic-prefetch` | 57             |
+|   |                          |                |
+| Constants  |                          |                |
+|                                | `dtp-fixnum` | 10             |
+|                                | `dtp-small-ratio` | 11             |
+|                                | `dtp-single-float` | 12             |
+|                                | `dtp-double-float` | 13             |
+|                                | `dt-bignum` | 14             |
+|                                | `dtp-big-ratio` | 15             |
+|                                | `dtp-complex` | 16             |
+|                                | `dtp-spare-number` | 17             |
+|                                | `dtp-instance` | 20             |
+|                                | `dtp-list-instance` | 21             |
+|                                | `dtp-array-instance` | 22             |
+|                                | `dtp-string-instance` | 23             |
+|                                | `dtp-nil` | 24             |
+|                                | `dtp-list` | 25             |
+|                                | `dtp-array` | 26             |
+|                                | `dtp-string` | 27             |
+|                                | `dtp-symbol` | 30 |
+|                                | `dtp-locative` | 31             |
+|                                | `dtp-lexical-closure` | 32             |
+|                                | `dtp-dynamic-closure` | 33             |
+|                                | `dtp-compiled-function` | 34             |
+|                                | `dtp-generic-function` | 35             |
+|                                | `dtp-spare-pointer-1` | 36             |
+|                                | `dtp-spare-pointer-2` | 37             |
+|                                | `dtp-physical-address` | 40             |
+|                                | `dtp-spare-immediate-1` | 41             |
+|                                | `dtp-spare-pointer-3` | 42             |
+|                                | `dtp-character` | 43             |
+|                                | `dtp-spare-pointer-4` | 44             |
+| | UNUSED | 45 |
+|                                | `dtp-even-pc` | 46             |
+|                                | `dtp-odd-pc` | 47             |
+| Value cell contents  |                          |                |
+|                                | `dtp-external-value-cell-pointer` | 4             |
+| Illegal Instructions           |                          |                |
+|                                | `dtp-null` | 0               |
+|                                | `dtp-monitor-forward` | 1               |
+|                                | `dtp-header-p` | 2               |
+|                                | `dtp-header-i` | 3               |
+|                                | `dtp-one-q-forward` | 5               |
+|                                | `dtp-header-forward` | 6               |
+|                                | `dtp-element-forward` | 7               |
+|                                | `dtp-gc-forward` | 45              |
 
-Class of Full-Word. Instructions (all full-word format)::
+: #tab-i-machine-instruction-formats
 
-Instruction. Type Entry instruction
-
-Function-calling instructions
-
-Constants
-
-Data Types Included
-
-`dtp-packed-instruction`
-
-DTFP-CALL-COMPILED-EVEN DTP-CALL-COMPILED\~ODD
-
-DTP-CALL-INDERECT `dtp-call-generic`
-
-Data-Type Code
-
-68-77 66-77
-
-Data-Type Code
-
-68-77
-
-58 51 52 53
-
-`dtp-call-compiled-even-prefetch` 54 `dtp-call-compiled-odd-prefetch` 55 DTP-CALL\~INDIRECT-PREFETCH 56
-
-`dtp-call-generic-prefetch`
-
-DTP-FIXNUM `dtp-small-ratio` DTP-SINGLE-FLOAT `dtp-double-float` DTP\~BIGNUM `dtp-big-ratio` DBTP-COMPLEX DTP-SPARE-NUMBER DTP-INSTANCE DTP-LIST-INSTANCE DTP-ARRAY=INSTANCE OYP-STRING-INSTANCE DTP-NIL
-
-DIP-LIST
-
-`dtp-array` `dtp-string` `dtp-symbol` DTP\~LOCATIVE
-
-78
-
-57
-
-18 11 12 13 «14 45 46 17 28 21 22 23 24 25 26 2? 36 31 Symbolics, Inc.
-
-Table 12; continued
-
-Instruction Type Data Types Included Data-Type Code
-
-Constants `dtp-lexical-closure` 32 `dtp-dynamic-closure` 33 DTP-COMPILED-FUNCT ION 34 `dtp-generic-function` 35 `dtp-spare-pointer-1` 36 BTP-SPARE-POINTER-2 37 `dtp-physical-address` 4a `dtp-spare-immediate-1` 44 `dtp-spare-pointer-3` 42 `dtp-character` 43 DTP\~SPARE-POINTER-4 Aq `dtp-even-pc` 46
-
-DTP-ODD=PC 47 Value Cel\] Contents : DTP-EXTERNAL\~VALUE-CELL-POINTER 4
-
-Illegal Instructions::
-
-DTP-NULL a DTP---MONITOR-FORWARD 1 `dtp-header-p` 2 `dtp-header-i` 3 `dtp-one-q-forward` 5 `dtp-header-forward` 6 DTP-ELEMENT\~FORWARD 7 DTP-GC\~FORWARD 45
 
 The following paragraphs describe these formats and their interpretations.
 
-Full-Word Instruction Formats::
+##### Full-Word Instruction Formats
 
-Function-Calling Instruction Formats::
+##### Function-Calling Instruction Formats
 
-A word of data type `dtp-call-`xxx contains a single instruction. The instruction contains a data-type field, which is used as the opcode, and an address field. as shown in Figure 21. This kind of instruction starts a function call.
+A word of data type `dtp-call-xxx` contains a single instruction. The instruction contains a data-type field, which is used as the opcode, and an address field as shown in Figure 21. This kind of instruction starts a function call.
 
 Figure 21. I-machine instruction formats.
 
-Entry-Instruction Format::
+##### Entry-Instruction Format
 
-An. entry instruction is a word of type `dtp-packed-instruction`, that actually contains one full-word instruction. Its format, shown in Figure 21,°is
+An entry instruction is a word of type `dtp-packed-instruction`, that actually contains one full-word instruction. Its format, shown in Figure 21, is:
 
-Bits \_ Meaning \<39: 38\>".Sequencing code ="add 2 to P". \<37:36\> `dtp-packed-instruction` --- \<35: 28\> Opcode of second half word, unused \<27:26\> Addressing mode of second half word, unused \<25 .18\> Number of required+optional args, biased by +2 \<17:18\> entry. instruction opcode. 1 bit says whether &rest is accepted. \<9:8\> Immediate addressing mode \<7 78\> Number of required args, biased by +2
+| Bits | Meaning |
+|------|---------|
+| <39:38> | CDR Sequencing code ="add 2 to PC"|
+| <37:36> | `dtp-packed-instruction` |
+| <35:28> | Opcode of second half word, unused |
+| <27:26 > | Addressing mode of second half word, unused |
+| <25:18> | Number of required+optional args, biased by +2 |
+| <17:18> |  entry instruction opcode. 1 bit says whether `&rest` is accepted. |
+| <9:8> | Immediate addressing mode |
+| <7:0> |  Number of required args, biased by +2 |
 
-The. hardware will dispatch. to one of two microcode starting addresses according to the value of the &rest-accepted bit.
+The. hardware will dispatch to one of two microcode starting addresses according to the value of the `&rest`-accepted bit.
 
-Constant Formats::
+##### Constant Formats
 
-The processor treats any word whose data type is that of an object reference asa constant. The processor pushes the object reference itself onto the control. stack and sets its cdr. code to. `cdr-next` for any object. that is pushed onto the control stack, unless otherwise specified.
+The processor treats any word whose data type is that of an object reference as a constant. The processor pushes the object reference itself onto the control stack and sets its cdr code to `cdr-next` for any object, that is pushed onto the control stack, unless otherwise specified.
 
-Value Cell Contents::
+##### Value Cell Contents
 
-A. word of data type `dtp-external-value-cell-pointer` contains the address of a memory cell. Using a data-read operation, the processor pushes the word contained in the addressed cell onto the control stack, following invisible pointers if necessary. Typically this pointer addresses a symbol's value or function cell.
+A word of data type `dtp-external-value-cell-pointer` contains the address of a memory cell. Using a data-read operation, the processor pushes the word contained in the addressed cell onto the control stack, following invisible pointers if necessary. Typically this pointer addresses a symbol's value or function cell.
 
-Illegal Instruction Formats::
+##### Illegal Instruction Formats
 
-A word of. any data type other than those listed above cannot be executed as an instruction. The processor will trap out if it encounters such a word. A later chapter contains further information on trapping. See the section \<\<\_exception_handling\>\>.
+A word of any data type other than those listed above cannot be executed as an instruction. The processor will trap out if it encounters such a word. A later chapter contains further information on trapping. See the section @sec-exception-handling.
 
-Packed Half-Word instruction Formats::
+##### Packed Half-Word instruction Formats
 
 This is the most common instruction format. The word with data type `dtp-packed-instruction` contains two 18-bit instructions, which are packed into the word as shown:
 
-The first instruction executed is called the "even half-word" instruction, and is found in bits 0 through 17, The "odd half-word" instruction is executed later, and is found in bits 18 through 35. Since the data portion of the word is normally only 82 bits, 4 bits are "borrowed". from the data type field. (The ones in bit positions \<86-37\> are the upper two binary digits of any `dtp-packed-instruction` opcode, a number between 60 and 77 octal.)
+The first instruction executed is called the "even half-word" instruction, and is found in bits 0 through 17, The "odd half-word" instruction is executed later, and is found in bits 18 through 35. Since the data portion of the word is normally only 82 bits, 4 bits are "borrowed". from the data type field. (The ones in bit positions <36:37> are the upper two binary digits of any `dtp-packed-instruction` opcode, a number between 60 and 77 octal.)
 
 Each of the two instructions in this format can be further decomposed. See Figure 21. As the figure shows, there are two basic 18-bit formats.
 
