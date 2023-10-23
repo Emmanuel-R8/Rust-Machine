@@ -1,24 +1,14 @@
 ### Numeric Operations
 
-add, sub, unary-minus, increment, decrement, multiply, quotient, ceiling, floor, truneate, round, remainder, rational-quotient, max, min, logand, logior,. logxor, ash, rot, Ish, %82-bit-plus, %32-bit-difference, %multiply-double, %add-bignum-step, %sub-bignum-step, %divide-bignum-step, %lshe-bignum-step, Jmultiply-bignum-step
+`add`, `sub`, `unary-minus`, `increment`, `decrement`, `multiply`, `quotient`, `ceiling`, `floor`, `truncate`, `round`, `remainder`, `rational-quotient`, `max`, `min`, `logand`, `logior`, `logxor`, `ash`, `rot`, `lsh`, `%32-bit-plus`, `%32-bit-difference`, `%multiply-double`, `%add-bignum-step`, `%sub-bignum-step`, `%divide-bignum-step`, `%lshc-bignum-step`, `%multiply-bignum-step`
 
-Refer also to the following:
+Refer also to the following: `equal-number`, `greaterp`, `lessp`, `%unsigned-lessp`, `plusp`, `minusp`, `zerop`
 
-equal-number greaterp
+If either argument to.a numeric instruction is a non-number, then the instruction will take an error pre-trap. Otherwise, if both arguments are hardware supported for the instruction, and no exceptions occur, then the instruction will perform the specified operation. If the arguments are numeric, but the data types of the arguments are not hardware supported or an exception occurs, then the instruction will take an instruction exception and let Lisp code decide whether the arguments, although numeric, are illegal for this instruction.
 
-lessp %unsigned-lessp plusp
+Note that, if there is no floating-point coprocessor, all the numeric operations will take an instruction exception on encountering operands of type `dtp-single-float`. This instruction exception is in addition to any mentioned in the instruction definitions, See the section @revision-0-numeric-operations page 299.
 
-minusp
-
-zerop
-
-If either argument to.a numeric instruction is a non-number, then the instruction will take an error pre-trap. Otherwise, if both arguments are hardware supported for the instruction, and no exceptions occur, then the instruction will perform the specified operation. If the arguments are numeric, but the data types of the arguments are not hardware supported or an exception occurs, then the. instruction will take an instruction exception and let Lisp code decide whether the arguments, although numeric, are illegal for this instruction.
-
-Note that, if there is no floating-point coprocessor, all the numeric operations will take an instruction exception on encountering operands of type `dtp-single-float`. This instruction exception is in addition to any mentioned in the instruction definitions, See the section".Revision 0 Numeric Operations". page 299.
-
-add / Instruction
-
-x
+`add` / Instruction
 
 Format Operand from stack Value(s) Returned 1
 
@@ -44,7 +34,7 @@ Memory Reference None
 
 \_ Register Effects TOS: Valid before, valid after
 
-i4sub
+`sub`
 
 Instruction
 
@@ -54,9 +44,13 @@ Argument(s) 2: Opcode 301 argl any numeric data type arg2 any numeric data type
 
 Immediate Argument Type Unsigned
 
-Description Subtracts arg2 from argl, and pushes the result on the stack. See the section".Revision 0 Numeric Operations". page 299.
+Description:
 
-Exceptions
+Subtracts `arg2` from `arg1`, and pushes the result on the stack.
+
+See the section".Revision 0 Numeric Operations". page 299.
+
+Exceptions:
 
 Type: Arithmetic dispatch
 
@@ -68,21 +62,25 @@ Values: 1
 
 Memory Reference None
 
-Register Effects TOS: Valid before, valid after unary-minus Instruction Format Operand from stack Value(s) Returned 1 Argumeni(s) 1: Opcode 1i4
+Register Effects TOS: Valid before, valid after
+
+`unary-minus` Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 1: Opcode 114
 
 arg any numeric data type
 
 Immediate Argument Type Unsigned
 
-Description Pushes the negation of arg on the stack: if the data type of arg is
+Description:
 
--   `dtp-fixnum`, subtracts arg from zero, and pushes the result, the two's complement of arg, on the stack. If erg is of `dtp-single-float`, complements the sign bit and pushes the result on the stack. See the section".Revision 0 Numeric Operations". page 299.
+Pushes the negation of `arg` on the stack: if the data type of `arg` is `dtp-fixnum`, subtracts `arg` from zero, and pushes the result, the two's complement of arg, on the stack. If `arg` is of `dtp-single-float`, complements the sign bit and pushes the result on the stack.
+
+See the section".Revision 0 Numeric Operations". page 299.
 
 Exceptions
 
 Type: Arithmetic dispatch
 
-Conditions: Type of arg is numeric, but not dtp-fixmum or `dtp-single-float`. Type of arg is `dtp-fixnum`, but result overflows. Floating point exceptions.
+Conditions: Type of `arg` is numeric, but not `dtp-fixmum` or `dtp-single-float`. Type of arg is `dtp-fixnum`, but result overflows. Floating point exceptions.
 
 Arguments: arg
 

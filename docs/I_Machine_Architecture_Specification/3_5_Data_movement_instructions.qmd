@@ -1,6 +1,7 @@
 ### Data-Movement Instructions
 
-push, pop, movem, push-n-nils, push-address, set-sp-to-address, set-sp-to-address-save-tos, push-address-sp-relative, stack-bit, stack-bit-address
+`push`, `pop`, `movem`, `push-n-nils`, push-address, set-sp-to-address, set-sp-to-address-save-tos, push-address-sp-relative, stack-bit, stack-bit-address
+
 
 push : Instruction
 

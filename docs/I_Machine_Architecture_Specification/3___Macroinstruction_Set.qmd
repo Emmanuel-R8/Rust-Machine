@@ -290,25 +290,25 @@ The first instruction executed is called the "even half-word" instruction, and i
 
 Each of the two instructions in this format can be further decomposed. See Figure 21. As the figure shows, there are two basic 18-bit formats.
 
-Format for 10-Bit Immediate Operand::
+##### Format for 10-Bit Immediate Operand
 
 The 10-bit-immediate-operand format is for those instructions that include an immediate operand in. their low-order ten bits. The immediate operand can be interpreted as a constant or as an offset -- signed or unsigned, depending on the instruction. There are two special subcases of this instruction format: field extraction instructions and branch and loop instructions.
 
-Format for Field Extraction::
+##### Format for Field Extraction
 
 The field-extraction format is for instructions used to extract and deposit fields from words of different data types. The field is specified in the instruction by the bottom 10 bits. Bits 0 through 4 specify the location of the bottom bit of the field, \~- that is, the rotate count -- and bits 5 through 9 specify (field size - 1). For load- byte. instructions, Idb, char-Idb, and the like, the rotate-count that the instruction should specify is (mod (- 32 bottom-bit-location) 32), and for deposit-byte instructions, dpb and the like, the rotate-count should specify the bottom-bit location.
 
 The. extraction instructions take a single argument. The deposit instructions take two arguments. The first is the new value of the field to deposit into the second argument. It is illegal, though not checked, to specify a field with bits outside the bottom 32 bits:
 
-Format for Branch Instructions::
+##### Format for Branch Instructions
 
 Branch instructions are a subclass of 10-bit-immediate-format instructions. They use the immediate argument as a signed half-word offset.
 
-Format for Operand From Stack::
+##### Format for Operand From Stack
 
 Packed half-word. instructions that address the control stack. use the operand-from- stack format: They. have a 10-bit field that specifies an address into the stack... If one of these. instructions takes more than one. operand, the addressed operand is the last operand of the instruction and the other operands are popped. off the top of the'stack. If the instruction produces a value, then the value is pushed 'on. top of the stack.
 
-Control Stack Addressing Modes::
+##### Control Stack Addressing Modes
 
 Operand-from-stack instructions reference operands on the control stack relative to one of three pointers to various regions of the current stack frame. The lower -ten-bit field of one of these constitutes the operand specifier, whose bits are interpreted as follows. Bits 8 and 9 of the instruction are used to select the pointer, while bits 0 through 7 are used as an unsigned offset. The processor interprets bits 8 and 9 as:
 
