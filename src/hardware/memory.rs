@@ -32,26 +32,26 @@ pub trait Memory {
 
 // Constants
 // const OBJECT_T: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
-//     cdr: CDR::Jump,
+//     `cdr`: CDR::Jump,
 //     tag: QTag::Symbol,
 //     data: u32::Addr(ADDRESS_T),
 // });
 
 // const OBJECT_NIL: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
-//     cdr: CDR::Jump,
+//     `cdr`: CDR::Jump,
 //     tag: QTag::Symbol,
 //     data: u32::Addr(ADDRESS_NIL),
 // });
 
 // const OBJECT_CDR_MASK: MemoryCell = MemoryCell::CdrTagData(QCDRTagData {
-//     cdr: CDR::Jump,
+//     `cdr`: CDR::Jump,
 //     tag: QTag::TagCdrMask,
 //     data: u32::Unsigned(0),
 // });
 
 // pub fn make_lisp_obj(c: CDR, t: QTag, d: u32) -> MemoryCell {
 //     return MemoryCell::CdrTagData(QCDRTagData {
-//         cdr: c,
+//         `cdr`: c,
 //         tag: t,
 //         data: d,
 //     });
@@ -59,7 +59,7 @@ pub trait Memory {
 
 // pub fn make_lisp_obj_u(c: CDR, t: QTag, val: u32) -> MemoryCell {
 //     return MemoryCell::CdrTagData(QCDRTagData {
-//         cdr: c,
+//         `cdr`: c,
 //         tag: t,
 //         data: u32::Unsigned(val),
 //     });
@@ -67,7 +67,7 @@ pub trait Memory {
 
 // pub fn make_lisp_obj_i(c: CDR, t: QTag, val: i32) -> MemoryCell {
 //     return MemoryCell::CdrTagData(QCDRTagData {
-//         cdr: c,
+//         `cdr`: c,
 //         tag: t,
 //         data: u32::Signed(val),
 //     });
@@ -75,7 +75,7 @@ pub trait Memory {
 
 // pub fn make_lisp_obj_f(c: CDR, t: QTag, val: f32) -> MemoryCell {
 //     return MemoryCell::CdrTagData(QCDRTagData {
-//         cdr: c,
+//         `cdr`: c,
 //         tag: t,
 //         data: u32::Float(val),
 //     });
@@ -105,7 +105,7 @@ pub trait Memory {
 // pub fn set_cdr(q: &mut MemoryCell, newcdr: CDR) {
 //     match q {
 //         MemoryCell::CdrTagData(mut p) => {
-//             p.cdr = newcdr;
+//             p.`cdr` = newcdr;
 //         }
 //         _ => {}
 //     }

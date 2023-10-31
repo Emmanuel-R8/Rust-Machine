@@ -1,4 +1,3 @@
-
 // Instructions are normally executed in the order in which they are stored in
 // memory. Since full-word instructions cannot cross word boundaries, it would
 // occasionally be necessary to insert a no-op instruction in places where a
@@ -11,8 +10,8 @@
 // followed by an __odd__ half-word address.
 // ******
 
-// The cdr code field of each word executed contains sequencing information to
-// minimize this waste. The cdr code takes on one of four values, which specify how
+// The `cdr` code field of each word executed contains sequencing information to
+// minimize this waste. The `cdr` code takes on one of four values, which specify how
 // much the PC is incremented after executing an instruction from this word. Note
 // that the PC contains a half-word address.
 
@@ -25,6 +24,27 @@
 // |   | +3 PC odd |  |
 // :CDR header {tbl-colwidths="[15, 15, 70]"}
 
-pub struct Instructions {
+pub enum InstructionFamily {
+    LIST,
+    INTERRUPTIBLE,
+    PREDICATE,
+    NUMERIC,
+    DATA_MOVEMENT,
+    FIELD_EXTRACTION,
+    ARRAY,
+    BRANCH_LOOP,
+    BLOCK,
+    FUNCTION_CALLING,
+    BINDING,
+    CATCH,
+    LEXICAL_VARIABLE_ACCESS,
+    INSTANCE_VARIABLE_ACCESS,
+    SUBPRIMITIVE,
+}
 
+pub struct Instruction<'a> {
+    family: InstructionFamily,
+    name: &'a str,
+    opcode: u32,
+    is_implemented: bool,
 }

@@ -44,7 +44,7 @@ Register Effects TOS: Valid after
 
 `dtp-call-indirect` Instruction `dtp-call-indirect-prefetch` Instruction Format Full-word instruction Value(s). Returned Not applicable
 
-Argumeni(s) 1
+Argument(s) 1
 
 Included in the instruction is addr, the address of a word, whose contents can be of any data type. The contents of the word is the function to call.
 
@@ -56,7 +56,7 @@ Starts a call of the function addressed by addr or by a forwarding pointer addre
 
 Exception None
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 " Register Effects TOS: Valid after
 
@@ -90,7 +90,7 @@ Starts a function call of the function specified by arg. See the section \`\`Sta
 
 Exception None
 
-Memory Reference Data-read (sometimes)
+Memory Reference `data-read`  (sometimes)
 
 Register Effects TOS: Valid after
 
@@ -163,7 +163,7 @@ Description
 
 Performs an argument match-up process that either takes an error trap, if the wrong number of arguments has been supplied, or adjusts the control stack and branches to the appropriate instruction of the entry vector or to the instruction after the entry vector.
 
-argl is two greater than the number of arguments that the function requires, and arg? is two. greater than the number of required arguments
+argl is two greater than the number of arguments that the function requires, and arg2 is two. greater than the number of required arguments
 
 plus the number of optional arguments that the function will accept. See the section"."Entry-Instruction Format". page 81.
 
@@ -195,7 +195,7 @@ Immediate Argument Type Unsigned
 
 Description :
 
-Specifies the value to be returned on the top of stack according to the immediate operand: 1000(octal), the current. top of stack; 1040(octal), nil; 1041 (octal), t. When the value disposition is" for value" or "for multiple". the cdr code of the top of stack is set to `cdr-next`. See the section".Revision 0 Return-single". page 299. Removes the returning function's frames from the control and binding stacks; unthreads catch blocks and executes unwind-protects; restores the state of the caller; and resumes execution of the caller with the returned values on the stack in the form specified by the caller. May do a check-preempt-request operation. See the section".Function Returning". page 266.
+Specifies the value to be returned on the top of stack according to the immediate operand: 1000(octal), the current. top of stack; 1040(octal), `nil`; 1041 (octal), t. When the value disposition is" for value" or "for multiple". the `cdr` code of the top of stack is set to `cdr-next`. See the section".Revision 0 Return-single". page 299. Removes the returning function's frames from the control and binding stacks; unthreads catch blocks and executes unwind-protects; restores the state of the caller; and resumes execution of the caller with the returned values on the stack in the form specified by the caller. May do a check-preempt-request operation. See the section".Function Returning". page 266.
 
 Exception None Memory Reference None
 
@@ -209,7 +209,7 @@ is for-effect, then the TOS register is invalid, otherwise, it is valid.
 
 Format Operand from stack, Value(s) Returned Not applicable immediate or sp-pop addressing modes only
 
-Argumeni(s) 1: Opcode 104 arg is `dtp-fixnum`, non-negative
+Argument(s) 1: Opcode 104 arg is `dtp-fixnum`, non-negative
 
 Immediate Argument Type Unsigned
 
@@ -223,7 +223,7 @@ Register Effects TOS: Status afterwards is determined by value disposition and s
 
 `return-kludge` Instruction Format Operand from stack, Value(s) Returned Not applicable immediate or sp-pop addressing modes only
 
-Argumeni(s) 1: Opcode 105 arg `dtp-fixnum`, non-negative
+Argument(s) 1: Opcode 105 arg `dtp-fixnum`, non-negative
 
 Immediate Argument Type Unsigned
 
@@ -241,7 +241,7 @@ Immediate Argument Type Unsigned
 
 Description
 
-Pops a multiple group of values off the top of stack, using the first value as the number of additional words to pop. Pushes the number of words specified by arg back on the stack, discarding extras if too many values are in the multiple group, or pushing enough nils to equal the number. desired if too few values are in the multiple group.
+Pops a multiple group of values off the top of stack, using the first value as the number of additional words to pop. Pushes the number of words specified by arg back on the stack, discarding extras if too many values are in the multiple group, or pushing enough `nil`s to equal the number. desired if too few values are in the multiple group.
 
 Exception None Memory Reference None
 

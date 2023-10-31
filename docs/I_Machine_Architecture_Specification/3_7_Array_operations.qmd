@@ -1,6 +1,6 @@
 ### Array Operations
 
-aref-1, aset-l, aloc-1, setup-ld-array, setup-force- rid-array, fast-aref-1, fast-aset-1, array-leader, store-array-leader, aloc-leader
+aref-1, `aset-1`, `aloc-1`, `setup-1d-array`, setup-force-1d-array, `fast-aref-1`, `fast-aset-1`, `array-leader`, `store-array-leader`, `aloc-leader`
 
 See the section".I-Machine Array Registers". page 36.
 
@@ -8,7 +8,7 @@ See the section".I-Machine Array Registers". page 36.
 
 Each of the next three instructions accesses. a one-dimensional array.
 
-aref-1 Instruction.
+`aref-1` Instruction.
 
 Format Operand from stack Value(s) Returned 1
 
@@ -22,11 +22,11 @@ Immediate Argument Type Unsigned
 
 Description Pushes the element of arg specified by arg2 on the stack.
 
-Checks the array arg to insure it is a one-dimensional array, and also checks to insure that the index arg? is a fixnum and falls within the bounds of the array.
+Checks the array arg to insure it is a one-dimensional array, and also checks to insure that the index arg2 is a fixnum and falls within the bounds of the array.
 
-Exception Conditions: Type of argi is `dtp-array-instance` or `dtp-string-instance`. arg\] is an array with array-long-prefix = 1. Arguments: arg, arg2 Values: 1
+Exception Conditions: Type of arg1 is `dtp-array-instance` or `dtp-string-instance`. arg\] is an array with array-long-prefix = 1. Arguments: arg, arg2 Values: 1
 
-Memory Reference Header-read, data-read
+Memory Reference `header-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after DP Op register modified
 
@@ -50,11 +50,11 @@ Description a Stores argl into the element of array arg2 specified by index arg3
 
 Checks the array to insure it is a one-dimensional array, and also checks to insure that the index is a fixnum and falls within the bounds of the array.
 
-When the array-clement-type is .`dtp-fixnum` or `dtp-character`, takes an error trap unless the data type of argi matches the array element type. When the array element-type is `dtp-character` and the array byte-packing is 8-bit bytes, the instruction takes an error trap if bits \<31:8\> of argl are nonzero, Similarly, the instruction takes an error trap if bits \<81:16\> are nonzero in the case of 16-bit characters. It does not check that fixnums are within range when storing into .a fixnum array. See the section".Revision 0 Aset-1". page 298.
+When the array-clement-type is .`dtp-fixnum` or `dtp-character`, takes an error trap unless the data type of arg1 matches the array element type. When the array element-type is `dtp-character` and the array byte-packing is 8-bit bytes, the instruction takes an error trap if bits \<31:8\> of argl are nonzero, Similarly, the instruction takes an error trap if bits \<81:16\> are nonzero in the case of 16-bit characters. It does not check that fixnums are within range when storing into .a fixnum array. See the section".Revision 0 Aset-1". page 298.
 
-Exception Conditions: Type of arg2 is `dtp-array-instance` or `dtp-string-instance`. arg2 is an array with array-long-prefix = 1. Arguments: argi, arg2, arg3 Values: 0
+Exception Conditions: Type of arg2 is `dtp-array-instance` or `dtp-string-instance`. arg2 is an array with array-long-prefix = 1. Arguments: arg1, arg2, arg3 Values: 0
 
-Memory Reference Header-read, data-write
+Memory Reference `header-read` , `data-write`
 
 Register Effects TOS: Valid before, invalid after DP Op register modified
 
@@ -72,11 +72,11 @@ arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned
 
-Description Pushes a locative to the element of argi addressed by arg2 on the stack.
+Description Pushes a locative to the element of arg1 addressed by arg2 on the stack.
 
-Checks the array argi to insure it isa one-dimensional array containing object references (that is, checks that the array-element-type- field of the array header is object reference), and also checks to insure that the index arg2 is a fixnum and falls within the bounds of the array.
+Checks the array arg1 to insure it isa one-dimensional array containing object references (that is, checks that the array-element-type- field of the array header is object reference), and also checks to insure that the index arg2 is a fixnum and falls within the bounds of the array.
 
-Exception Conditions: Type of argl is `dtp-array-instance` or `dtp-string-instance`. argi is an array with array-long-prefix = 1. Arguments: argi, arg2 . Values: i
+Exception Conditions: Type of argl is `dtp-array-instance` or `dtp-string-instance`. arg1 is an array with array-long-prefix = 1. Arguments: arg1, arg2 . Values: i
 
 Memory Reference Header-reai
 
@@ -100,11 +100,11 @@ Creates an array register describing array arg. The array register will be four 
 
 ' Exception a Conditions: Type of arg is `dtp-array-instance` or `dtp-string-instance`. arg is an array with array-long-prefix ='1. Arguments: arg Values: 4 (array register)
 
-Memory Reference Header-read
+Memory Reference `header-read`
 
 Register Effects TOS: Valid after
 
-setup-force-ld-array . : Instruction Format Operand from stack Value(s) Returned 4 Argumeni(s) 1: Opcode 4
+setup-force-ld-array . : Instruction Format Operand from stack Value(s) Returned 4 Argument(s) 1: Opcode 4
 
 arg `dtp-array`, `dtp-array-instance`, `dtp-string`, or. `dtp-string-instance`
 
@@ -118,7 +118,7 @@ Causes multidimensional arrays.to be accessed as if they were unidimensional arr
 
 Exception. Conditions: Type of arg is `dtp-array-instance` or `dtp-string-instance`. arg is an array with array-long-prefix = 1. Arguments: arg Values: 4 (array register)
 
-Memory Reference Header-read
+Memory Reference `header-read`
 
 Register Effects TOS: Valid after
 
@@ -130,7 +130,7 @@ fast-aref-1- Instruction
 
 Format Operand from stack, Value(s) Returned 1 address-operand mode. (immediate and sp-pop addressing modes illegal)
 
-Argumeni(s) 2: Opcode 350 arg dtp-fixmum : arg2 the address operand (address of control word of array register)
+Argument(s) 2: Opcode 350 arg dtp-fixmum : arg2 the address operand (address of control word of array register)
 
 Immediate Argument Type Not. applicable
 
@@ -144,9 +144,9 @@ Exception Conditions: Array register is obsolete (current
 
 array-register-event-count does not equal that encached in the array register).
 
-Arguments: arg1, arg? (address operand as. locative) Values: 1
+Arguments: arg1, arg2 (address operand as. locative) Values: 1
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid before, valid after DP Op register modified
 
@@ -164,7 +164,7 @@ args the address operand (address of control word of array register)
 
 Immediate Argument Type Not applicable
 
-Description \_ Stores argi into the element of arg3 indexed by arg2.
+Description \_ Stores arg1 into the element of arg3 indexed by arg2.
 
 en
 
@@ -174,7 +174,7 @@ This instruction takes an instruction exception if the current event count does 
 
 Exception Conditions: Array register is obsolete (current array-register-event-count does not equal that encached in the array register). Arguments: argl, arg2, arg3 (address operand as locative) Values: 0
 
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS; Valid before, invalid after DP Op register modified
 
@@ -188,17 +188,17 @@ arg\] `dtp-array`, `dtp-array-instance`, `dtp-string`, or `dtp-string-instance` 
 
 \_ Immediate Argument.Type Unsigned
 
-Description Pushes on the stack the leader element of argi that is specified by arg?.
+Description Pushes on the stack the leader element of arg1 that is specified by arg2.
 
-Checks the array arg1 to insure it has a leader, and checks the index. arg? . . to insure it is a fixnum and falls within the -bounds of the array leader; if \| the checks fail, the instruction takes an error trap.
+Checks the array arg1 to insure it has a leader, and checks the index. arg2 . . to insure it is a fixnum and falls within the -bounds of the array leader; if \| the checks fail, the instruction takes an error trap.
 
-Exception Post Trap Conditions: Type of argi is dtp- -array-instance or \| `dtp-string-instance`. --- Arguments: argl, arg2--- ' Values: 1
+Exception Post Trap Conditions: Type of arg1 is dtp- -array-instance or \| `dtp-string-instance`. --- Arguments: argl, arg2--- ' Values: 1
 
-\_ Memory Reference Header-read, data-read
+\_ Memory Reference `header-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after
 
-store-array-leader Instruction Format Operand from stack Value(s). Returned 0 Argumeni(s) 3: Opcode 314
+store-array-leader Instruction Format Operand from stack Value(s). Returned 0 Argument(s) 3: Opcode 314
 
 argl any Lisp data. type
 
@@ -206,13 +206,13 @@ arg2 `dtp-array`, `dtp-array-instance`, `dtp-string`, or `dtp-string-instance` a
 
 Immediate Argument Type Unsigned
 
-Description Stores argi into the element specified by arg3 of the leader of arg2. Returns no values. "Y\@@y i Cheep Er
+Description Stores arg1 into the element specified by arg3 of the leader of arg2. Returns no values. "Y\@@y i Cheep Er
 
-Checks the array arg2 to insure it has a leader, and checks the index arg? to insure it is a fixnum and falls within the bounds of the array leader; if the tests fail, the instruction takes an error trap.
+Checks the array arg2 to insure it has a leader, and checks the index arg2 to insure it is a fixnum and falls within the bounds of the array leader; if the tests fail, the instruction takes an error trap.
 
 Exception Conditions: Type of arg2 is `dtp-array-instance` or `dtp-string-instance`. Arguments: argl, arg2, arg3 Values: 0
 
-Memory Reference Header-read, data-write
+Memory Reference `header-read` , `data-write`
 
 Register Effects TOS: Valid before, invalid after
 
@@ -240,10 +240,10 @@ Pushes on the stack a locative to the leader element of arg1 indexed by arg2, Ch
 
 Exception .
 
-Conditions: Type of argi is `dtp-array-instance`. or
+Conditions: Type of arg1 is `dtp-array-instance`. or
 
-`dtp-string-instance`. Arguments: argi, arg2 Values: 1
+`dtp-string-instance`. Arguments: arg1, arg2 Values: 1
 
-Memory Reference Header-read
+Memory Reference `header-read`
 
 Register Effects TOS: Valid before, valid after

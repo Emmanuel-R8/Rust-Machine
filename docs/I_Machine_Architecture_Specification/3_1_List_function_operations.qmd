@@ -2,150 +2,149 @@
 
 `car`, `cdr`, `set-to-car`, `set-to-cdr`, `set-to-cdr-push-car`, `rplaca`, `rplacd`, `rgetf`, `member`, `assoc`
 
-The Lisp predicate instructions eq, eql, and endp are documented elsewhere. The Lisp functions cons and ncons are implemented in macrocode. Refer also to the following topics:
+The Lisp predicate instructions `eq`, `eql`, and `endp` are documented elsewhere. The Lisp functions `cons` and `ncons` are implemented in macrocode. Refer also to the following topics:
 
-%allocate-list-block %allocate-structure-block
+`%allocate-list-block` `%allocate-structure-block`
 
-car Instruction
+--------------------------------------
 
-Format Operand from stack Value(s) Returned 1 Argumeni(s) 1: Opcode 0
+`car` Instruction
+
+Format Operand from stack Value(s) Returned 1 Argument(s) 1: Opcode 0
 
 arg `dtp-list`, `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
 
 Immediate Argument Type Signed
 
-Description If the type of arg is dtp-list, pushes the car of arg on the stack.
+Description If the type of arg is `dtp-list` , pushes the `car` of arg on the stack.
 
 If the type of arg is `dtp-locative`, pushes the contents of the location arg references on the stack.
 
-If the type of arg is `dtp-nil`, pushes nil on the stack.
+If the type of arg is `dtp-nil`, pushes `nil` on the stack.
 
 Exception Conditions: Type of arg is `dtp-list-instance`. Arguments: arg Values: 1
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid after
 
-Instruction
+
+--------------------------------------
+
+`cdr` Instruction
 
 Format Operand from. stack Value(s) Returned 1
 
 Argument(s) 1: . Opcode 1
 
-\_arg dtp-list, `dtp-locative`,
-
-`dtp-list-instance`, or `dtp-nil`
+arg `dtp-list` , `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
 
 Immediate Argument Type Signed
 
-Description If the type of arg is dtp-list, pushes the cdr of arg on the stack.
+Description If the type of arg is `dtp-list` , pushes the `cdr` of arg on the stack.
 
 If the type-of arg is `dtp-locative`, pushes the contents of the location arg references on the stack.
 
-If the type of arg is `dtp-nil`, pushes nil on the stack. Exception Conditions: Type of arg is `dtp-list-instance`.
+If the type of arg is `dtp-nil`, pushes `nil` on the stack. Exception Conditions: Type of arg is `dtp-list-instance`.
 
 Arguments: arg Values: 1
 
-Memory Reference Cdr-read, then data-read if `cdr-normal`
+Memory Reference `cdr-read` , then `data-read`  if `cdr-normal`
 
 Register Effects TOS: Valid after
 
-set-to-car . Instruction
+--------------------------------------
+
+`set-to-car` . Instruction
 
 Format Operand from stack, \~ Value(s) Returned 0 address-operand mode (immediate and Sp-pop operand modes undefined)
 
-Argument(s) 1: Opcode 140 arg, the address operand, dtp-list,
+Argument(s) 1: Opcode 140
 
-`dtp-locative`, `dtp-list-instance`,
+arg, the address operand, `dtp-list` , `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
 
-or `dtp-nil`
-
-Immediate Argument Type Not applicable Description Replaces arg with the car of arg. Does not change the cdr code of the operand. See the instruction car, page 92. Exception Conditions: Type of arg is `dtp-list-instance`. Arguments: arg (address of operand as locative) Values: 0 Memory Reference Data-read
+Immediate Argument Type Not applicable Description Replaces arg with the `car` of arg. Does not change the `cdr` code of the operand. See the instruction car, page 92. Exception Conditions: Type of arg is `dtp-list-instance`. Arguments: arg (address of operand as locative) Values: 0 Memory Reference `data-read`
 
 Register Effects TOS: Unchanged
 
-set-to-cdr : Instruction
+--------------------------------------
+
+`set-to-cdr` : Instruction
 
 Format Operand from stack, Value(s) Returned 0 address-operand mode (immediate and sp-pop operand modes. undefined)
 
-Argument(s) 1: Opcode 141 arg, the address operand, dtp-list,
+Argument(s) 1: Opcode 141 arg, the address operand, `dtp-list` , `dtp-locative`, `dtp-list-instance` or `dtp-nil`.
 
-`dtp-locative`, `dtp-list-instance`
-
-or `dtp-nil`.
-
-Immediate Argument Type Not applicable Description : Replaces arg with the cdr of arg. Does not change the cdr code of the operand. See the instruction cdr, page 938. Exception Conditions: Type of arg is `dtp-list-instance`.
+Immediate Argument Type Not applicable Description : Replaces arg with the `cdr` of arg. Does not change the `cdr` code of the operand. See the instruction `cdr`, page 938. Exception Conditions: Type of arg is `dtp-list-instance`.
 
 Arguments: arg (address of operand as locative) Values: 0
 
-Memory Reference Cdr-read, data-read
+Memory Reference `cdr-read` , `data-read`
 
 Register Effects TOS: Unchanged
+
+--------------------------------------
 
 `set-to-cdr-push-car` Instruction
 
 Format Operand from stack, Value(s) Returned 1 address-operand mode (immediate and Sp-pop operand modes undefined)
 
-Argument(s) 1: Opcode 142 arg, the address operand, dtp-list,
-
-`dtp-locative`, `dtp-list-instance`,
-
-or `dtp-nil`
+Argument(s) 1: Opcode 142 arg, the address operand, `dtp-list` ,`dtp-locative`, `dtp-list-instance`,or `dtp-nil`
 
 Immediate Argument Type Not applicable
 
 Description.
 
-Computes the ¢ar and the cdr of arg. Pushes the car onto the stack with a cdr code. of `cdr-next` and stores the cdr back into arg leaving the cdr code of the operand unchanged.
+Computes the ¢ar and the `cdr` of arg. Pushes the `car` onto the stack with a `cdr` code. of `cdr-next` and stores the `cdr` back into arg leaving the `cdr` code of the operand unchanged.
 
 Exception Conditions: Type of arg is `dtp-list-instance`. Arguments: erg (address operand as locative) Values: 1
 
-Memory Reference Data-read, cdr-read, data-read
+Memory Reference `data-read` , `cdr-read`, `data-read`
 
 Register Effects TOS: Valid after
 
-rplaca : : Instruction
+--------------------------------------
+
+`rplaca` Instruction
 
 Format. Operand from stack Value(s) Returned 0
 
-Argument(s) 2: Opcode 200 argl.dtp-list, `dtp-locative` or
-
-`dtp-list-instance`;
+Argument(s) 2: Opcode 200 argl.dtp-list, `dtp-locative` or `dtp-list-instance`;
 
 arg2 any data type
 
 Immediate Argument Type. Signed
 
-Description o Replaces the car of arg1 with arg2. \*
+Description o Replaces the `car` of arg1 with arg2. \*
 
 Eh rrp Les
 
-Exception . Conditions: Type of arg\] is `dtp-list-instance`. Arguments: argi, arg?
+Exception . Conditions: Type of arg\] is `dtp-list-instance`. Arguments: arg1, arg2
 
 Values: 0 Memory Reference Data-write
 
 Register Effects TOS: Valid before, invalid after
 
-rplaed Instruction
+--------------------------------------
+
+`rplacd` Instruction
 
 Format Operand from stack Value(s) Returned 0
 
-Argument(s) 2: Opcode 201 argl dtp-list, `dtp-locative`
-
-or `dtp-list-instance`;
+Argument(s) 2: Opcode 201 argl `dtp-list` , `dtp-locative` or `dtp-list-instance`;
 
 arg2 any data type
 
 Immediate Argument Type Signed
 
-Description \_ ns 4 \~ Replaces the cdr of argi with arg2. '¢5\<% wer CA a SE.
+Description \_ ns 4 \~ Replaces the `cdr` of arg1 with arg2. '¢5\<% wer CA a SE.
 
 . del pee aaplianpr Cape AQ. Exception ey Caertag\~ Come -
 
-Conditions: Type of arg is `dtp-list-instance`. Type of argl is dtp-list and the cdr code of the referenced cell is not `cdr-normal`. See the section".Revision 0 Rplacd".
+Conditions: Type of arg is `dtp-list-instance`. Type of argl is `dtp-list` and the `cdr` code of the referenced cell is not `cdr-normal`. See the section".Revision 0 Rplacd".
 
-Arguments: argi, arg2 Values: 0
+Arguments: arg1, arg2 Values: 0
 
-Memory Reference Cdr-read, then data-write
+Memory Reference `cdr-read` , then data-write
 
 Register Effects TOS: Valid before, invalid after

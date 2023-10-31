@@ -1,58 +1,65 @@
 ### Interruptible Instructions
 
-. The next three instructions are interruptible. If a sequence break request arrives while one of these instructions is executing, the instruction is aborted and control passes to the sequence break handier. When the handler returns, the instruction is restarted from the beginning. Similarly, if a page fault or transport trap occurs, the instruction is aborted and restarted from the beginning. None of these instructions store into their arguments. It is possible when processing an extremely. long list for the instruction never to complete because sequence breaks occur more often than the time it takes the instruction to complete, or because not all of the pages referenced by the instruction will fit in main memory simultaneously. This condition is detected by software, by comparing the PC on two successive sequence breaks, and causes control to be diverted to a macrocode subroutine that performs the equivalent function of the instruction. This will not happen often. ,
+The next three instructions are interruptible. If a sequence break request arrives while one of these instructions is executing, the instruction is aborted and control passes to the sequence break handier. When the handler returns, the instruction is restarted from the beginning. Similarly, if a page fault or transport trap occurs, the instruction is aborted and restarted from the beginning. None of these instructions store into their arguments. It is possible when processing an extremely. long list for the instruction never to complete because sequence breaks occur more often than the time it takes the instruction to complete, or because not all of the pages referenced by the instruction will fit in main memory simultaneously. This condition is detected by software, by comparing the PC on two successive sequence breaks, and causes control to be diverted to a macrocode subroutine that performs the equivalent function of the instruction. This will not happen often. ,
 
-rgetf
+--------------------------------------
+
+`rgetf`
 
 Instruction
 
 Format Operand from. stack Value(s): Returned 2
 
-Argument(s) 2: Opcode 225 argl any data type; arg2 dtp-list, `dtp-nil`, or `dtp-list-instance`
+Argument(s) 2: Opcode 225 argl any data type; arg2 `dtp-list` , `dtp-nil`, or `dtp-list-instance`
 
 Immediate Argument Type Signed
 
 Description
 
-Searches the list. arg2 two elements. at a time, succeeding if the first element of a pair is eql to argl, failing if the end of the list.is reached without finding a match. Upon failure, both values returned are nil. Upon success, the first value returned is the second element of the matching pair, and the second value returned is the tail of arg? whose car is that second element. The second value serves as a success/failure indicator and -also can be used with rplaca to change the property value. The length of the list is supposed to be a multiple of two; if the list is of odd length and a match occurs atthe end of the list, an instruction exception occurs so software can decide whether this is an error. If no match occurs, no exception is taken, whether or not the list length is odd. Note that each sublist is subject to the type-checking errors and exceptions that the initial list is subject to. See the section \<\<\_interruptible_instructions\>\>. page 98.
+Searches the list. arg2 two elements. at a time, succeeding if the first element of a pair is`eql`to argl, failing if the end of the list.is reached without finding a match. Upon failure, both values returned are `nil`. Upon success, the first value returned is the second element of the matching pair, and the second value returned is the tail of arg2 whose `car` is that second element. The second value serves as a success/failure indicator and -also can be used with rplaca to change the property value. The length of the list is supposed to be a multiple of two; if the list is of odd length and a match occurs atthe end of the list, an instruction exception occurs so software can decide whether this is an error. If no match occurs, no exception is taken, whether or not the list length is odd. Note that each sublist is subject to the type-checking errors and exceptions that the initial list is subject to. See the section \<\<\_interruptible_instructions\>\>. page 98.
 
 Exception
 
-Conditions: Type of argi is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`, or `dtp-spare-number` (eq test not sufficient). A match occurs at the end of an odd-length list. Any sublist of arg2 is of type `dtp-list-instance`.
+Conditions: Type of arg1 is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`, or `dtp-spare-number` (eq test not sufficient). A match occurs at the end of an odd-length list. Any sublist of arg2 is of type `dtp-list-instance`.
 
 Arguments: argl, arg2
 
 Values: 2
 
-'Memory reference data-read, cdr-read
+'Memory reference  `data-read` , `cdr-read`
 
 4
 
 Register Effects TOS: Valid before, valid after
 
-member --- Instruction \* Format Operand from stack Value(s) Returned 1 Argument(s) 2: . Opcode 226
+--------------------------------------
 
-argl any data type; arg2 dtp-list, `dtp-nil`, or `dtp-list-instance`
+
+`member` --- Instruction \* Format Operand from stack Value(s) Returned 1 Argument(s) 2: . Opcode 226
+
+argl any data type; arg2 `dtp-list` , `dtp-nil`, or `dtp-list-instance`
 
 Immediate Argument Type Signed
 
 Description
 
-Returns nil or a tail of arg2. whose car is eql to argl. . This implements the cl:member function and approximates the zl:memq function. Note that each sublist is subject to the type-checking errors and exceptions that the initial list is subject to. See the section \`\`Interruptible Instructions". page 98.
+Returns `nil` or a tail of arg2. whose `car` is`eql`to argl. . This implements the cl:member function and approximates the zl:memq function. Note that each sublist is subject to the type-checking errors and exceptions that the initial list is subject to. See the section \`\`Interruptible Instructions". page 98.
 
 Exception Conditions: Type of arg\] is `dtp-double-float`, `dtp-bignum`, ' `dtp-big-ratio`, `dtp-complex`, or `dtp-spare-number`
 
 (eq test not sufficient). Any sublist of arg2 is.of type `dtp-list-instance`.
 
-Arguments: argl, argZ
+Arguments: argl, arg2
 
 Values: 1
 
-Memory Reference Cdr-read, data-read
+Memory Reference `cdr-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after
 
-assoc
+--------------------------------------
+
+`assoc`
 
 Instruction
 
@@ -64,17 +71,17 @@ Immediate Argument Type Signed
 
 Description
 
-Returns nil or an element of arg2 whose car is eq! to arg1. This implements the chassoc function and approximates the zl:assq function. Note that each sublist is subject to the type-checking errors and exceptions that the initial list is subject to. See the section \`\`Interruptible Instructions". page 98.
+Returns `nil` or an element of arg2 whose `car` is eq! to arg1. This implements the chassoc function and approximates the zl:assq function. Note that each sublist is subject to the type-checking errors and exceptions that the initial list is subject to. See the section \`\`Interruptible Instructions". page 98.
 
 Exception
 
-Conditions: Type of argl is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`, or `dtp-spare-number` (eq test not sufficient). Any sublist or element of arg? is of type `dtp-list-instance`.
+Conditions: Type of argl is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`, or `dtp-spare-number` (eq test not sufficient). Any sublist or element of arg2 is of type `dtp-list-instance`.
 
-Arguments: argl, arg?
+Arguments: argl, arg2
 
 Values: 1
 
-Memory Reference Cdr-read, data-read
+Memory Reference `cdr-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after BAR-1 modified
 

@@ -8,7 +8,7 @@ eycle-type \<9:6\> (4 bits) Select one of the twelve memory-cycle types. See the
 
 fixnum-only \<5\>. (1 bit) If set, the instruction will take an error trap if the memory data type is not `dtp-fixnum`.
 
-set-cdr-next \<4\> (1 bit) For %block-n-read.:and %block-n-read-shift: if set, the cdr code of the result is 0; otherwise, the cdr code of the result is the cdr code of memory.
+set-cdr-next \<4\> (1 bit) For %block-n-read.:and %block-n-read-shift: if set, the `cdr` code of the result is 0; otherwise, the `cdr` code of the result is the `cdr` code of memory.
 
 last-word \<3\> (1 bit) If set, do not prefetch words after this one.
 
@@ -56,7 +56,7 @@ Immediate Argument Type Not applicable
 
 Description.
 
-Performs the ALU operation specified in the alu-op field of the DP Op register using arg and the word addressed by the contents of the Block Address Register (BAR) specified by n as operands. n is a number between 0 and 3 inclusive that is part of the opcode. Writes the result of the ALU operation back into the addressed operand, arg. The cdr code of the operand is set to the cdr code from memory. The specified BAR is incremented as.a side effect.
+Performs the ALU operation specified in the alu-op field of the DP Op register using arg and the word addressed by the contents of the Block Address Register (BAR) specified by n as operands. n is a number between 0 and 3 inclusive that is part of the opcode. Writes the result of the ALU operation back into the addressed operand, arg. The `cdr` code of the operand is set to the `cdr` code from memory. The specified BAR is incremented as.a side effect.
 
 The values used for the block instruction mask bits are
 
@@ -70,7 +70,7 @@ NO-INCREMENT -- false
 
 Exception Conditions: Traps according to the generic-arithmetic traps associated with the specified ALU operation. Arguments: arg (address operand as locative) Values: 0 Gnerements the BAR) . Note: The operation to be performed is indicated by the DP Op register. The trap handler must save this away before it can get clobbered by other processes, interrupt handlers, or complex instructions. See the section".Revision 0 %Block-n-read-alu". page 298.
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Unchanged
 
@@ -102,7 +102,7 @@ immediate Argument Type Signed
 
 Description :
 
-Writes arg into the word addressed by the contents of the Block Address Register (BAR) specified by n..n is a number between 0 and 3 inclusive that is part of the opcode. All 40 bits, including cdr code, of this word are written into memory. The specified BAR is incremented as a side effect. If arg is immediate, the tag bits will specify dtp-fixmnmum and `cdr-next`. Exception None
+Writes arg into the word addressed by the contents of the Block Address Register (BAR) specified by n..n is a number between 0 and 3 inclusive that is part of the opcode. All 40 bits, including `cdr` code, of this word are written into memory. The specified BAR is incremented as a side effect. If arg is immediate, the tag bits will specify dtp-fixmnmum and `cdr-next`. Exception None
 
 Memory Reference Raw-write
 

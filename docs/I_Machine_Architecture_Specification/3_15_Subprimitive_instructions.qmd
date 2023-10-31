@@ -2,7 +2,7 @@
 
 %ephemeralp, %unsigned-lessp, %unsigned-lessp-no-pop, %allocate-list-block, %allocate-structure-block, %pointer-plus, %pointer-difference, %pointer-increment, %read-internal-register, %owrite-internal-register, no-op, %coprocessor-read, %coprocessor-write, %memory-read, %memory-read-address, %memory-write, %tag, `%set-tag`, store-conditional, %p-store-contents, %set-cdr-code-n (two instructions), %merge-cdr-no-pop, `%generic-dispatch`, `%message-dispatch`, %jump, %check-preempt-request; %halt
 
-%ephemeralp Instruction Format Operand from stack : Value(s). Returned 1 Argumeni(s) 1: Opcode 7
+%ephemeralp Instruction Format Operand from stack : Value(s). Returned 1 Argument(s) 1: Opcode 7
 
 arg any data type
 
@@ -10,7 +10,7 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes t on the stack if the data type of the argument is a pointer data \_type and the address lies in ephemeral. space (bits \<81:27\> are 0); otherwise pushes nil on the stack.
+Pushes`t`on the stack if the data type of the argument is a pointer data \_type and the address lies in ephemeral. space (bits \<81:27\> are 0); otherwise pushes `nil` on the stack.
 
 Exception None
 
@@ -32,7 +32,7 @@ Immediate Argument Type Unsigned
 
 Description
 
-Tests if, as 32-bit unsigned numbers, arg1 \< erg2, and pushes t or nil on the stack according to the result. The no-pop version of this instruction leaves the first argument on the stack.
+Tests if, as 32-bit unsigned numbers, arg1 \< erg2, and pushes`t`or `nil` on the stack according to the result. The no-pop version of this instruction leaves the first argument on the stack.
 
 Exception None Memory Reference None
 
@@ -57,16 +57,16 @@ latched since the third step may overwrite its original location in the stack).
 Example:
 
 ```
-(defun cons (car cdr)
+(defun cons (`car` `cdr`)
   (%set-cdr-code-normal car)
-  (%set-cdr-code-nil cdr)
-  (%make-pointer dtp-list
+  (%set-cdr-code-nil `cdr`)
+  (%make-pointer `dtp-list`
     (prog1 (%allocate-list-block default-cons-area 2)
             (%block-1-write car)
-            (%block-1-write cdr))))
+            (%block-1-write `cdr`))))
 ```
 
-Exceptions Conditions: arg1 is not eq to list-cache-area. arg2 is greater than list-cache-length. See the section "Revision 0 %Allocate-list-block". page 298.
+Exceptions Conditions: arg1 is not`eq`to list-cache-area. arg2 is greater than list-cache-length. See the section "Revision 0 %Allocate-list-block". page 298.
 
 Arguments: argl, arg2
 
@@ -82,7 +82,7 @@ Register Effects TOS: Valid before, valid after BAR-1 is modified
 
 Format Operand from stack Value(s) Returned 1 Immediate Argument Type Unsigned
 
-Argumeni(s) 2: Opcode 315
+Argument(s) 2: Opcode 315
 
 argl any type arg2 dtp-fimum
 
@@ -96,7 +96,7 @@ Description Using three internal registers, named sfructure-cache-area, structur
 
 4, Stores (structure-cache-address + erg2) into structure-cache-address (arg2 must be latched since the third step may overwrite its original location in the stack).
 
-Exception Conditions: erg1 is not eq to structure-cache-area. arg2 is greater than structure-cache-length. See section "Revision 0 %Alocate-structure-block". page 298.
+Exception Conditions: erg1 is not`eq`to structure-cache-area. arg2 is greater than structure-cache-length. See section "Revision 0 %Alocate-structure-block". page 298.
 
 Arguments: argl, arg2
 
@@ -116,7 +116,7 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes the result of adding arg2 to the pointer field of argi. The data type of the result is the type of argl.
+Pushes the result of adding arg2 to the pointer field of arg1. The data type of the result is the type of argl.
 
 Exception None
 
@@ -138,7 +138,7 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes the result of subtracting the pointer field of arg2 from the pointer field of argi. The data type of the result is `dtp-fixnum`.
+Pushes the result of subtracting the pointer field of arg2 from the pointer field of arg1. The data type of the result is `dtp-fixnum`.
 
 Exception None Memory Reference None
 
@@ -154,13 +154,13 @@ Immediate Argument Type Not applicable
 
 Description
 
-Adds 1 to the pointer field of arg and stores the result back into the operand. The data-type and cdr-code fields of the operand are not changed. Exception None
+Adds 1 to the pointer field of arg and stores the result back into the operand. The data-type and `cdr-code` fields of the operand are not changed. Exception None
 
 Memory Reference None
 
 Register Effects TOS: Unchanged
 
-%read-internal-register I Instruction Format 10-bit immediate Value(s) Returned 1 Argumeni(s) 1: Opcode 154
+%read-internal-register I Instruction Format 10-bit immediate Value(s) Returned 1 Argument(s) 1: Opcode 154
 
 1 10-bit immediate
 
@@ -168,7 +168,7 @@ Immediate Argument Type Unsigned
 
 Description
 
-Pushes the contents of the internal register specified by arg on top of the stack, with the cdr code set to `cdr-next`. See the section "Internal Registers". page 75.
+Pushes the contents of the internal register specified by arg on top of the stack, with the `cdr` code set to `cdr-next`. See the section "Internal Registers". page 75.
 
 Exception None
 
@@ -184,7 +184,7 @@ argl any data type I 10-bit immediate
 
 Immediate Argument Type Unsigned
 
-Description Pops argi off the top of the stack and writes it into the internal register specified by I. See the section".Internal Registers," page 75.
+Description Pops arg1 off the top of the stack and writes it into the internal register specified by I. See the section".Internal Registers," page 75.
 
 Exception None Memory Reference None Register Effects TOS: Invalid after
 
@@ -202,7 +202,7 @@ Register Effects TOS: Unchanged
 
 %ecoprocessor-read I Instruction Format 10-bit immediate Value(s) Returned 1 Argument(s) 1: Opcode 156 I `dtp-fixnum` Description
 
-Reads the coprocessor register specified by the immediate field J and pushes the result on the stack, with the cdr code set to `cdr-next`.
+Reads the coprocessor register specified by the immediate field J and pushes the result on the stack, with the `cdr` code set to `cdr-next`.
 
 Exception None Memory Reference None
 
@@ -212,7 +212,7 @@ Register Effects TOS: Valid after
 
 argl any data type I 10-bit immediate
 
-Description Writes argi into the coprocessor register specified by the immediate field I.
+Description Writes arg1 into the coprocessor register specified by the immediate field I.
 
 Exception None Memory Reference None
 
@@ -226,13 +226,13 @@ argl any Lisp data type I 10-bit immediate (mask)
 
 Immediate Argument Type Not applicable
 
-Description Reads the memory location addressed by argi and pushes its contents on the stack in'accordance with the operation specifiers in the immediate, J:
+Description Reads the memory location addressed by arg1 and pushes its contents on the stack in'accordance with the operation specifiers in the immediate, J:
 
 cycle-type \<9:6\> (4 bits) Select one of the 12 memory-cycle types
 
 fixnum-only \<5\> (1 bit) If set, the instruction will trap if the memory data type is not `dtp-fixnum`.
 
-set-cdr-next \<4\> (1 bit) If set, the cdr code of the result is 0; otherwise, the cdr code of the result is the cdr code of memory.
+set-cdr-next \<4\> (1 bit) If set, the `cdr` code of the result is 0; otherwise, the `cdr` code of the result is the `cdr` code of memory.
 
 See the section".Types of Memory References". page 85,
 
@@ -248,13 +248,13 @@ Immediate Argument Type Not. applicable
 
 Description
 
-Reads the memory location addressed by argi, according to the specified cycle type, and returns the updated argument (the address field is changed to be the final address the access arrives at, while the data-type field remains the same) in accordance with the operation specifiers in the immediate, I:
+Reads the memory location addressed by arg1, according to the specified cycle type, and returns the updated argument (the address field is changed to be the final address the access arrives at, while the data-type field remains the same) in accordance with the operation specifiers in the immediate, I:
 
 cycle-type \<9:6\> (4 bits)Select one of the 12.memory-cycle types See the section".Memory. References."
 
 fixnum-only \<5\> (1 bit) If set, the instruction will trap if the memory data type is not `dtp-fixnum`.
 
-set-cdr-next \<4\> (1 bit) If set, the cdr code of the result is 0; otherwise, the cdr code of the result is the cdr code of memory.
+set-cdr-next \<4\> (1 bit) If set, the `cdr` code of the result is 0; otherwise, the `cdr` code of the result is the `cdr` code of memory.
 
 Exception None Memory Reference Controlled by. the immediate field.
 
@@ -280,7 +280,7 @@ Register Effects TOS: Valid after
 
 Format Operand from stack
 
-Argumeni(s) 2: argi any data type arg2 `dtp-fixnum`
+Argument(s) 2: arg1 any data type arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned
 
@@ -298,7 +298,7 @@ Value(s) Returned 1
 
 Opcode 327
 
-Sets the 8 tag bits of argi to be the bottom eight bits of arg2, This is %make-pointer, with the arguments reversed so that immediates can be
+Sets the 8 tag bits of arg1 to be the bottom eight bits of arg2, This is %make-pointer, with the arguments reversed so that immediates can be
 
 used,
 
@@ -320,23 +320,23 @@ arg3 any type
 
 Description
 
-If the content of the location specified by argI is eq to arg2, then stores arg3 into that location and returns t; otherwise, leaves the location unchanged and returns nil. Note that store-conditional does not write to memory when it returns nil. The cdr code of the specified location is not changed. Other processes (and other hardware processors, te the extent made possible by the system architecture) are prevented from modifying the location between the read and the write.
+If the content of the location specified by arg1 is`eq`to arg2, then stores arg3 into that location and returns t; otherwise, leaves the location unchanged and returns `nil`. Note that store-conditional does not write to memory when it returns `nil`. The `cdr` code of the specified location is not changed. Other processes (and other hardware processors, te the extent made possible by the system architecture) are prevented from modifying the location between the read and the write.
 
 Exception None
 
-Memory Reference Data-read, followed by raw-write (using the possibly followed pointer) with interlock
+Memory Reference `data-read` , followed by raw-write (using the possibly followed pointer) with interlock
 
 Register Effects TOS: Valid before, invalid after
 
 %p-store-contents : Instruction Format Operand from. stack Value(s) Returned 0 Argument(s) 2: Opcode 235
 
-argl any data type arg? any data type
+argl any data type arg2 any data type
 
 Immediate Argument Type Signed
 
 Description :
 
-Stores arg2 into memory location addressed by argl, preserving the cdr-code but not following invisible pointers.
+Stores arg2 into memory location addressed by argl, preserving the `cdr-code` but not following invisible pointers.
 
 Exception None
 
@@ -352,7 +352,7 @@ Immediate Argument Type Signed
 
 Description
 
-Stores arg2 into the. memory location addressed by argl, storing all 40 bits including the cdr code, and not following invisible pointers. This replaces the 3600's %p-store-cdr-and-contents and %p-store-tag-and-pointer instructions. The second argument is typically constructed with the `%set-tag` instruction; in the I-Machine it is legal to have invisible pointers and special markers in the stack temporarily for this purpose.
+Stores arg2 into the. memory location addressed by argl, storing all 40 bits including the `cdr` code, and not following invisible pointers. This replaces the 3600's %p-store-cdr-and-contents and %p-store-tag-and-pointer instructions. The second argument is typically constructed with the `%set-tag` instruction; in the I-Machine it is legal to have invisible pointers and special markers in the stack temporarily for this purpose.
 
 Exception None Memory Reference Raw-write
 
@@ -366,7 +366,7 @@ arg any data type
 
 Description
 
-N, which is part of the opcode, is either 1 or 2. Sets the cdr code field of arg to N. :
+N, which is part of the opcode, is either 1 or 2. Sets the `cdr` code field of arg to N. :
 
 Exception None Memory Reference None
 
@@ -382,7 +382,7 @@ arg2 (address operand) any data type
 
 Description
 
-Sets the cdr-code field of arg? to the cdr-code field of argi. argi is not popped off the stack.
+Sets the `cdr-code` field of arg2 to the `cdr-code` field of arg1. arg1 is not popped off the stack.
 
 Exception None
 
@@ -402,7 +402,7 @@ Makes sure that the number of spread arguments is at least 2, doing a pull-lexpr
 
 Gets the address of the interesting part of the flavor, which specifies the size and address of the handler hash table. Checks whether the data type of FP\|8 is one of the instance data types and performs the appropriate operations in any case. See the section "Calling a Generic Function," page 277. Fetches.two words from the flavor and performs a handler hash table search using the (usually) generic function in FP\|2 as the key. Takes an error trap if the method found is not `dtp-even-pc` or `dtp-odd-pc`. Continues execution at the PC.
 
-Exception None Memory Reference Several data-reads
+Exception None Memory Reference Several `data-read` s
 
 Register Effects TOS: Invalid after
 
@@ -424,7 +424,7 @@ Fetches two words from the flavor and performs a handler hash table search using
 
 Exception None
 
-Memory Reference Several data-reads
+Memory Reference Several `data-read` s
 
 Register Effects TOS: Invalid after
 
@@ -432,7 +432,7 @@ Register Effects TOS: Invalid after
 
 Format Operand from stack Value(s) Returned 0
 
-Argumeni(s) 1: Opcode 11
+Argument(s) 1: Opcode 11
 
 arg `dtp-even-pc` or `dtp-odd-pc`
 
@@ -446,7 +446,7 @@ Exception None Memory Reference 'None
 
 Register Effects TOS: Valid after
 
-%check-preempt-request Instruction Format Operand.from stack Value(s) Returned 0 Argumeni(s) 0 Opcode 54
+%check-preempt-request Instruction Format Operand.from stack Value(s) Returned 0 Argument(s) 0 Opcode 54
 
 Immediate Argument Type Not. applicable
 
@@ -502,7 +502,7 @@ List-Function Operations
 
 Instructions common to I and LIG:
 
-car, cdr, rplaca, `rplacd`, member, assoc
+car, `cdr`, rplaca, `rplacd`, member, assoc
 
 Similar instructions:
 
@@ -618,7 +618,7 @@ fast-aref
 
 fast-aset
 
-aref-1 aset\~i aloc-\~1 fast-aref-1 fast-aset-1
+`aref-1` aset\~i aloc-\~1 fast-`aref-1` fast-aset-1
 
 e.
 

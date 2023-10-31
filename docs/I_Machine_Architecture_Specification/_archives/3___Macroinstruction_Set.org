@@ -16,7 +16,7 @@ sections applicable to all instructions: instruction sequencing, internal
 registers, and explanations of the various fields in the instruction
 definitions, including instruction formats and control stack addressing modes,
 argument descriptions, types of instruction exceptions, types of memory
-references, top-of-stack register effects,and the cdr codes of values returned.
+references, top-of-stack register effects,and the `cdr` codes of values returned.
 
 *** Instruction Sequencing
 
@@ -32,8 +32,8 @@ NOTE: A full word address is split between an __even__ half-world address,
 followed by an __odd__ half-word address.
 ******
 
-The cdr code field of each word executed contains sequencing information to
-minimize this waste. The cdr code takes on one of four values, which specify how
+The `cdr` code field of each word executed contains sequencing information to
+minimize this waste. The `cdr` code takes on one of four values, which specify how
 much the PC is incremented after executing an instruction from this word. Note
 that the PC contains a half-word address.
 
@@ -48,10 +48,10 @@ that the PC contains a half-word address.
 
 
 When a constant follows an odd half-word instruction, the half-word instruction
-pair has cdr code 0 and the constant has cdr code 3. When a constant follows an
+pair has `cdr` code 0 and the constant has `cdr` code 3. When a constant follows an
 even half-word instruction, the constant follows the odd half-word paired with
-the constant’s predecessor. The half-word instruction pair has cdr code 3 and
-the constant has cdr code 2.
+the constant’s predecessor. The half-word instruction pair has `cdr` code 3 and
+the constant has `cdr` code 2.
 
 For example, straightline execution of the following sequence of instructions:
 
@@ -80,16 +80,16 @@ proceeds as follows:
 | 104 odd    | H | 0 | +1
 |===
 
-A cdr-code value of 1 (`cdr-nil`) is used to mark the end of compiled functions.
+A `cdr-code` value of 1 (`cdr-nil`) is used to mark the end of compiled functions.
 
 This value is placed in the word after the final instruction of the function.
 See the section <<_representation_of_compiled_functions>>. It is an error if the
 processor attempts to execute this word. The chapter on traps and handlers
 contains more information, See the section <<_exception_handling>>.
 
-The cdr code sequencing described above only indicates the default next
+The `cdr` code sequencing described above only indicates the default next
 instruction. When an instruction specifically alters the flow of control (for
-example, branch) the cdr code has no effect.
+example, branch) the `cdr` code has no effect.
 
 ### Internal Registers
 
@@ -177,8 +177,8 @@ to an appendix.
 
 
 The `%read-internal-register` instruction always returns the object from the
-specified register with its cdr code set to `cdr-next`. If an internal register
-has cdr-code bits, they can not be read by this instruction.
+specified register with its `cdr` code set to `cdr-next`. If an internal register
+has `cdr-code` bits, they can not be read by this instruction.
 
 The `rotate-latch` register does not have an internal address and can not be read
 or written with `%read-internal-register` or `%write-internal-register`.
@@ -272,7 +272,7 @@ OTP-FIXNUM `dtp-small-ratio` OTP-SINGLE-FLOAT `dtp-double-float` DTP~BIGNUM
 `dtp-big-ratio` DBTP-COMPLEX OTP-SPARE-NUMBER OTP-INSTANCE
 OTP-LIST-INSTANCE DTP-ARRAY=INSTANCE OYP-STRING-INSTANCE OTP-NIL
 
-DIP-LIST
+dtp-LIST
 
 `dtp-array` `dtp-string` `dtp-symbol` DTP~LOCATIVE
 
@@ -333,13 +333,13 @@ Constant Formats::
 
 The processor treats any word whose data type is that of an object reference asa
 constant. The processor pushes the object reference itself onto the control.
-stack and sets its cdr. code to. `cdr-next` for any object. that is pushed onto
+stack and sets its `cdr`. code to. `cdr-next` for any object. that is pushed onto
 the control stack, unless otherwise specified.
 
 Value Cell Contents::
 
 A. word of data type `dtp-external-value-cell-pointer` contains the address of a
-memory cell. Using a data-read operation, the processor pushes the word
+memory cell. Using a `data-read`  operation, the processor pushes the word
 contained in the addressed cell onto the control stack, following invisible
 pointers if necessary. Typically this pointer addresses a symbol’s value or
 function cell.
@@ -437,11 +437,11 @@ addressing mode". For example, the following sequence could be used to add two
 numbers, neither of which is to be saved on the stack for later use, and to
 leave the result of the addition on the stack.
 
-push LP|@ ;push -argZ on the stack
+push LP|@ ;push -arg2 on the stack
 
 push LP]4 ;push arg2 on the stack
 
-add sp-pop ;pops arg2 then argi off stack, jadds, then pushes the result
+add sp-pop ;pops arg2 then arg1 off stack, jadds, then pushes the result
 
 i Immediate - The last operand is not on the stack at all, but is a fixnum whose
 value is. the offset possibly sign-extended to 32 bits, depending on the
@@ -518,8 +518,8 @@ write". The table omits these.) Note that the categories overlap.
 ’ Table 13. . Memory Cycles
 
 Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor
-er data-read @ – trap trap ind ind ind ind trap mtrp. trnspt data-write
-1 - ~ trap ‘ind ind ind ind trap mtrp - cdr-read 9 - - trap ind ind - -
+er `data-read`  @ – trap trap ind ind ind ind trap mtrp. trnspt `data-write`
+1 - ~ trap ‘ind ind ind ind trap mtrp - `cdr-read` 9 - - trap ind ind - -
 trap - - bind-read 4 - - trap ‘ind tnd ind - trap mtrp trnspt bind-r-mon
 2 - of trap ind ind ind - trap ind trnspt bind-write 5 - - trap ind ind
 ind - trap mtrp <= bind-w-mon 3 - - trap ind ind ind - trap ind = -
@@ -546,19 +546,19 @@ are the microstate, and the virtual memory address (VMA). From the microstate,
 the Lisp handler will look up the type of error in an error table. See the
 section".Exception Handling".
 
-Data-Read Operations
+`data-read`  Operations
 
 Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor
-er data-read a - trap trap ind ind ind ind trap mtrp trnspt
+er `data-read`  a - trap trap ind ind ind ind trap mtrp trnspt
 
-Most operands are fetched with a data-read operation. This reads the word
+Most operands are fetched with a `data-read`  operation. This reads the word
 located at the requested memory address. If the word obtained is a forwarding,
 that is, invisible, pointer (`dtp-header-forward`, `dtp-element-forward`,
 `dtp-one-q-forward`, or `dtp-external-value-cell-pointer`), then the pointer’s
 address field is used as the new address of the cell. The content of this new
 address is then read and checked to see if it is an invisible pointer. The
 process is repeated until a non-invisible-pointer data type is encountered. The
-word finally obtained is returned as the result of the data-read operation.
+word finally obtained is returned as the result of the `data-read`  operation.
 During this pointer following, sequence breaks are allowed so that loops can be
 aborted. If at any point’ `dtp-null`, a header (`dtp-header-p`, `dtp-header-i`),
 or a special marker (non-invisible pointer – `dtp-gc-forward`) is encountered,
@@ -566,15 +566,15 @@ the error causes the instruction performing the data read to take an error trap.
 If a dtp-mon‘tor-forward is encountered, the instruction takes a monitor trap.
 If a data location that is read contains an address in oldspace and transport
 traps are enabled for the page containing the word read , a transport trap
-handler is invoked to evacuate the object and then the data-read is resurned.
+handler is invoked to evacuate the object and then the `data-read`  is resurned.
 See the section".I-machine Garbage Collection".
 
-Data-Write Operations
+ `data-write`  Operations
 
 * Cycle Code Data Nuil Header HFWD EFWD LFWD EVCP GC Mon- Point- Type
-itor . er data-write 4 - - ‘trap ind ind ind ind trap mtrp -
+itor . er  `data-write`  4 - - ‘trap ind ind ind ind trap mtrp -
 
-When most operands are written to memory, a data-write memory read operation is
+When most operands are written to memory, a  `data-write`  memory read operation is
 first performed. This checks the requested location to determine whether an
 invisible pointer is present. If so, the address of the pointer is used as the
 new address of the cell. The contents of the new address is read and checked to
@@ -590,28 +590,28 @@ replaced; are not transported… The process is repeated until a
 non-invisible-pointer data type is
 
 * found, at which point a write normally follows and the data is stored in the
-last location, preserving the cdr code of the.location into which it stores.
+last location, preserving the `cdr` code of the.location into which it stores.
 
-CDR-Read Operations Cycle Code Data Null Header HFWD EFWD IFWD EVCP GC…
+`cdr-read`  Operations Cycle Code Data Null Header HFWD EFWD IFWD EVCP GC…
 Mon- Point- ‘Type . itor, er
 
-_ cdr-read 9° - - trap ind ind - - trap - -
+_ `cdr-read` 9° - - trap ind ind - - trap - -
 
-Memory references made only to determine the cdr-code of a location use a cdr-
+Memory references made only to determine the `cdr-code` of a location use a `cdr`-
 read operation. This kind of reference follows pointers of the type
 `dtp-header-forward` or `dtp-element-forward`, which forward the entire memory
-word, including the cdr code. (Recall that a `dtp-header-forward` pointer is
+word, including the `cdr` code. (Recall that a `dtp-header-forward` pointer is
 used. by the system to replace an element when it is necessary to change the
-cdr-code of a _ cell in the middle of a cdr-coded list. See the section
-<<_forwarding_invisible_pointers>>. The cdr-read operation returns the contents
-of the cdr-code field of the finally found word.
+`cdr-code` of a _ cell in the middle of a `cdr-code`d list. See the section
+<<_forwarding_invisible_pointers>>. The `cdr-read` operation returns the contents
+of the `cdr-code` field of the finally found word.
 
 Forwarding pointers (`dtp-one-q-forward` and `dtp-external-value-cell-pointer`)
 that forward only the contents (that is, the data-type and pointer fields) of
-the cell are not followed. Instead, the cdr code of the word containing such a
+the cell are not followed. Instead, the `cdr` code of the word containing such a
 pointer is returned.
 
-Having extracted the relevant cdr code, the instruction doing the cdr read takes
+Having extracted the relevant `cdr` code, the instruction doing the `cdr` read takes
 action according to-the value returned, as explained in the section on lists.
 See the section <<_representations_of_lists>>.
 
@@ -631,7 +631,7 @@ bind-locative-to-value, change the value cell, not the contents of the value
 cell, of a variable. `dtp-external-value-cell-pointer` is an invisible pointer
 ‘that points to the value cell in memory. Since binding should create a new
 value cell, the system does not follow `dtp-external-value-cell-pointer` when
-doing bindings, In all other respects this operation is the same as a data-read
+doing bindings, In all other respects this operation is the same as a `data-read`
 memory operation, except that encountering `dtp-null` does not cause a trap. . .
 
 A subcategory of this type of operation is the. bind-read-no-monitor operation.
@@ -645,7 +645,7 @@ Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type . |
 | utor er | bind-write 5 - trap ind ind ind - trap mtrp - bind-w-mon 3.
 «- - trap ind ind ind = trap ind -
 
-A bind-write operation is like a data-write memory operation except that it does
+A bind-write operation is like a  `data-write`  memory operation except that it does
 not follow external-value-cell pointers. See the section".Bind-Read Operation".
 in NS Users Manual. A subcategory of this type of operation is the
 bind-write-no- . monitor operation. This operation, as opposed to the normal
@@ -654,7 +654,7 @@ binding write, does
 ’ not trap out if a `dtp-monitor-forward` pointer is encountered. Instead,
 it just follows the pointer.
 
-Header-Read Operations::
+`header-read`  Operations::
 
 Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point-
 
@@ -662,16 +662,16 @@ Type | itor er header-rd 6 £«trap trap - ind trap trap trap trap trap
 trnspt
 
 Instructions that reference objects represented in memory as structure objects
-use a header-read operation to access the header. This reads the word at the
+use a `header-read`  operation to access the header. This reads the word at the
 requested address. If the word is a header, the header is returned. If the word
 is a header-forward pointer, the address field of this invisible pointer is used
 as the new address of the header. The word at this new address is checked, and
 the process repeated until a header is found. If at any point something other
 than a header or header-forward pointer is found, the error causes, the
-instruction performing the header-read operation to take an error trap. If the
+instruction performing the `header-read`  operation to take an error trap. If the
 data location that is read (without a trap) contains an address in oldspace, a
 transport trap handler is invoked to evacuate the object and then the
-header-read is resumed.
+`header-read`  is resumed.
 
 Structure-Offset Operations::
 
@@ -738,40 +738,40 @@ operations
 - pushes that value on the stack. Thus, after an instruction has executed, the
 stack no longer contains the instruction’s arguments but instead contains the
 result of the operation. Instructions that do not return a value – for example,
-rplaed, aset, pop – pop off all of their arguments. Every instruction that
-produces a value and pushes it on the stack sets the cdr code of the pushed word
+`rplacd`, aset, pop – pop off all of their arguments. Every instruction that
+produces a value and pushes it on the stack sets the `cdr` code of the pushed word
 to 0 (`cdr-next`). The only exceptions are as follows:
 
-- The start-call instructions produce 3 (illegal in lists) in the cdr-code
+- The start-call instructions produce 3 (illegal in lists) in the `cdr-code`
 fields of the frame header on the stack.
 
 - A memory read or block read instruction – one of `%memory-read`,
 `%memory-read-address`, `%block-n-read`, or `%block-n-read-shift` – can copy the
-cdr code of the word from memory into the word on the stack.
+`cdr` code of the word from memory into the word on the stack.
 
 - The `push-apply-args` operation. can produce 1 (`cdr-nil`) or 2
-(`cdr-normal`) in the cdr-code field of words on the stack.
+(`cdr-normal`) in the `cdr-code` field of words on the stack.
 
-- The `catch-open` instruction can produce any value in the cdr-eode field
+- The `catch-open` instruction can produce any value in the `cdr`-eode field
 of certain words in the catch block.
 
-- The `catch-close` instruction produces 2 or 8 in the cdr code of the PC
+- The `catch-close` instruction produces 2 or 8 in the `cdr` code of the PC
 it saves before jumping to an unwind-protect cleanup handler.
 
 - `%p-tag-dpb` can be used to store into the stack.
 
-- `%set-tag` can be used to produce any cdr code but is usually programmed
+- `%set-tag` can be used to produce any `cdr` code but is usually programmed
 to produce `cdr-next`.
 
 - The instructions increment, decrement, set-to-car, set-to-cdr,
-`set-to-cdr-push-car` (car pushed with `cdr-next`), %block-n-read-alu, and
-%pointer-increment store into their stack,operands, preserving the cdr code that
+`set-to-cdr-push-car` (`car` pushed with `cdr-next`), %block-n-read-alu, and
+%pointer-increment store into their stack,operands, preserving the `cdr` code that
 was in.the stack location,
 
 - movem, pop, set-sp-to-address-save-tos, stack-bit, stack-bit-address,
 `return-kludge`, %merge-cdr-no-pop, and %set-cdr-code-n store into their stack
-operands and set the cdr code to some value other than.that of the stack
-location (that is, these instructions do not. preserve the original cdr code);
+operands and set the `cdr` code to some value other than.that of the stack
+location (that is, these instructions do not. preserve the original `cdr` code);
 See the section ".Revision 0 Stack-bit". See the section ".Revision 0
 Stack-bit-address".. See the section ".Revision 0 Return-kludge".
 
@@ -798,7 +798,7 @@ instructions.
 
 ### List-Function Operations
 
-car, cdr, set-to-car, set-to-cdr, `set-to-cdr-push-car`, rplaca, `rplacd`,
+car, `cdr`, set-to-car, set-to-cdr, `set-to-cdr-push-car`, rplaca, `rplacd`,
 rgetf, member, assoc
 
 The Lisp predicate instructions eq, eql, and endp are documented elsewhere. The
@@ -807,26 +807,26 @@ following topics:
 
 %allocate-list-block %allocate-structure-block
 
-car Instruction
+`car` Instruction
 
-Format Operand from stack Value(s) Returned 1 Argumeni(s) 1: Opcode 0
+Format Operand from stack Value(s) Returned 1 Argument(s) 1: Opcode 0
 
-arg dtp-list, `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
+arg `dtp-list` , `dtp-locative`, `dtp-list-instance`, or `dtp-nil`
 
 Immediate Argument Type Signed
 
-Description If the type of arg is dtp-list, pushes the car of arg on the
+Description If the type of arg is `dtp-list` , pushes the `car` of arg on the
 stack.
 
 If the type of arg is `dtp-locative`, pushes the contents of the location
 arg references on the stack.
 
-If the type of arg is `dtp-nil`, pushes nil on the stack.
+If the type of arg is `dtp-nil`, pushes `nil` on the stack.
 
 Exception Conditions: Type of arg is `dtp-list-instance`. Arguments: arg
 Values: 1
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid after
 
@@ -836,63 +836,63 @@ Format Operand from. stack Value(s) Returned 1
 
 Argument(s) 1: . Opcode 1
 
-_arg dtp-list, `dtp-locative`,
+_arg `dtp-list` , `dtp-locative`,
 
 `dtp-list-instance`, or `dtp-nil`
 
 Immediate Argument Type Signed
 
-Description If the type of arg is dtp-list, pushes the cdr of arg on the
+Description If the type of arg is `dtp-list` , pushes the `cdr` of arg on the
 stack.
 
 If the type-of arg is `dtp-locative`, pushes the contents of the location arg
 references on the stack.
 
-If the type of arg is `dtp-nil`, pushes nil on the stack. Exception Conditions:
+If the type of arg is `dtp-nil`, pushes `nil` on the stack. Exception Conditions:
 Type of arg is `dtp-list-instance`.
 
 Arguments: arg Values: 1
 
-Memory Reference Cdr-read, then data-read if `cdr-normal`
+Memory Reference `cdr-read` , then `data-read`  if `cdr-normal`
 
 Register Effects TOS: Valid after
 
-set-to-car . Instruction
+`set-to-car` . Instruction
 
 Format Operand from stack, ~ Value(s) Returned 0 address-operand mode
 (immediate and Sp-pop operand modes undefined)
 
-Argument(s) 1: Opcode 140 arg, the address operand, dtp-list,
+Argument(s) 1: Opcode 140 arg, the address operand, `dtp-list` ,
 
 `dtp-locative`, `dtp-list-instance`,
 
 or `dtp-nil`
 
 Immediate Argument Type Not applicable Description Replaces arg with the car
-of arg. Does not change the cdr code of the operand. See the instruction car,
+of arg. Does not change the `cdr` code of the operand. See the instruction car,
 page 92. Exception Conditions: Type of arg is `dtp-list-instance`. Arguments:
-arg (address of operand as locative) Values: 0 Memory Reference Data-read
+arg (address of operand as locative) Values: 0 Memory Reference `data-read`
 
 Register Effects TOS: Unchanged
 
-set-to-cdr : Instruction
+set-to-`cdr` : Instruction
 
 Format Operand from stack, Value(s) Returned 0 address-operand mode
 (immediate and sp-pop operand modes. undefined)
 
-Argument(s) 1: Opcode 141 arg, the address operand, dtp-list,
+Argument(s) 1: Opcode 141 arg, the address operand, `dtp-list` ,
 
 `dtp-locative`, `dtp-list-instance`
 
 or `dtp-nil`.
 
-Immediate Argument Type Not applicable Description : Replaces arg with the cdr
-of arg. Does not change the cdr code of the operand. See the instruction cdr,
+Immediate Argument Type Not applicable Description : Replaces arg with the `cdr`
+of arg. Does not change the `cdr` code of the operand. See the instruction `cdr`,
 page 938. Exception Conditions: Type of arg is `dtp-list-instance`.
 
 Arguments: arg (address of operand as locative) Values: 0
 
-Memory Reference Cdr-read, data-read
+Memory Reference `cdr-read` , `data-read`
 
 Register Effects TOS: Unchanged
 
@@ -901,7 +901,7 @@ Register Effects TOS: Unchanged
 Format Operand from stack, Value(s) Returned 1 address-operand mode
 (immediate and Sp-pop operand modes undefined)
 
-Argument(s) 1: Opcode 142 arg, the address operand, dtp-list,
+Argument(s) 1: Opcode 142 arg, the address operand, `dtp-list` ,
 
 `dtp-locative`, `dtp-list-instance`,
 
@@ -911,14 +911,14 @@ Immediate Argument Type Not applicable
 
 Description.
 
-Computes the ¢ar and the cdr of arg. Pushes the car onto the stack with
-a cdr code. of `cdr-next` and stores the cdr back into arg leaving the cdr
+Computes the ¢ar and the `cdr` of arg. Pushes the `car` onto the stack with
+a `cdr` code. of `cdr-next` and stores the `cdr` back into arg leaving the `cdr`
 code of the operand unchanged.
 
 Exception Conditions: Type of arg is `dtp-list-instance`. Arguments: erg
 (address operand as locative) Values: 1
 
-Memory Reference Data-read, cdr-read, data-read
+Memory Reference `data-read` , `cdr-read`, `data-read`
 
 Register Effects TOS: Valid after
 
@@ -934,24 +934,24 @@ arg2 any data type
 
 Immediate Argument Type. Signed
 
-Description o Replaces the car of arg1 with arg2. *
+Description o Replaces the `car` of arg1 with arg2. *
 
 Eh rrp Les
 
 Exception . Conditions: Type of arg] is `dtp-list-instance`. Arguments:
-argi, arg?
+argi, arg2
 
-Values: 0 Memory Reference Data-write
+Values: 0 Memory Reference `data-write`
 
 Register Effects TOS: Valid before, invalid after
 
 
 
-rplaed Instruction
+`rplacd` Instruction
 
 Format Operand from stack Value(s) Returned 0
 
-Argument(s) 2: Opcode 201 argl dtp-list, `dtp-locative`
+Argument(s) 2: Opcode 201 argl `dtp-list` , `dtp-locative`
 
 or `dtp-list-instance`;
 
@@ -959,18 +959,18 @@ arg2 any data type
 
 Immediate Argument Type Signed
 
-Description _ ns 4 ~ Replaces the cdr of argi with arg2. ‘¢5<% wer CA a
+Description _ ns 4 ~ Replaces the `cdr` of arg1 with arg2. ‘¢5<% wer CA a
 SE.
 
 . del pee aaplianpr Cape AQ. Exception ey Caertag~ Come -
 
-Conditions: Type of arg is `dtp-list-instance`. Type of argl is dtp-list
-and the cdr code of the referenced cell is not `cdr-normal`. See the
+Conditions: Type of arg is `dtp-list-instance`. Type of argl is `dtp-list`
+and the `cdr` code of the referenced cell is not `cdr-normal`. See the
 section".Revision 0 Rplacd".
 
-Arguments: argi, arg2 Values: 0
+Arguments: arg1, arg2 Values: 0
 
-Memory Reference Cdr-read, then data-write
+Memory Reference `cdr-read` , then `data-write`
 
 Register Effects TOS: Valid before, invalid after
 
@@ -996,7 +996,7 @@ Instruction
 
 Format Operand from. stack Value(s): Returned 2
 
-Argument(s) 2: Opcode 225 argl any data type; arg2 dtp-list, `dtp-nil`, or
+Argument(s) 2: Opcode 225 argl any data type; arg2 `dtp-list` , `dtp-nil`, or
 `dtp-list-instance`
 
 Immediate Argument Type Signed
@@ -1004,10 +1004,10 @@ Immediate Argument Type Signed
 Description
 
 Searches the list. arg2 two elements. at a time, succeeding if the first
-element of a pair is eql to argl, failing if the end of the list.is
+element of a pair is`eql`to argl, failing if the end of the list.is
 reached without finding a match. Upon failure, both values returned are
 nil. Upon success, the first value returned is the second element of the
-matching pair, and the second value returned is the tail of arg? whose car is
+matching pair, and the second value returned is the tail of arg2 whose `car` is
 that second element. The second value serves as a success/failure indicator and
 -also can be used with rplaca to change the property value. The length of the
 list is supposed to be a multiple of two; if the list is of odd length and a
@@ -1020,7 +1020,7 @@ exceptions that the initial list is subject to. See the section
 
 Exception
 
-Conditions: Type of argi is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`,
+Conditions: Type of arg1 is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`,
 `dtp-complex`, or `dtp-spare-number` (eq test not sufficient). A match
 occurs at the end of an odd-length list. Any sublist of arg2 is of type
 `dtp-list-instance`.
@@ -1029,7 +1029,7 @@ Arguments: argl, arg2
 
 Values: 2
 
-‘Memory reference data-read, cdr-read
+‘Memory reference `data-read` , `cdr-read`
 
 4
 
@@ -1038,13 +1038,13 @@ Register Effects TOS: Valid before, valid after
 member — Instruction * Format Operand from stack Value(s) Returned 1
 Argument(s) 2: . Opcode 226
 
-argl any data type; arg2 dtp-list, `dtp-nil`, or `dtp-list-instance`
+argl any data type; arg2 `dtp-list` , `dtp-nil`, or `dtp-list-instance`
 
 Immediate Argument Type Signed
 
 Description
 
-Returns nil or a tail of arg2. whose car is eql to argl. . This implements the
+Returns `nil` or a tail of arg2. whose `car` is`eql`to argl. . This implements the
 cl:member function and approximates the zl:memq function. Note that each sublist
 is subject to the type-checking errors and exceptions that the initial list is
 subject to. See the section ``Interruptible Instructions". page 98.
@@ -1055,11 +1055,11 @@ Exception Conditions: Type of arg] is `dtp-double-float`, `dtp-bignum`, ’
 (eq test not sufficient). Any sublist of arg2 is.of type
 `dtp-list-instance`.
 
-Arguments: argl, argZ
+Arguments: argl, arg2
 
 Values: 1
 
-Memory Reference Cdr-read, data-read
+Memory Reference `cdr-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after
 
@@ -1076,7 +1076,7 @@ Immediate Argument Type Signed
 
 Description
 
-Returns nil or an element of arg2 whose car is eq! to arg1. This implements the
+Returns `nil` or an element of arg2 whose `car` is eq! to arg1. This implements the
 chassoc function and approximates the zl:assq function. Note that each sublist
 is subject to the type-checking errors and exceptions that the initial list is
 subject to. See the section ``Interruptible Instructions". page 98.
@@ -1085,13 +1085,13 @@ Exception
 
 Conditions: Type of argl is `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`,
 `dtp-complex`, or `dtp-spare-number` (eq test not sufficient). Any sublist
-or element of arg? is of type `dtp-list-instance`.
+or element of arg2 is of type `dtp-list-instance`.
 
-Arguments: argl, arg?
+Arguments: argl, arg2
 
 Values: 1
 
-Memory Reference Cdr-read, data-read
+Memory Reference `cdr-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after BAR-1 modified
 
@@ -1108,8 +1108,8 @@ minusp, zerop.
 Refer also. to the subprimitive instructions %unsigned-lessp and
 %ephemeralp.
 
-eq Instruction eg-no-pop Format Operand from stack Value(s) Returned 1
-(2 for no-pop) Argumeni(s) 2: Opcode 270 (274 for no-pop)
+eq Instruction `eg-no-pop` Format Operand from stack Value(s) Returned 1
+(2 for no-pop) Argument(s) 2: Opcode 270 (274 for no-pop)
 
 argl any data type arg2 any data type
 
@@ -1117,10 +1117,10 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes t on the stack if the operands reference the same Lisp object; otherwise,
-pushes nil on the stack. The no-pop version of this instruction leaves the first
-argument argi on the stack. (Note that, in the presence of forwarding pointers,
-two references may refer to the same object but not be eq or egl.)
+Pushes`t`on the stack if the operands reference the same Lisp object; otherwise,
+pushes `nil` on the stack. The no-pop version of this instruction leaves the first
+argument arg1 on the stack. (Note that, in the presence of forwarding pointers,
+two references may refer to the same object but not be`eq`or egl.)
 
 Exception None
 
@@ -1140,13 +1140,13 @@ Immediate Argument Type Signed
 
 Description
 
-Returns ¢ if the two arguments are eq or if they are numbers of the same type
-with the same value; otherwise returns nil. Note. that for `dtp-single-float`,
+Returns ¢ if the two arguments are`eq`or if they are numbers of the same type
+with the same value; otherwise returns `nil`. Note. that for `dtp-single-float`,
 +0 and -0 are not eqi. Also, (eql 0 0.0) is false. The no- pop version of this
-instruction leaves the first argument on the stack. egl returns nil without
+instruction leaves the first argument on the stack. egl returns `nil` without
 trapping any time the data types of the arguments are different. (Note that, in
 the presence of forwarding pointers, two references may ‘refer to the same
-object. but not be eq or eql.)
+object. but not be`eq`or eql.)
 
 Exception
 
@@ -1156,11 +1156,11 @@ Conditions: Types of arg] and arg2 are equal and one of
 `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`, or
 `dtp-spare-number`. (but arg1 and arg2 are not eq).
 
-Arguments: argi, arg2
+Arguments: arg1, arg2
 
 Values: 1 for normal version
 
-2 for no-pop version (returns argi to become the non-popped argument).
+2 for no-pop version (returns arg1 to become the non-popped argument).
 
 Memory Reference None
 
@@ -1170,24 +1170,24 @@ equal-number Instruction equal-number-no-pop Format Operand from stack
 Value(s) Returned 1 (2 for no-pop) Argument(s) 2: Opcode 260 (264 for
 no-pop)
 
-argi any numeric data type arg2 any numeric data type
+arg1 any numeric data type arg2 any numeric data type
 
 Immediate Argument Type Signed
 
 Description
 
-Tests the two arguments for numerical equality and pushes t or nil on the stack
+Tests the two arguments for numerical equality and pushes`t`or `nil` on the stack
 according to the result. Note that (equal-number 0 0.0), which is also written
 (= 0 0.0), is true, in contrast to (egl 0.0.0), which is false. The no-pop
 version of this instruction leaves the first argument on the stack.
 
-Exception Type: Arithmetic dispatch Conditions: Types of argI and arg2.are
-numeric, but not both dip-fixnum or `dtp-single-float`. Floating point
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2.are
+numeric, but not both dtp-fixnum or `dtp-single-float`. Floating point
 exceptions. Arguments: argl, arg2 Values: 1 for. normal version 2 for no-pop
 version (returns argl to become the non-popped argument). :
 
 Note that equal-number or equal-number-no-pop will take an exception
-even if the arguments are eq but are not `dtp-fixnum` or `dtp-single-float`.
+even if the arguments are`eq`but are not `dtp-fixnum` or `dtp-single-float`.
 
 Memory Reference ‘None
 
@@ -1207,7 +1207,7 @@ Immediate Argument Type Signed
 
 Description
 
-Tests if arg > arg2, and pushes t or nil on the stack according to the
+Tests if arg > arg2, and pushes`t`or `nil` on the stack according to the
 result, The no-pop version of this instruction leaves the first.
 argument.on the stack.
 
@@ -1240,7 +1240,7 @@ Value(s) Returned 1 (2 for no-pop)
 
 Opcode 261 (265 for no-pop)
 
-Tests if arg! <.arg2, and pushes t or nil on the stack according to the
+Tests if arg! <.arg2, and pushes`t`or `nil` on the stack according to the
 result. The no-pop version of this instruction leaves the first argument
 on
 
@@ -1277,14 +1277,14 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes t on the stack if any of the bits designated by 1s in the first
-argument.are 1s in the second argument; otherwise, pushes nil. The no-pop
+Pushes`t`on the stack if any of the bits designated by 1s in the first
+argument.are 1s in the second argument; otherwise, pushes `nil`. The no-pop
 version of this instruction leaves the first argument on the stack. The effect.
 of this instruction is
 
 (not (zerop (logand arg1 arg2))).
 
-Exception Type: Arithmetic dispatch Conditions: Types of argi and arg2
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2
 are numeric, but not both `dtp-fixnum`.
 
 Arguments: argl, arg2
@@ -1309,14 +1309,14 @@ Immediate Argument Type 10-bit mask
 
 Description
 
-n is a number between 0 and 15 inclusive. Two bits of n are part of the opeode
+n is a number between 0 and 15 inclusive. Two bits of n are part of the opcode
 and two bits are taken from the immediate argument. 7 specifies which 8-bit
 field, aligned on a 4-bit boundary, of a 64-bit vector the immediate is
 specifying. The 8 least-significant bits of the immediate field J are then
 inserted into a background of 64 zero bits. The data type of arg!, the argument
 on top of the stack, is then used to create a bit vector of zeros, except with a
 one in the slot for the data type. The two vectors are then ANDed together. If
-the result is nonzero, then t is returned, otherwise nil is returned. The no-pop
+the result is nonzero, then`t`is returned, otherwise `nil` is returned. The no-pop
 version of this instruction leaves the argument on the stack.
 
 The fields specified by type-member-n are shown below.
@@ -1332,12 +1332,12 @@ Register Effects TOS: Valid after
 
 
 
-Instruction Format Operand from. stack Value(s) Returned 1 Argumeni(s)
+Instruction Format Operand from. stack Value(s) Returned 1 Argument(s)
 1: Opcode 2 arg `dtp-list`, `dtp-list-instance`, or `dtp-nil`
 
 Immediate Argument Type Signed
 
-Description Pushes t on the stack if arg is nil; otherwise pushes nil.
+Description Pushes`t`on the stack if arg is `nil`; otherwise pushes `nil`.
 
 Exception. None Memory Reference ‘None
 
@@ -1351,14 +1351,14 @@ Instruction
 
 Format Operand from stack Value(s) Returned 1
 
-Argumeni(s) 1: Opcode 36 arg any numeric data type
+Argument(s) 1: Opcode 36 arg any numeric data type
 
 Immediate Argument Type Signed
 
 Description
 
-Pushes t on the stack if the argument is a positive number strictly
-greater than zero; otherwise pushes nil on the stack. This is an
+Pushes`t`on the stack if the argument is a positive number strictly
+greater than zero; otherwise pushes `nil` on the stack. This is an
 optimization of © arg 0).
 
 Exception Type: Arithmetic dispatch Conditions: Type of arg is numeric,
@@ -1381,8 +1381,8 @@ Immediate Argument Type Signed
 
 Deseription
 
-Pushes t on the stack if the argument is a negative number strictly less
-than. zero; otherwise pushes nil on the stack. This is an optimization
+Pushes`t`on the stack if the argument is a negative number strictly less
+than. zero; otherwise pushes `nil` on the stack. This is an optimization
 of (< arg 0). ,
 
 Exception Type: Arithmetic dispatch Conditions: Type of arg is numeric,
@@ -1406,7 +1406,7 @@ Argument(s) 1: Opcode 34 arg any numeric data type
 Immediate Argument Type Signed
 
 Description Pushes ¢ on the stack if the argument is zero; otherwise
-pushes nil on the stack, This is an optimization of @ arg 0).
+pushes `nil` on the stack, This is an optimization of @ arg 0).
 
 Exception Type: Arithmetic dispatch Conditions: Type of arg is numeric,
 but not `dtp-fixnum` or `dtp-single-float`. Floating-point exceptions.
@@ -1456,7 +1456,7 @@ x
 
 Format Operand from stack Value(s) Returned 1
 
-Argument(s) 2: Opeode 300 argl any numeric data type arg2 any numeric
+Argument(s) 2: Opcode 300 argl any numeric data type arg2 any numeric
 data type
 
 Immediate Argument Type Unsigned
@@ -1470,7 +1470,7 @@ Exceptions
 Type: Arithmetic dispatch
 
 Conditions: Types of argl and arg2 are numeric, but not both `dtp-fixnum`
-or `dtp-single-float`. argi and arg2 are both `dtp-fixnum`, but result
+or `dtp-single-float`. arg1 and arg2 are both `dtp-fixnum`, but result
 overflows. Floating point. exceptions.
 
 Arguments: argl, arg2
@@ -1499,7 +1499,7 @@ Exceptions
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argi and arg? are numeric, but not both `dtp-fixnum`
+Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`
 or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result
 overflows. Floating point exceptions.
 
@@ -1511,7 +1511,7 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 unary-minus Instruction Format Operand from stack Value(s) Returned 1
-Argumeni(s) 1: Opcode 1i4
+Argument(s) 1: Opcode 1i4
 
 arg any numeric data type
 
@@ -1583,7 +1583,7 @@ Memory Reference None
 Register Effects TOS: Unchanged
 
 multiply. . Instruction Format. Operand from stack Value(s). Returned 1
-Argumenit(s) 2: Opcode 202
+Argumentt(s) 2: Opcode 202
 
 argl any numeric data. type arg2 any numeric data type
 
@@ -1596,11 +1596,11 @@ Exceptions
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argi and arg? are numeric, but not both dtp-fimmum
-or `dtp-single-float`. argl and arg? are both `dtp-fixnum`, but result
+Conditions: Types of arg1 and arg2 are numeric, but not both dtp-fimmum
+or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result
 overflows. Floating point exceptions.
 
-Arguments: argi, arg2
+Arguments: arg1, arg2
 
 Values: 1
 
@@ -1618,7 +1618,7 @@ Immediate Argument Type Signed
 
 Description
 
-Divides argi by arg2, and pushes the quotient on the stack. If both
+Divides arg1 by arg2, and pushes the quotient on the stack. If both
 operands are integers, the result is the integer obtained by truncating
 the quotient toward 0; otherwise, the result is a single-precision
 floating-point number. quotient implements the function zl:/ of two
@@ -1627,7 +1627,7 @@ arguments. See the section".Revision 0 Numeric Operations". page 299.
 Exceptions Type: Arithmetic dispatch Conditions: Types of arg and erg2
 are numeric, but not both dtp-fixmum or `dtp-single-float`. argl and arg2
 are both `dtp-fixnum`, but result overflows. Floating point exceptions.
-Arguments: argi, arg2 Values: 1 Note: the only possible fixnum-fixnum
+Arguments: arg1, arg2 Values: 1 Note: the only possible fixnum-fixnum
 overflow is -1_81. / -1 = 1_81.
 
 Memory Reference None
@@ -1648,7 +1648,7 @@ ceiling Instruction
 
 Format Operand from stack Value(s) Returned 2
 
-Arguments) 2: Opcode 204 ‘argi any numeric data type (an integer) arg2
+Arguments) 2: Opcode 204 ‘arg1 any numeric data type (an integer) arg2
 any numeric data type;
 
 if `dtp-fixnum`, must not be zero
@@ -1664,8 +1664,8 @@ quotient (NOS) is truncated toward positive infinity, and the remainder
 Operations That Return Two Values". page 120. See the section
 ``Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg2
-are numeric, but not both `dtp-fixnum`. ; argl and arg? are both
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2
+are numeric, but not both `dtp-fixnum`. ; argl and arg2 are both
 `dtp-fixnum`, but result overflows. Arguments: argl, arg2 Values: 2 Note:
 the only possible fixnum-fixnum overflow is -1_81. / -1 = 1_31.
 
@@ -1689,7 +1689,7 @@ if `dtp-fixnum`, must not be zero —
 
 Description
 
-. Divides argi by arg?, pushes the quotient on the stack, then pushes
+. Divides arg1 by arg2, pushes the quotient on the stack, then pushes
 the
 
 remainder on the stack. If the remainder is not zero, the resulting
@@ -1709,7 +1709,7 @@ Exceptions
 Conditions: Types of ergi and arg2 are numeric, but not both `dtp-fixnum`.
 | argl and arg2 are both `dtp-fixnum`, but result overflows.
 
-Arguments: argl, arg? —
+Arguments: argl, arg2 —
 
 Values: 2 | Note: the only possible fixnum-fixnum overflow is -1_81. /
 -l= 131 Memory Reference None -
@@ -1729,11 +1729,11 @@ Description
 Divides arg1 by arg2, pushes the quotient on. the stack, then. pushes
 the remainder on the. stack. If the remainder is not zero, the resulting
 quotient (NOS), is truncated toward zero, and the remainder (TOS) is.
-such that arg] = arg? * NOS + TOS. See the section".Division Operations
+such that arg] = arg2 * NOS + TOS. See the section".Division Operations
 That Return Two Values". page 120. See the section".Revision 0 Numeric
 Operations". page 299. :
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg2
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2
 are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`,
 but result overflows. Arguments: argl, arg2 Values: .2 Note: the only
 possible fixnum-fixnum overflow is -1_31. / -1 = 1_81.
@@ -1765,7 +1765,7 @@ Values". page 120. See the section".Revision 0 Numeric Operations".
 page 299.
 
 Exceptions Type: Arithmetic dispatch Conditions: Types of arg and arg2
-are numeric, but not both `dtp-fixnum`. argl and arg? are both `dtp-fixnum`,
+are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`,
 but result overflows. Arguments: argl, arg2 : Values: 2 : : Note: the
 only possible fixmum-fixnum overflow is -1_81. / -1 = 1,81.
 
@@ -1787,7 +1787,7 @@ Divides argl by arg2, adjusts the remainder to have the same sign as the
 dividend, and pushes the remainder on the stack. See the section
 ``Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg?
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2
 are numeric, but not both `dtp-fixnum`. ” argl and arg2 are both
 `dtp-fixnum`, but result overflows. Arguments: .argl, arg2 Values: 1 Note:
 the only possible fixnum-fixnum overflow is -1_31. / -1 = 131. This
@@ -1799,7 +1799,7 @@ Memory Reference None
 Register Effects TOS: Valid before, valid after
 
 rational-quotient Instruction Format Operand from stack Value(s).
-Returned 1 Argument(s) 2: Opeode 211
+Returned 1 Argument(s) 2: Opcode 211
 
 argl any numeric data type arg2 any numeric data type; if `dtp-fixnum`,
 must not be zero
@@ -1808,7 +1808,7 @@ Immediate Argument Type Signed
 
 Description
 
-Divides argi by arg2, and pushes the quotient on the stack. If both
+Divides arg1 by arg2, and pushes the quotient on the stack. If both
 operands are integers and the remainder is not zero, the instruction
 traps to a routine that returns the ratio (`dtp-small-ratio` or
 `dtp-big-ratio`) of argllarg2 reduced to lowest terms. If the remainder is
@@ -1817,11 +1817,11 @@ result type is dtp-single-fleat if either or both arguments are
 `dtp-single-float` types. See the section".Revision 0 Numeric
 Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg2
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2
 are numeric, but. not both `dtp-fixnum` or `dtp-single-float`. arg and arg2
 are both `dtp-fixnum`, but result overflows.
 
-argi and arg2 are both `dtp-fixnum`, but remainder is non-zero. Floating
+arg1 and arg2 are both `dtp-fixnum`, but remainder is non-zero. Floating
 point exceptions. Arguments: ergi, arg2 Values: 1 Note: the only
 possible fisnum-fixnum overflow is -1_81. / -1 = 1_81.
 
@@ -1889,9 +1889,9 @@ The implementation has a choice of returning the smallest argument as is
 or applying the rules of floating-point contagion. If the arguments are
 equal, then either one of them may be returned.
 
-Exception Type: Arithmetic dispatch Conditions: Types of argI and arg2.
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2.
 are numeric, but not both `dtp-fixnum` or `dtp-single-float`. Floating point
-exceptions. Arguments: argi, arg2 Values: 1
+exceptions. Arguments: arg1, arg2 Values: 1
 
 Memory Reference None
 
@@ -1901,16 +1901,16 @@ logand : Instruction
 
 Format Operand from stack Value(s) Returned 1
 
-Argument\{s) 2: Opeode 215 argl any numeric data type , arg2 any numeric
+Argument\{s) 2: Opcode 215 argl any numeric data type , arg2 any numeric
 data type
 
 Immediate Argument Type Signed
 
-Description Forms the. bit-by-bit logical AND of argi and arg2, and.
+Description Forms the. bit-by-bit logical AND of arg1 and arg2, and.
 pushes the result on the stack. .
 
-Exception Type: Arithmetic dispatch Conditions: Types of argi and arg2
-are numeric, but not both `dtp-fixnum`. Arguments: argl, arg? Values: 1
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2
+are numeric, but not both `dtp-fixnum`. Arguments: argl, arg2 Values: 1
 
 Memory Reference None
 
@@ -1918,7 +1918,7 @@ Register Effects TOS:. Valid before, valid after logior
 
 Format Operand from stack
 
-Argumeni(s) 2: argl any numeric data type arg2.any numeric data type
+Argument(s) 2: argl any numeric data type arg2.any numeric data type
 
 Immediate Argument Type Signed
 
@@ -1930,7 +1930,7 @@ Opcode 217
 
 Instruction
 
-Forms the bit-by-bit inclusive OR of argi and arg2, and pushes the
+Forms the bit-by-bit inclusive OR of arg1 and arg2, and pushes the
 result
 
 on the stack.
@@ -1941,7 +1941,7 @@ Conditions: Types of arg and arg2 are numeric,
 
 but not both `dtp-fixnum`.
 
-Arguments: argi, arg2 Values: 1
+Arguments: arg1, arg2 Values: 1
 
 Memory Reference None
 
@@ -2008,10 +2008,10 @@ Exception
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argI and arg2 are numeric, but not both `dtp-fixnum`.
+Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`.
 argl and arg2 are both `dtp-fixnum`, but result overflows.
 
-Arguments: argi, arg2
+Arguments: arg1, arg2
 
 Values: 1
 
@@ -2039,7 +2039,7 @@ Immediate Argument Type Signed
 
 Description
 
-Rotates arg! left arg2 bit positions. when arg? is positive, or rotates
+Rotates arg! left arg2 bit positions. when arg2 is positive, or rotates
 arg!
 
 right jarg2| bit. positions when arg2.is negative, then pushes the
@@ -2065,8 +2065,8 @@ Immediate Argument Type Signed
 
 Description
 
-Shifts argi left arg2 places when arg2 is positive, or shifts arg1 right
-Jarg2| places when arg? is negative. Unused positions are filled by
+Shifts arg1 left arg2 places when arg2 is positive, or shifts arg1 right
+Jarg2| places when arg2 is negative. Unused positions are filled by
 zeroes. Exception None
 
 Memory Reference None
@@ -2078,13 +2078,13 @@ Register Effects TOS: Valid before, valid after DP Op register modified
 %82-bit-plus Instruction Format Operand from stack Value(s) Returned 1
 Argument(s) 2: Opcode 302
 
-argi `dtp-fixnum` arg2 `dtp-fixnum`
+arg1 `dtp-fixnum` arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned
 
 Description
 
-Pushes argi + arg2 on the stack, ignoring overflow (addition uses signed
+Pushes arg1 + arg2 on the stack, ignoring overflow (addition uses signed
 32-bit arithmetic).
 
 Exception None
@@ -2100,7 +2100,7 @@ argl `dtp-fixnum` arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned.
 
-Description. Pushes argi - arg2 on the stack, ignoring overflow.
+Description. Pushes arg1 - arg2 on the stack, ignoring overflow.
 
 Exception None Memory Reference None
 
@@ -2152,7 +2152,7 @@ Register Effects TOS: Valid before, valid after
 %sub-bignum-step . ; Instruction Format Operand from stack Value(s)
 Returned 2 Arguments) 8: Opcode 305
 
-argi `dtp-fixnum`
+arg1 `dtp-fixnum`
 
 arg2 `dtp-fixnum`
 
@@ -2162,7 +2162,7 @@ Immediate Argument Type Unsigned
 
 Deseription
 
-Computes ((argi - arg2) - arg3), pushes this value on the stack, then
+Computes ((arg1 - arg2) - arg3), pushes this value on the stack, then
 pushes the value 1 on the stack if a".borro". was necessary or 2 if a
 double borrow was necessary; otherwises pushes a 0.
 
@@ -2183,7 +2183,7 @@ Immediate Argument Type Unsigned
 Description
 
 Pushes the 2-word result. of multiplying 32-bit unsigned arg1 by 32-bit
-unsigned arg? on the stack: first the least-significant word, then the
+unsigned arg2 on the stack: first the least-significant word, then the
 most- significant word.
 
 Exception. None
@@ -2194,7 +2194,7 @@ Register Effects TOS: Valid before, valid after
 
 
 %divide-bignum-step. : Instruction Format Operand from stack Value(s).
-Returned 2 Argiiment(s) 8: Opcode 307
+Returned 2 arg1iment(s) 8: Opcode 307
 
 argl `dtp-fixnum` arg2 `dtp-fixnum` arg3 `dtp-fixnum`, must not be 0
 
@@ -2205,7 +2205,7 @@ Description
 Performs an unsigned divide of the 64-bit number ¢ argl (ash.arg2 82.))
 by arg3, pushes the quotient on the stack, then pushes the remainder on
 the stack. Only the low 32 bits of the quotient and remainder are pushed
-(implying that arg3 is expected to be greater than or equal to arg?
+(implying that arg3 is expected to be greater than or equal to arg2
 using an unsigned compare): If arg3 is 0, the instruction takes a
 divide-by-zero error pre-trap.
 
@@ -2228,8 +2228,8 @@ Immediate Argument Type Signed
 
 Description
 
-argl and arg? are unsigned digits. Has the effect of pushing (db (byte
-32. 82.) (ash G arg] (ash arg? 32.)) arg3)) on the stack as a fixnum.
+argl and arg2 are unsigned digits. Has the effect of pushing (db (byte
+32. 82.) (ash G arg] (ash arg2 32.)) arg3)) on the stack as a fixnum.
 
 Exception None
 
@@ -2250,7 +2250,7 @@ push : Instruction
 
 Format Operand from stack Value(s) Returned 1
 
-Argumeni(s) 1: Opcode 100 arg any data type :
+Argument(s) 1: Opcode 100 arg any data type :
 
 Immediate Argument Type Unsigned
 
@@ -2274,7 +2274,7 @@ Immediate Argument Type Not applicable
 
 Description
 
-Pops argi off the top of stack and stores it in the stack location
+Pops arg1 off the top of stack and stores it in the stack location
 addressed by arg2. Note that all 40 bits of the top of stack are stored
 into the operand,
 
@@ -2316,9 +2316,9 @@ Returned I immediate (sp-pop addressing mode illegal)
 
 Argument(s) 1: Opcode 101 I `dtp-fixnum`
 
-Immediate Argument Type Unsigned” Description Pushes f nils on the
+Immediate Argument Type Unsigned” Description Pushes f `nil`s on the
 stack. J is the immediate argument, which must be greater than 1.
-(Pushing one nil can be done with plusp 0.) Exception None Memory
+(Pushing one `nil` can be done with plusp 0.) Exception None Memory
 Reference None Register Effects TOS: Valid after
 
 push-address Instruction Format Operand from stack, Value(s) Returned 1
@@ -2345,7 +2345,7 @@ set-sp-toaddress ssi Instruction
 mode (immediate and ee -sp-pop addressing modes’ illegal)
 
 * Argument(s) 1: | oo | Opcode 151 | arg is address operand. oe
-Immediate Argument Type Not t applicable .
+Immediate Argument Type Not`t`applicable .
 
 _ Description . Sets the stack pointer to , the address of arg. This
 can be used to Pop a . . constant number of values with -
@@ -2402,13 +2402,13 @@ Immediate: Argument Type Signed
 
 Description
 
-With. the value of argi being TO and the value of arg2 being FROM, moves
+With. the value of arg1 being TO and the value of arg2 being FROM, moves
 all forty bits of the contents of successive locations starting at FROM
 into successive locations starting at TO until the top of the stack is
 moved, and then changes the stack-pointer to point to the last location
 written, The last word moved is the stack location just below arg1..
 This instruction is not interruptible. Note that this instruction only
-works if it moves at least one word. Results are undefined if argi is
+works if it moves at least one word. Results are undefined if arg1 is
 greater than arg2 (unsigned). See the section".Revision 0 Stack-bit"..
 page 300.
 
@@ -2430,7 +2430,7 @@ arg2 is an address operand
 
 Immediate Argument Type Not applicable
 
-Description With the value of arg1 being TO and arg? being FROM-ADDR,
+Description With the value of arg1 being TO and arg2 being FROM-ADDR,
 moves all forty bits of the contents of successive locations starting at
 the address in the location pointed to by FROM-ADDR into successive
 locations starting at TO until the top of the stack is moved, and then
@@ -2439,7 +2439,7 @@ that stack-bit-address is the same as stack-bit except that arg2 of
 stack-bit-address is the address of the operand, whereas arg2 for
 stack-bit is the contents of the operand. This instruction is not
 interruptible. Note that this instruction only works if it moves at
-least one word. Results are undefined if argi is less than or
+least one word. Results are undefined if arg1 is less than or
 
 . equal to the address of arg2..FROM-ADDR is less than or equal to SP
 after the arguments have been removed. See the section".Revision 0
@@ -2447,13 +2447,13 @@ Stack-bit- — address". page 300.
 
 The instruction sequence
 
-push argi stack-bit-address arg2
+push arg1 stack-bit-address arg2
 
 is equivalent to the instruction sequence
 
-push argi push-address arg2 stack-bTt sp-pop
+push arg1 push-address arg2 stack-bTt sp-pop
 
-Where arg? is a stack-frame address such as, for example, FP|2.
+Where arg2 is a stack-frame address such as, for example, FP|2.
 Exception None Memory Reference None
 
 Register Effects TOS: Valid before, valid after
@@ -2477,7 +2477,7 @@ Argument(s) 2: Opcode 170
 
 argl any numeric data type BB and FS 10-bit immediate
 
-Description Extracts the field specified by BB and FS from argi, then
+Description Extracts the field specified by BB and FS from arg1, then
 pushes the result on the stack. See the section".Format for Field
 Extraction". page 82.
 
@@ -2500,7 +2500,7 @@ by BB and FS, then pushes the result on the stack.
 
 See the section".Format for Field Extraction". page 82.
 
-Exception Conditions: Types of argi and arg? are numeric, but not beth
+Exception Conditions: Types of arg1 and arg2 are numeric, but not beth
 `dtp-fixnum`. Arguments: argl, arg2 Values: 1 . Note: The trap handler is
 responsible for manually extracting the byte specifier from the trapped
 instruction.
@@ -2537,7 +2537,7 @@ BB. and FS 10-bit immediate
 
 Description
 
-Deposits the value argl into field in arg? specified by BB and FS, then
+Deposits the value argl into field in arg2 specified by BB and FS, then
 pushes the result, a `dtp-character` object, on the stack. See the section
 ``Format for Field Extraction". page 82.
 
@@ -2547,14 +2547,14 @@ Register Effects TOS: Valid before, valid after
 
 
 %p-idb BB FS Instruction Format Field-Extraction Value(s) Returned 1
-Argumeni(s) 2: Opcode 172
+Argument(s) 2: Opcode 172
 
 arg] any data type BB. and FS 10-bit immediate
 
 Description
 
 Extracts the field specified by. BB and FS from the bottom 32 bits of
-the word at the address contained in argI, then pushes the extracted
+the word at the address contained in arg1, then pushes the extracted
 field on the stack.. The data type of the result is dtp-fixmum. See the
 section".Format for Field Extraction". page 82.
 
@@ -2565,7 +2565,7 @@ Memory Reference Raw-read
 Register Effects TOS: Valid after
 
 Jop-dpb BB FS Instruction Format Field-Extraction Value(s) Returned 0
-Argumeni(s) 3: Opcode 372
+Argument(s) 3: Opcode 372
 
 arg] `dtp-fixnum`
 
@@ -2587,9 +2587,9 @@ Register Effects TOS: Valid before, invalid after
 
 
 %p-tag-ldb BB FS Instruction Format Field-Extraction Value(s} Returned 1
-Argumeni(s) 2: _ Opcode 173
+Argument(s) 2: _ Opcode 173
 
-argi any Lisp data type
+arg1 any Lisp data type
 
 BB and FS 10-bit immediate
 
@@ -2613,7 +2613,7 @@ argl dtp-fmum arg2 any Lisp data type BB and FS 10-bit immediate
 
 Description
 
-Deposits the value argi into the field specified by BB and FS in the top
+Deposits the value arg1 into the field specified by BB and FS in the top
 8 bits of the word at the address contained in arg2. It is illegal,
 though not checked, to specify a field with bits outside the top 8 bits.
 See the section".Format for Field Extraction". page 82.
@@ -2627,7 +2627,7 @@ Register Effects TOS: Valid before, invalid after
 
 ### Array Operations
 
-aref-1, aset-l, aloc-1, setup-ld-array,
+aref-1, `aset-1`, `aloc-1`, setup-ld-array,
 setup-force- rid-array, fast-aref-1, fast-aset-1, array-leader,
 store-array-leader, aloc-leader
 
@@ -2637,7 +2637,7 @@ See the section".I-Machine Array Registers". page 36.
 
 Each of the next three instructions accesses. a one-dimensional array.
 
-aref-1 Instruction.
+`aref-1` Instruction.
 
 Format Operand from stack Value(s) Returned 1
 
@@ -2652,14 +2652,14 @@ Immediate Argument Type Unsigned
 Description Pushes the element of arg specified by arg2 on the stack.
 
 Checks the array arg to insure it is a one-dimensional array, and also
-checks to insure that the index arg? is a fixnum and falls within the
+checks to insure that the index arg2 is a fixnum and falls within the
 bounds of the array.
 
-Exception Conditions: Type of argi is `dtp-array-instance` or
+Exception Conditions: Type of arg1 is `dtp-array-instance` or
 `dtp-string-instance`. arg] is an array with array-long-prefix = 1.
 Arguments: arg, arg2 Values: 1
 
-Memory Reference Header-read, data-read
+Memory Reference `header-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after DP Op register modified
 
@@ -2688,7 +2688,7 @@ checks to insure that the index is a fixnum and falls within the bounds
 of the array.
 
 When the array-clement-type is .`dtp-fixnum` or `dtp-character`, takes an
-error trap unless the data type of argi matches the array element type.
+error trap unless the data type of arg1 matches the array element type.
 When the array element-type is `dtp-character` and the array byte-packing
 is 8-bit bytes, the instruction takes an error trap if bits <31:8> of
 argl are nonzero, Similarly, the instruction takes an error trap if bits
@@ -2698,9 +2698,9 @@ section".Revision 0 Aset-1". page 298.
 
 Exception Conditions: Type of arg2 is `dtp-array-instance` or
 `dtp-string-instance`. arg2 is an array with array-long-prefix = 1.
-Arguments: argi, arg2, arg3 Values: 0
+Arguments: arg1, arg2, arg3 Values: 0
 
-Memory Reference Header-read, data-write
+Memory Reference `header-read` , `data-write`
 
 Register Effects TOS: Valid before, invalid after DP Op register
 modified
@@ -2720,17 +2720,17 @@ arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned
 
-Description Pushes a locative to the element of argi addressed by arg2
+Description Pushes a locative to the element of arg1 addressed by arg2
 on the stack.
 
-Checks the array argi to insure it isa one-dimensional array containing
+Checks the array arg1 to insure it isa one-dimensional array containing
 object references (that is, checks that the array-element-type- field of
 the array header is object reference), and also checks to insure that
 the index arg2 is a fixnum and falls within the bounds of the array.
 
 Exception Conditions: Type of argl is `dtp-array-instance` or
-`dtp-string-instance`. argi is an array with array-long-prefix = 1.
-Arguments: argi, arg2 . Values: i
+`dtp-string-instance`. arg1 is an array with array-long-prefix = 1.
+Arguments: arg1, arg2 . Values: i
 
 Memory Reference Header-reai
 
@@ -2760,13 +2760,13 @@ array. See the section".I-Machine Array Registers". page 36.
 `dtp-string-instance`. arg is an array with array-long-prefix =’1.
 Arguments: arg Values: 4 (array register)
 
-Memory Reference Header-read
+Memory Reference `header-read`
 
 Register Effects TOS: Valid after
 
 
 setup-force-ld-array . : Instruction Format Operand from stack Value(s)
-Returned 4 Argumeni(s) 1: Opcode 4
+Returned 4 Argument(s) 1: Opcode 4
 
 arg `dtp-array`, `dtp-array-instance`, `dtp-string`, or. `dtp-string-instance`
 
@@ -2786,7 +2786,7 @@ Exception. Conditions: Type of arg is `dtp-array-instance` or
 `dtp-string-instance`. arg is an array with array-long-prefix = 1.
 Arguments: arg Values: 4 (array register)
 
-Memory Reference Header-read
+Memory Reference `header-read`
 
 Register Effects TOS: Valid after
 
@@ -2801,7 +2801,7 @@ fast-aref-1- Instruction
 Format Operand from stack, Value(s) Returned 1 address-operand mode.
 (immediate and sp-pop addressing modes illegal)
 
-Argumeni(s) 2: Opcode 350 arg dtp-fixmum : arg2 the address operand
+Argument(s) 2: Opcode 350 arg dtp-fixmum : arg2 the address operand
 (address of control word of array register)
 
 Immediate Argument Type Not. applicable
@@ -2821,9 +2821,9 @@ Exception Conditions: Array register is obsolete (current
 array-register-event-count does not equal that encached in the array
 register).
 
-Arguments: arg1, arg? (address operand as. locative) Values: 1
+Arguments: arg1, arg2 (address operand as. locative) Values: 1
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid before, valid after DP Op register modified
 
@@ -2844,7 +2844,7 @@ args the address operand (address of control word of array register)
 
 Immediate Argument Type Not applicable
 
-Description _ Stores argi into the element of arg3 indexed by arg2.
+Description _ Stores arg1 into the element of arg3 indexed by arg2.
 
 en
 
@@ -2868,7 +2868,7 @@ array-register-event-count does not equal that encached in the array
 register). Arguments: argl, arg2, arg3 (address operand as locative)
 Values: 0
 
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS; Valid before, invalid after DP Op register
 modified
@@ -2887,23 +2887,23 @@ arg2 `dtp-fixnum` (See description.)
 
 _ Immediate Argument.Type Unsigned
 
-Description Pushes on the stack the leader element of argi that is
-specified by arg?.
+Description Pushes on the stack the leader element of arg1 that is
+specified by arg2.
 
 Checks the array arg1 to insure it has a leader, and checks the index.
-arg? . . to insure it is a fixnum and falls within the -bounds of the
+arg2 . . to insure it is a fixnum and falls within the -bounds of the
 array leader; if | the checks fail, the instruction takes an error trap.
 
-Exception Post Trap Conditions: Type of argi is dtp- -array-instance or
+Exception Post Trap Conditions: Type of arg1 is dtp- -array-instance or
 | `dtp-string-instance`. — Arguments: argl, arg2— ’ Values: 1
 
-_ Memory Reference Header-read, data-read
+_ Memory Reference `header-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after
 
 
 store-array-leader Instruction Format Operand from stack Value(s).
-Returned 0 Argumeni(s) 3: Opcode 314
+Returned 0 Argument(s) 3: Opcode 314
 
 argl any Lisp data. type
 
@@ -2912,17 +2912,17 @@ arg3 `dtp-fixnum`. (See description.)
 
 Immediate Argument Type Unsigned
 
-Description Stores argi into the element specified by arg3 of the leader
+Description Stores arg1 into the element specified by arg3 of the leader
 of arg2. Returns no values. “Y@@y i Cheep Er
 
 Checks the array arg2 to insure it has a leader, and checks the index
-arg? to insure it is a fixnum and falls within the bounds of the array
+arg2 to insure it is a fixnum and falls within the bounds of the array
 leader; if the tests fail, the instruction takes an error trap.
 
 Exception Conditions: Type of arg2 is `dtp-array-instance` or
 `dtp-string-instance`. Arguments: argl, arg2, arg3 Values: 0
 
-Memory Reference Header-read, data-write
+Memory Reference `header-read` , `data-write`
 
 Register Effects TOS: Valid before, invalid after
 
@@ -2954,11 +2954,11 @@ array leader; if the checks fail, the instruction takes an error trap.
 
 Exception .
 
-Conditions: Type of argi is `dtp-array-instance`. or
+Conditions: Type of arg1 is `dtp-array-instance`. or
 
-`dtp-string-instance`. Arguments: argi, arg2 Values: 1
+`dtp-string-instance`. Arguments: arg1, arg2 Values: 1
 
-Memory Reference Header-read
+Memory Reference `header-read`
 
 Register Effects TOS: Valid before, valid after
 
@@ -2982,7 +2982,7 @@ this with a %jump instruction.
 
 branch J Instruction
 
-Format 10-bit immediate Value(s) Returned 0 Argumeni(s) 1: Opcode 174
+Format 10-bit immediate Value(s) Returned 0 Argument(s) 1: Opcode 174
 
 I is `dtp-fixnum` Immediate Argument Type Not applicable Description
 Continues execution at the location offset IT halfwords from the current
@@ -3002,8 +3002,8 @@ Lis dtp-fixmum
 
 Immediate Argument Type Not applicable
 
-Description : branch-false branches if the top of stack is nil.
-branch-true branches if the top of stack is not nil, A branch
+Description : branch-false branches if the top of stack is `nil`.
+branch-true branches if the top of stack is not `nil`, A branch
 instruction always pops the argument off the top of. stack whether or
 not the branch is taken unless otherwise specified by one of the no-pop
 conditions.
@@ -3078,14 +3078,14 @@ Description
 
 Decrements argl, the top of stack. If the result is greater than zero,
 then branches to the location offset from the current program counter
-(PC) by I halfwords. Changes the cdr code of TOS to `cdr-next`. Does not
+(PC) by I halfwords. Changes the `cdr` code of TOS to `cdr-next`. Does not
 pop the stack, whether or not the branch is taken.
 
 Exception
 
-Conditions: Type of argi is not `dtp-fixnum`.
+Conditions: Type of arg1 is not `dtp-fixnum`.
 
-Decrementing argi overflows (should. turn into an
+Decrementing arg1 overflows (should. turn into an
 
 error).
 
@@ -3111,12 +3111,12 @@ Immediate Argument Type Not applicable
 
 Description
 
-If arg2, the top of stack, is less than argi, the next on-stack, then
+If arg2, the top of stack, is less than arg1, the next on-stack, then
 branches by the number of halfwords from the current program counter
 (PC)
 
 _ Specified by J. In any case, increments the top of stack. Changes the
-cdr code of TOS to `cdr-next`. Does not pop the stack, whether or not the
+`cdr` code of TOS to `cdr-next`. Does not pop the stack, whether or not the
 branch is taken.
 
 Exception
@@ -3160,8 +3160,8 @@ fixnum-only <5>. (1 bit) If set, the instruction will take an error trap
 if the memory data type is not `dtp-fixnum`.
 
 set-cdr-next <4> (1 bit) For %block-n-read.:and %block-n-read-shift: if
-set, the cdr code of the result is 0; otherwise, the cdr code of the
-result is the cdr code of memory.
+set, the `cdr` code of the result is 0; otherwise, the `cdr` code of the
+result is the `cdr` code of memory.
 
 last-word <3> (1 bit) If set, do not prefetch words after this one.
 
@@ -3241,8 +3241,8 @@ Performs the ALU operation specified in the alu-op field of the DP Op
 register using arg and the word addressed by the contents of the Block
 Address Register (BAR) specified by n as operands. n is a number between
 0 and 3 inclusive that is part of the opcode. Writes the result of the
-ALU operation back into the addressed operand, arg. The cdr code of the
-operand is set to the cdr code from memory. The specified BAR is
+ALU operation back into the addressed operand, arg. The `cdr` code of the
+operand is set to the `cdr` code from memory. The specified BAR is
 incremented as.a side effect.
 
 The values used for the block instruction mask bits are
@@ -3264,7 +3264,7 @@ must save this away before it can get clobbered by other processes,
 interrupt handlers, or complex instructions. See the section".Revision
 0 %Block-n-read-alu". page 298.
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Unchanged
 
@@ -3323,7 +3323,7 @@ Description :
 
 Writes arg into the word addressed by the contents of the Block Address
 Register (BAR) specified by n..n is a number between 0 and 3 inclusive
-that is part of the opcode. All 40 bits, including cdr code, of this
+that is part of the opcode. All 40 bits, including `cdr` code, of this
 word are written into memory. The specified BAR is incremented as a side
 effect. If arg is immediate, the tag bits will specify dtp-fixmnmum and
 `cdr-next`. Exception None
@@ -3402,7 +3402,7 @@ Register Effects TOS: Valid after
 `dtp-call-indirect` Instruction `dtp-call-indirect-prefetch` Instruction
 Format Full-word instruction Value(s). Returned Not applicable
 
-Argumeni(s) 1
+Argument(s) 1
 
 Included in the instruction is addr, the address of a word, whose
 contents can be of any data type. The contents of the word is the
@@ -3419,7 +3419,7 @@ section".Starting a Function Call". page 249,
 
 Exception None
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 “ Register Effects TOS: Valid after
 
@@ -3463,7 +3463,7 @@ Starts a function call of the function specified by arg. See the section
 
 Exception None
 
-Memory Reference Data-read (sometimes)
+Memory Reference `data-read`  (sometimes)
 
 Register Effects TOS: Valid after
 
@@ -3566,7 +3566,7 @@ control stack and branches to the appropriate instruction of the entry
 vector or to the instruction after the entry vector.
 
 argl is two greater than the number of arguments that the function
-requires, and arg? is two. greater than the number of required arguments
+requires, and arg2 is two. greater than the number of required arguments
 
 plus the number of optional arguments that the function will accept. See
 the section".“Entry-Instruction Format". page 81.
@@ -3620,7 +3620,7 @@ Description :
 Specifies the value to be returned on the top of stack according to the
 immediate operand: 1000(octal), the current. top of stack; 1040(octal),
 nil; 1041 (octal), t. When the value disposition is" for value" or
-"for multiple". the cdr code of the top of stack is set to `cdr-next`.
+"for multiple". the `cdr` code of the top of stack is set to `cdr-next`.
 See the section".Revision 0 Return-single". page 299. Removes the
 returning function’s frames from the control and binding stacks;
 unthreads catch blocks and executes unwind-protects; restores the state
@@ -3644,7 +3644,7 @@ is for-effect, then the TOS register is invalid, otherwise, it is valid.
 Format Operand from stack, Value(s) Returned Not applicable immediate or
 sp-pop addressing modes only
 
-Argumeni(s) 1: Opcode 104 arg is `dtp-fixnum`, non-negative
+Argument(s) 1: Opcode 104 arg is `dtp-fixnum`, non-negative
 
 Immediate Argument Type Unsigned
 
@@ -3669,7 +3669,7 @@ disposition and seen as status after finish-call in caller
 `return-kludge` Instruction Format Operand from stack, Value(s) Returned
 Not applicable immediate or sp-pop addressing modes only
 
-Argumeni(s) 1: Opcode 105 arg `dtp-fixnum`, non-negative
+Argument(s) 1: Opcode 105 arg `dtp-fixnum`, non-negative
 
 Immediate Argument Type Unsigned
 
@@ -3698,7 +3698,7 @@ Description
 Pops a multiple group of values off the top of stack, using the first
 value as the number of additional words to pop. Pushes the number of
 words specified by arg back on the stack, discarding extras if too many
-values are in the multiple group, or pushing enough nils to equal the
+values are in the multiple group, or pushing enough `nil`s to equal the
 number. desired if too few values are in the multiple group.
 
 Exception None Memory Reference None
@@ -3734,7 +3734,7 @@ bind-locative-to-value
 
 Format Operand from stack Value(s). Returned 0
 
-Arguments) 2: argi `dtp-locative` arg2 any data type
+Arguments) 2: arg1 `dtp-locative` arg2 any data type
 
 Opcode 236 |
 
@@ -3748,7 +3748,7 @@ eet
 
 Instruction
 
-Control register binding-cleanup bit into > bit 38 of argi on the
+Control register binding-cleanup bit into > bit 38 of arg1 on the
 binding stock and sets this `Control` register bit to 1. Does.not follow
 external-value-ccil _ pointers as invisible pointers when reading and
 writing the cell. Takes an
@@ -3792,7 +3792,7 @@ unbind-n Instruction
 Format Operand from stack Value(s) Returned. 0 (only sp-pop operands and
 the immediate constant 1 are legal)
 
-Argumeni(s) 1: Opcode 107 arg dtp-fxmum
+Argument(s) 1: Opcode 107 arg dtp-fxmum
 
 Immediate Argument Type Unsigned
 
@@ -3813,7 +3813,7 @@ Register Effects TOS: Unchanged
 
 
 %restore-binding-stack Instruction Format Operand from. stack . Value(s)
-Returned 0 Argumeni(s) 1: Opcode 6
+Returned 0 Argument(s) 1: Opcode 6
 
 arg `dtp-locative` Immediate Argument Type Signed
 
@@ -3850,7 +3850,7 @@ given stack are linked together, each biock containing the address of
 the next. outer block. They are linked in decreasing order of addresses.
 An internal register-(scratchpad location) named `catch-block-pointer`
 contains the address of the innermost catch block, as a `dtp-locative`
-word, or contains nil if there are no active catch blocks. The address
+word, or contains `nil` if there are no active catch blocks. The address
 of a catch block is the address of its `catch-block-pc` word.
 
 The: format of a-catch block for the catch operation is:
@@ -3885,25 +3885,25 @@ catch operation, it contains the address to which throw function should
 transfer control. For an unwind-protect operation, it contains the
 address of the first instruction of
 
-the cleanup handler. The cdr code of this word is set to zero
+the cleanup handler. The `cdr` code of this word is set to zero
 (`cdr-next`).and not used. For a catch operation with a value disposition
-of Return, the `catch-block-pc` word contains nil.
+of Return, the `catch-block-pc` word contains `nil`.
 
 The `catch-block-binding-stack-pointer` word contains the value of the
 binding-stack- pointer: hardware register at the time the catch or
 unwind-protect operation started. An operation that. undoes the catch
 or. unwind-protect will undo special- variable bindings until the
-`binding-stack-pointer` again has this-value.. The cdr- code field of this
+`binding-stack-pointer` again has this-value.. The `cdr`- code field of this
 word uses bit 38 to distinguish between catch and unwind- protect; bit
 39 is set to zero and not used.
 
 The caich-block-previous word contains.a `dtp-locative` pointer to the
-`catch-block-pc` word of the previous catch block, or else contains nil.
-The cdr-code. field of this word saves two bits of the Control. register
+`catch-block-pc` word of the previous catch block, or else contains `nil`.
+The `cdr-code`. field of this word saves two bits of the Control. register
 that need to be restored.
 
 ‘The `catch-block-continuation` word saves the `Continuation` hardware
-‘register so that a throw function can restore it. The cdr-code field of
+‘register so that a throw function can restore it. The `cdr-code` field of
 this word saves the value disposition of a catch; this tells the throw
 function where to put. the values © thrown, This word is not used by the
 unwind-protect operation.
@@ -3969,23 +3969,23 @@ instructions must push the `catch-block-tag` and the `catch-block-pc` as
 well. See the section".Catch Blocks". page 192. The catch version
 operates as. follows:
 
-1.  Push the `binding-stack-pointer`, with 0 in the cdr code.
+1.  Push the `binding-stack-pointer`, with 0 in the `cdr` code.
 
 * 2, Push the `catch-block-pointer`, with control-register.extra-arg and
-control-register.cleanup-catch bits in the cdr. code.
+control-register.cleanup-catch bits in the `cdr`. code.
 
 3..Push the `Continuation` register, with bits 6 and.7 of the `catch-open`
-instruction in the cdr code.
+instruction in the `cdr` code.
 
 1.  Set `catch-block-pointer` to the value stack-pointer had at the
 beginning of the instruction, and set control-register.cleanup-catch to
 1.
 
 The unwind-protect version operates as. follows: 1. Push the
-`binding-stack-pointer`, with 1 in the cdr code.
+`binding-stack-pointer`, with 1 in the `cdr` code.
 
 2, Push the `catch-block-pointer`, with control-register.extra-arg and
-control-register.cleanup-catch bits in the cdr code.
+control-register.cleanup-catch bits in the `cdr` code.
 
 1.  Set `catch-block-pointer` to the value stack-pointer had at the
 beginning of the instruction, and set control-register.cleanup-catch to
@@ -4056,12 +4056,12 @@ Immediate Argument Type Signed
 Description . .
 
 Pushes on the stack the lexical variable of environment erg indexed by n.
-arg must be a cdr-coded lexical environment, but this is not checked. n is a
+arg must be a `cdr-code`d lexical environment, but this is not checked. n is a
 number between 0 and 7 that is stored in the bottom three bits of the
 opcode.
 
 Exception None
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid after
 
@@ -4069,7 +4069,7 @@ pop-lexical-var-n uo Instruction
 Format Operand from stack Value(s). Returned 0
 Argument(s) ‘2: Opcodes 240-247
 
-.argi any data type
+.arg1 any data type
 arg2 `dtp-list`
 or `dtp-locative`
 
@@ -4078,13 +4078,13 @@ Immediate Argument. Type Signed
 Description
 
 Pops argl off the stack and stores the result into the lexical variable of
-environment arg2 indexed by n. arg2 must be a cdr-coded lexical
+environment arg2 indexed by n. arg2 must be a `cdr-code`d lexical
 environment, but this is not checked. n-is a number between 0 and 7 that
 is stored in the bottom three bits of the opcode. Note that only 38 bits are
-stored: the cdr-code bits of memory are unchanged.
+stored: the `cdr-code` bits of memory are unchanged.
 
 Exception None
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS: Valid. before, invalid after
 
@@ -4100,14 +4100,14 @@ Immediate Argument Type Signed
 
 Description
 
-Stores argi, without popping, into the lexical variable of environment arg2
-indexed by n. arg2 must be a cdr-coded lexical environment, but this is not
+Stores arg1, without popping, into the lexical variable of environment arg2
+indexed by n. arg2 must be a `cdr-code`d lexical environment, but this is not
 checked.n is a number between 0 and 7 that is stored in the bottom three
-bits of the opcode. Note that only 38 bits are stored: the cdr-code bits of
+bits of the opcode. Note that only 38 bits are stored: the `cdr-code` bits of
 memory are unchanged.
 
 Exception None
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS: Valid before, valid after
 
@@ -4133,7 +4133,7 @@ these instructions is an access to self, mapped.
 With the instance in FP|3 and the mapping table in FP|2, the instruction uses the
 immediate argument, J, as the index inte the mapping table to get the offset to an
 instance variable. The type of the value in the mapping table must be
-`dtp-fixnum`; reference to a deleted variable results in nil being found in the
+`dtp-fixnum`; reference to a deleted variable results in `nil` being found in the
 mapping table, which causes an error trap.
 
 These instructions check that the argument I is within the bounds of the mapping
@@ -4159,12 +4159,12 @@ bounds.
 
 These instructions use the following forwarding procedures:
 
-If the cdr code of self (FP{3) is 1, accesses the location in the instance that is
+If the `cdr` code of self (FP{3) is 1, accesses the location in the instance that is
 selected by the mapping table.
 
-If the cdr code of self (FP{3) is 0, does a structure-offset memory reference to the
+If the `cdr` code of self (FP{3) is 0, does a structure-offset memory reference to the
 header of the instance to check forwarding. If there is no forwarding pointer, sets
-the cdr code of FP|3 to 1 and proceeds. Otherwise, uses the forwarded address in
+the `cdr` code of FP|3 to 1 and proceeds. Otherwise, uses the forwarded address in
 place of FP|3 (does not change FPj8).
 
 
@@ -4177,7 +4177,7 @@ push-address-instance-variable, push-instance-variable-ordered,
 
 _ pop-instance-variable-ordered, movem-instance-variable-ordered, |
 
-/ . instance variable; ‘Refersnite to a “deleted variable results in nil being foun Lanethe-——
+/ . instance variable; ‘Refersnite to a “deleted variable results in `nil` being foun Lanethe-——
 “ mapping table; Ww which causes an error trap the ' type of. the value in-thé 1 mapping '
 
 push-address-instance-variable-ordered, Zinstance- ref, %instance-set,
@@ -4220,14 +4220,14 @@ money
 
 These instructions use the following forwarding procedures:
 
-If the cdr code of self (FP|3) is 1, accesses the location in the instance that is
+If the `cdr` code of self (FP|3) is 1, accesses the location in the instance that is
 selected by the mapping table. | a
 
-If the cdr code of self (FP{3) is 0, does : a ‘structure-offset memory reference to the |
+If the `cdr` code of self (FP{3) is 0, does : a ‘structure-offset memory reference to the |
 
 _ header of the instance to check forwarding. If there is no forwarding pointer, sets
 
-the cdr code of FP]3 to 1 and proceeds. Otherwise, uses the forwarded address in
+the `cdr` code of FP]3 to 1 and proceeds. Otherwise, uses the forwarded address in
 place of FP|3 (does not change FP|8).
 
 
@@ -4253,8 +4253,8 @@ Pushes the instance variable indexed by I on the stack. See the section
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read
-(to. mapping table), data-read
+Memory Reference `header-read`  (to header of mapping table), `data-read`
+(to. mapping table), `data-read`
 
 Register Effects TOS: Valid after
 
@@ -4262,7 +4262,7 @@ pop-instance-variable J Instruction
 
 Format Operand from stack, immediate © Value(s) Returned 0
 
-Argumeni(s) 2: Opcode 320
+Argument(s) 2: Opcode 320
 argl any Lisp data: type
 
 I `dtp-fixnum`
@@ -4279,14 +4279,14 @@ Immediate Argument Type Unsigned
 
 Description
 
-Pops argi off of the top of stack and stores it into the instance variable.
+Pops arg1 off of the top of stack and stores it into the instance variable.
 See the section “Mapped Accesses to Self". page 201. Note that only 38
-bits are stored: the cdr-code bits of memory are unchanged.
+bits are stored: the `cdr-code` bits of memory are unchanged.
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read
-(to mapping table), data-write
+Memory Reference `header-read`  (to header of mapping table), `data-read`
+(to mapping table), `data-write`
 
 Register Effects TOS: Invalid after
 
@@ -4314,12 +4314,12 @@ Description
 Stores ang1, the contents of the top of stack, into the instance variable
 indexed by the immediate argument J. Does not pop the stack. See the
 section".Mapped Accesses to Self". page 201. Note that only 38 bits are
-stored: the cdr-code bits of memory are unchanged.
+stored: the `cdr-code` bits of memory are unchanged.
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read
-(to mapping table), data-write
+Memory Reference `header-read`  (to header of mapping table), `data-read`
+(to mapping table), `data-write`
 
 Register Effects TOS: Valid after
 
@@ -4346,8 +4346,8 @@ the section".Mapped Accesses to Self". page 201.
 
 Exception None
 
-Memory Reference Header-read (to header
-of mapping table), data-read (to mapping table)
+Memory Reference `header-read`  (to header
+of mapping table), `data-read`  (to mapping table)
 
 Register Effects TOS: Valid after
 
@@ -4375,7 +4375,7 @@ Pushes the variable indexed by J on the stack. See. the-section".Unmapped
 Accesses to Self". page 205.
 Exception None
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid after
 
@@ -4386,7 +4386,7 @@ Format Operand from stack, immediate Values) Returned 0
 Argument(s) 2: Opcode 322
 argl any Lisp data’ type
 
-l arg? `dtp-fixnum`, must not be 0
+l arg2 `dtp-fixnum`, must not be 0
 
 (Note that the implicit argument
 
@@ -4397,11 +4397,11 @@ Immediate Argument Type Unsigned
 Description
 
 Pops argl off the top of stack and stores it into the instance. variable
-indexed by I. Note that only 38 bits. are stored: the cdr-code bits of memory
+indexed by I. Note that only 38 bits. are stored: the `cdr-code` bits of memory
 are unchanged. See the section".Unmapped Accesses to: Self". page 205.
 Exception None
 
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS: Invalid after
 
@@ -4409,7 +4409,7 @@ movem-instance-variable-ordered I Instruction.
 
 Format Operand from stack, immediate Velue(s) Returned 1
 
-Argumeni(s). 2: Opcode 323
+Argument(s). 2: Opcode 323
 
 argl any Lisp data type
 
@@ -4421,14 +4421,14 @@ Immediate Argument Type Unsigned
 
 Description
 
-Stores argi, the contents of the top of stack, inte the instance variable
+Stores arg1, the contents of the top of stack, inte the instance variable
 indexed by J. Does not pop the stack. Note that only 38 bits are stored: the
-cdr-code bits of memory are-unchanged. See the section".Unmapped
+`cdr-code` bits of memory are-unchanged. See the section".Unmapped
 Accesses to Self". page 205,
 
 Exception None
 
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS: Valid after
 
@@ -4474,15 +4474,15 @@ Immediate. Argument Type Unsigned
 
 Description
 
-Pushes on the stack the instance variable of instance argI at the offset
+Pushes on the stack the instance variable of instance arg1 at the offset
 specified by arg2. Takes an error pre-trap if arg2 is greater than or equal to
 the size field of the flavor, using unsigned comparison. See the
 section".Accesses to Arbitrary Instances,” page 209.
 
 Exception None
 
-Memory Reference Header-read, data-read (to flavor descriptor),
-data-read (to instance-variable slot)
+Memory Reference `header-read` , `data-read`  (to flavor descriptor),
+`data-read`  (to instance-variable slot)
 
 Register Effects TOS: Valid before, valid after
 
@@ -4499,7 +4499,7 @@ args `dtp-fixnum`
 Immediate Argument Type Unsigned
 
 Description a oS 5
-Pops argi off of the stack and stores it into the instance variable-of—— 2ino~ Qe La,
+Pops arg1 off of the stack and stores it into the instance variable-of—— 2ino~ Qe La,
 instance arg2 at the offset specified by arg3,Takes an error pre-trap if S
 
 arg2 is greater than or equal to the size field of the flavor, using unsigned
@@ -4512,7 +4512,7 @@ al wo
 
 
 Exception None
-Memory Reference Header-read, data-read, data-write
+Memory Reference `header-read` , `data-read` , `data-write`
 
 Register Effects TOS: Valid before, invalid after
 
@@ -4534,7 +4534,7 @@ equal to the size field of the flavor, using unsigned comparison. See the
 section "Accesses to Arbitrary Instances". page 209.
 
 Exception None
-Memory Reference Header-read, data-read
+Memory Reference `header-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after
 
@@ -4550,7 +4550,7 @@ Register Effects TOS: Valid before, valid after
 
 %ephemeralp Instruction
 Format Operand from stack : Value(s). Returned 1
-Argumeni(s) 1: Opcode 7
+Argument(s) 1: Opcode 7
 
 arg any data type
 
@@ -4558,9 +4558,9 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes t on the stack if the data type of the argument is a pointer data
+Pushes`t`on the stack if the data type of the argument is a pointer data
 _type and the address lies in ephemeral. space (bits <81:27> are 0); otherwise
-pushes nil on the stack.
+pushes `nil` on the stack.
 
 Exception None
 
@@ -4583,7 +4583,7 @@ Immediate Argument Type Unsigned
 
 Description
 
-Tests if, as 32-bit unsigned numbers, arg1 < erg2, and pushes t or nil on
+Tests if, as 32-bit unsigned numbers, arg1 < erg2, and pushes`t`or `nil` on
 the stack according to the result. The no-pop version of this instruction
 leaves the first argument on the stack.
 
@@ -4624,18 +4624,18 @@ stack).
 Example:
 
 ```
-(defun cons (car cdr)
+(defun cons (`car` `cdr`)
   (%set-cdr-code-normal car)
-  (%set-cdr-code-nil cdr)
-  (%make-pointer dtp-list
+  (%set-cdr-code-nil `cdr`)
+  (%make-pointer `dtp-list`
     (prog1 (%allocate-list-block default-cons-area 2)
             (%block-1-write car)
-            (%block-1-write cdr))))
+            (%block-1-write `cdr`))))
 ```
 
 
 Exceptions
-Conditions: arg1 is not eq to list-cache-area.
+Conditions: arg1 is not`eq`to list-cache-area.
 arg2 is greater than list-cache-length.
 See the section “Revision 0 %Allocate-list-block". page 298.
 
@@ -4656,7 +4656,7 @@ BAR-1 is modified
 Format Operand from stack Value(s) Returned 1
 Immediate Argument Type Unsigned
 
-Argumeni(s) 2: Opcode 315
+Argument(s) 2: Opcode 315
 
 argl any type
 arg2 dtp-fimum
@@ -4681,7 +4681,7 @@ that there can be no interrupts until storage is initialized.
 location in the stack).
 
 Exception
-Conditions: erg1 is not eq to structure-cache-area.
+Conditions: erg1 is not`eq`to structure-cache-area.
 arg2 is greater than structure-cache-length.
 See section “Revision 0 %Alocate-structure-block". page 298.
 
@@ -4709,7 +4709,7 @@ Immediate Argument Type Signed
 
 Description
 
-Pushes the result of adding arg2 to the pointer field of argi. The data type
+Pushes the result of adding arg2 to the pointer field of arg1. The data type
 of the result is the type of argl.
 
 Exception None
@@ -4735,7 +4735,7 @@ Immediate Argument Type Signed
 Description
 
 Pushes the result of subtracting the pointer field of arg2 from the pointer
-field of argi. The data type of the result is `dtp-fixnum`.
+field of arg1. The data type of the result is `dtp-fixnum`.
 
 Exception None
 Memory Reference None
@@ -4756,7 +4756,7 @@ Immediate Argument Type Not applicable
 Description
 
 Adds 1 to the pointer field of arg and stores the result back into the
-operand. The data-type and cdr-code fields of the operand are not changed.
+operand. The data-type and `cdr-code` fields of the operand are not changed.
 Exception None
 
 Memory Reference None
@@ -4765,7 +4765,7 @@ Register Effects TOS: Unchanged
 
 %read-internal-register I Instruction
 Format 10-bit immediate Value(s) Returned 1
-Argumeni(s) 1: Opcode 154
+Argument(s) 1: Opcode 154
 
 1 10-bit immediate
 
@@ -4774,7 +4774,7 @@ Immediate Argument Type Unsigned
 Description
 
 Pushes the contents of the internal register specified by arg on top of the
-stack, with the cdr code set to `cdr-next`. See the section “Internal
+stack, with the `cdr` code set to `cdr-next`. See the section “Internal
 Registers". page 75.
 
 Exception None
@@ -4795,7 +4795,7 @@ I 10-bit immediate
 Immediate Argument Type Unsigned
 
 Description
-Pops argi off the top of the stack and writes it into the internal register
+Pops arg1 off the top of the stack and writes it into the internal register
 specified by I. See the section".Internal Registers,” page 75.
 
 Exception None
@@ -4824,7 +4824,7 @@ I `dtp-fixnum`
 Description
 
 Reads the coprocessor register specified by the immediate field J and
-pushes the result on the stack, with the cdr code set to `cdr-next`.
+pushes the result on the stack, with the `cdr` code set to `cdr-next`.
 
 Exception None
 Memory Reference None
@@ -4839,7 +4839,7 @@ argl any data type
 I 10-bit immediate
 
 Description
-Writes argi into the coprocessor register specified by the immediate field I.
+Writes arg1 into the coprocessor register specified by the immediate field I.
 
 Exception None
 Memory Reference None
@@ -4856,7 +4856,7 @@ I 10-bit immediate (mask)
 Immediate Argument Type Not applicable
 
 Description
-Reads the memory location addressed by argi and pushes its contents on
+Reads the memory location addressed by arg1 and pushes its contents on
 the stack in‘accordance with the operation specifiers in the immediate, J:
 
 cycle-type <9:6> (4 bits) Select one of the 12 memory-cycle types
@@ -4864,8 +4864,8 @@ cycle-type <9:6> (4 bits) Select one of the 12 memory-cycle types
 fixnum-only <5> (1 bit) If set, the instruction will trap if the memory data
 type is not `dtp-fixnum`.
 
-set-cdr-next <4> (1 bit) If set, the cdr code of the result is 0; otherwise, the
-cdr code of the result is the cdr code of memory.
+set-cdr-next <4> (1 bit) If set, the `cdr` code of the result is 0; otherwise, the
+`cdr` code of the result is the `cdr` code of memory.
 
 See the section".Types of Memory References". page 85,
 
@@ -4885,7 +4885,7 @@ Immediate Argument Type Not. applicable
 
 Description
 
-Reads the memory location addressed by argi, according to the specified
+Reads the memory location addressed by arg1, according to the specified
 cycle type, and returns the updated argument (the address field is changed
 to be the final address the access arrives at, while the data-type field
 remains the same) in accordance with the operation specifiers in the
@@ -4897,8 +4897,8 @@ section".Memory. References.”
 fixnum-only <5> (1 bit) If set, the instruction will trap if the memory data
 type is not `dtp-fixnum`.
 
-set-cdr-next <4> (1 bit) If set, the cdr code of the result is 0; otherwise, the
-cdr code of the result is the cdr code of memory.
+set-cdr-next <4> (1 bit) If set, the `cdr` code of the result is 0; otherwise, the
+`cdr` code of the result is the `cdr` code of memory.
 
 Exception None
 Memory Reference Controlled by. the immediate field.
@@ -4928,8 +4928,8 @@ Register Effects TOS: Valid after
 
 Format Operand from stack
 
-Argumeni(s) 2:
-argi any data type
+Argument(s) 2:
+arg1 any data type
 arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned
@@ -4949,7 +4949,7 @@ Value(s) Returned 1
 
 Opcode 327
 
-Sets the 8 tag bits of argi to be the bottom eight bits of arg2, This is %make-pointer, with the arguments reversed so
+Sets the 8 tag bits of arg1 to be the bottom eight bits of arg2, This is %make-pointer, with the arguments reversed so
 that immediates can be
 
 used,
@@ -4975,17 +4975,17 @@ arg3 any type
 
 Description
 
-If the content of the location specified by argI is eq to arg2, then stores arg3
+If the content of the location specified by arg1 is`eq`to arg2, then stores arg3
 into that location and returns t; otherwise, leaves the location unchanged and
-returns nil. Note that store-conditional does not write to memory when it
-returns nil. The cdr code of the specified location is not changed. Other
+returns `nil`. Note that store-conditional does not write to memory when it
+returns `nil`. The `cdr` code of the specified location is not changed. Other
 processes (and other hardware processors, te the extent made possible by the
 system architecture) are prevented from modifying the location between the read
 and the write.
 
 Exception None
 
-Memory Reference Data-read, followed by raw-write (using the
+Memory Reference `data-read` , followed by raw-write (using the
 possibly followed pointer) with interlock
 
 Register Effects TOS: Valid before, invalid after
@@ -4997,13 +4997,13 @@ Format Operand from. stack Value(s) Returned 0
 Argument(s) 2: Opcode 235
 
 argl any data type
-arg? any data type
+arg2 any data type
 
 Immediate Argument Type Signed
 
 Description :
 
-Stores arg2 into memory location addressed by argl, preserving the cdr-code but
+Stores arg2 into memory location addressed by argl, preserving the `cdr-code` but
 not following invisible pointers.
 
 Exception None
@@ -5024,7 +5024,7 @@ Immediate Argument Type Signed
 Description
 
 Stores arg2 into the. memory location addressed by argl, storing all 40 bits
-including the cdr code, and not following invisible pointers. This replaces the
+including the `cdr` code, and not following invisible pointers. This replaces the
 3600’s %p-store-cdr-and-contents and %p-store-tag-and-pointer instructions. The
 second argument is typically constructed with the `%set-tag` instruction; in the
 I-Machine it is legal to have invisible pointers and special markers in the
@@ -5045,7 +5045,7 @@ arg any data type
 
 Description
 
-N, which is part of the opcode, is either 1 or 2. Sets the cdr code field of
+N, which is part of the opcode, is either 1 or 2. Sets the `cdr` code field of
 arg to N. :
 
 Exception None
@@ -5066,7 +5066,7 @@ arg2 (address operand) any data type
 
 Description
 
-Sets the cdr-code field of arg? to the cdr-code field of argi. argi is not
+Sets the `cdr-code` field of arg2 to the `cdr-code` field of arg1. arg1 is not
 popped off the stack.
 
 Exception None
@@ -5100,7 +5100,7 @@ error trap if the method found is not `dtp-even-pc` or `dtp-odd-pc`.
 Continues execution at the PC.
 
 Exception None
-Memory Reference Several data-reads
+Memory Reference Several `data-read` s
 
 Register Effects TOS: Invalid after
 
@@ -5132,7 +5132,7 @@ parameter in FP|2, then continues execution at the fetched PC.
 
 Exception None
 
-Memory Reference Several data-reads
+Memory Reference Several `data-read` s
 
 Register Effects TOS: Invalid after
 
@@ -5141,7 +5141,7 @@ Register Effects TOS: Invalid after
 
 Format Operand from stack Value(s) Returned 0
 
-Argumeni(s) 1: Opcode 11
+Argument(s) 1: Opcode 11
 
 arg `dtp-even-pc` or `dtp-odd-pc`
 
@@ -5164,7 +5164,7 @@ Register Effects TOS: Valid after
 
 %check-preempt-request Instruction
 Format Operand.from stack Value(s) Returned 0
-Argumeni(s) 0 Opcode 54
+Argument(s) 0 Opcode 54
 
 Immediate Argument Type Not. applicable
 
@@ -5237,7 +5237,7 @@ List-Function Operations
 
 Instructions common to I and LIG:
 
-car, cdr, rplaca, `rplacd`, member, assoc
+car, `cdr`, rplaca, `rplacd`, member, assoc
 
 Similar instructions:
 

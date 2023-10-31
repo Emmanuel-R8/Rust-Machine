@@ -48,12 +48,12 @@ oO.
 
 Restore the stack to’ its condition at the start of the instruction.
 
-‘Push the continuation and control registers onto the stack with cdr code set
+‘Push the continuation and control registers onto the stack with `cdr` code set
 
 to 3, set continuation to the contents of the trap vector entry, clear the
 '. control-register.extra-argument bit, set the control-register.trace-bits to 0,
 
-and set the control-register.trap-mode field to the maximum of the cdr code
+and set the control-register.trap-mode field to the maximum of the `cdr` code
 of the trap vector entry and the current trap mode.
 
 . Push the trap vector index.
@@ -72,12 +72,12 @@ The sequence of events for a post-trap is as follows: .
 
 . Save the arguments to the trapped instruction and pop them off the stack,
 
-Push the continuation and control registers onto the stack setting the cdr
+Push the continuation and control registers onto the stack setting the `cdr`
 code to 3, set continuation to the contents of the trap vector entry, clear the
 
 _ control-register.extra-argument bit and control-register.trace-bits, and set the
 
-control-register.trap-mode field to the maximum of the cdr code of the trap
+control-register.trap-mode field to the maximum of the `cdr` code of the trap
 vector entry and the current trap-mode. Oo
 
 . Push the trap vector index.
@@ -146,7 +146,7 @@ Unless the processor is in the emulator mode (the trap mode is nonzero), the
 machine is allowed to use the extra stack. (Level 1 is called".extra-stack,” but
 levels 2 and 3 also imply the use of the extra stack.)
 
-The trap mode is set to the maximum of the current trap mode and the cdr-code
+The trap mode is set to the maximum of the current trap mode and the `cdr-code`
 field of the trap-vector entry when a trap is taken. This allows the processor
 to change mode atomically when entering trap handlers. Restoration of the
 control register on completion of the trap handler will restore the trap mode to
@@ -161,7 +161,7 @@ respect it could be called Non-Maskable-Interrupt.
 The trap vector is a table whose elements specify the functions to be called
 when various exceptional conditions occur. Each entry is a PC
 (`dtp-even-pc`/`dtp-odd-pc`) that points to the first instruction of the trap
-handling function. Byte <39:38> (the cdr-code) of the entry is the minimum
+handling function. Byte <39:38> (the `cdr-code`) of the entry is the minimum
 initial trap mode for the handler. This table is stored at physical addresses
 1000000 through 1007777; the trap vector index always supplied as the first
 argument toa trap handler is relative to the base of this table.
@@ -184,7 +184,7 @@ error, otherwise it is ignored.
 
 An instruction. exception occurs when an instruction needs to perform some
 operation that is not an error, but is not directly supported by the hardware
-(taking the car of a list instance, for.example). Instruction exceptions are
+(taking the `car` of a list instance, for.example). Instruction exceptions are
 post- traps, called with whatever arguments the instruction takes. The contract
 of the trap handler is to emulate the behavior of the particular instruction.
 Occasionally exceptional conditions will arise during emulation, such as the

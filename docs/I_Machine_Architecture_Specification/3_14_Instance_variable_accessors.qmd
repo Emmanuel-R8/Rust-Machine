@@ -6,7 +6,7 @@ push-instance-variable, pop-instance-variable, movem-instance-variable, push-add
 
 The next four instructions are called within methods or defun-in-flavors. Each of these instructions is an access to self, mapped.
 
-With the instance in FP\|3 and the mapping table in FP\|2, the instruction uses the immediate argument, J, as the index inte the mapping table to get the offset to an instance variable. The type of the value in the mapping table must be `dtp-fixnum`; reference to a deleted variable results in nil being found in the mapping table, which causes an error trap.
+With the instance in FP\|3 and the mapping table in FP\|2, the instruction uses the immediate argument, J, as the index inte the mapping table to get the offset to an instance variable. The type of the value in the mapping table must be `dtp-fixnum`; reference to a deleted variable results in `nil` being found in the mapping table, which causes an error trap.
 
 These instructions check that the argument I is within the bounds of the mapping table. If it is not, an error trap occurs. The bounds check is performed by fetching the array header of the mapping table, assuming it is a short-prefix array, and comparing J against the array-short-length field. These instructions do check that. the data type of the mapping table (FP\|2) is `dtp-array`, but do not check to make sure that the mapping table is a short-prefix array, though this is required for correct operation. :
 
@@ -16,9 +16,9 @@ Each of these instructions checks the offset obtained from the mapping table to 
 
 These instructions use the following forwarding procedures:
 
-If the cdr code of self (FP{3) is 1, accesses the location in the instance that is selected by the mapping table.
+If the `cdr` code of self (FP{3) is 1, accesses the location in the instance that is selected by the mapping table.
 
-If the cdr code of self (FP{3) is 0, does a structure-offset memory reference to the header of the instance to check forwarding. If there is no forwarding pointer, sets the cdr code of FP\|3 to 1 and proceeds. Otherwise, uses the forwarded address in place of FP\|3 (does not change FPj8).
+If the `cdr` code of self (FP{3) is 0, does a structure-offset memory reference to the header of the instance to check forwarding. If there is no forwarding pointer, sets the `cdr` code of FP\|3 to 1 and proceeds. Otherwise, uses the forwarded address in place of FP\|3 (does not change FPj8).
 
 pred
 
@@ -29,7 +29,7 @@ push-instance-variable, pop-instance-variable, movem- -instance-variable, push-a
 
 \_ pop-instance-variable-ordered, movem-instance-variable-ordered, \|
 
-/ . instance variable; 'Refersnite to a "deleted variable results in nil being foun Lanethe-------" mapping table; Ww which causes an error trap the' type of. the value in-thé 1 mapping '
+/ . instance variable; 'Refersnite to a "deleted variable results in `nil` being foun Lanethe-------" mapping table; Ww which causes an error trap the' type of. the value in-thé 1 mapping '
 
 push-address-instance-variable-ordered, Zinstance- ref, %instance-set,
 
@@ -63,13 +63,13 @@ money
 
 These instructions use the following forwarding procedures:
 
-If the cdr code of self (FP\|3) is 1, accesses the location in the instance that is selected by the mapping table. \| a
+If the `cdr` code of self (FP\|3) is 1, accesses the location in the instance that is selected by the mapping table. \| a
 
-If the cdr code of self (FP{3) is 0, does : a 'structure-offset memory reference to the \|
+If the `cdr` code of self (FP{3) is 0, does : a 'structure-offset memory reference to the \|
 
 \_ header of the instance to check forwarding. If there is no forwarding pointer, sets
 
-the cdr code of FP\]3 to 1 and proceeds. Otherwise, uses the forwarded address in place of FP\|3 (does not change FP\|8).
+the `cdr` code of FP\]3 to 1 and proceeds. Otherwise, uses the forwarded address in place of FP\|3 (does not change FP\|8).
 
 push-instance-variable I Instruction
 
@@ -91,7 +91,7 @@ Pushes the instance variable indexed by I on the stack. See the section "Mapped 
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read (to. mapping table), data-read
+Memory Reference `header-read`  (to header of mapping table), `data-read`  (to. mapping table), `data-read`
 
 Register Effects TOS: Valid after
 
@@ -99,7 +99,7 @@ pop-instance-variable J Instruction
 
 Format Operand from stack, immediate © Value(s) Returned 0
 
-Argumeni(s) 2: Opcode 320 argl any Lisp data: type
+Argument(s) 2: Opcode 320 argl any Lisp data: type
 
 I `dtp-fixnum`
 
@@ -115,11 +115,11 @@ Immediate Argument Type Unsigned
 
 Description
 
-Pops argi off of the top of stack and stores it into the instance variable. See the section "Mapped Accesses to Self". page 201. Note that only 38 bits are stored: the cdr-code bits of memory are unchanged.
+Pops arg1 off of the top of stack and stores it into the instance variable. See the section "Mapped Accesses to Self". page 201. Note that only 38 bits are stored: the `cdr-code` bits of memory are unchanged.
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read (to mapping table), data-write
+Memory Reference `header-read`  (to header of mapping table), `data-read`  (to mapping table), `data-write`
 
 Register Effects TOS: Invalid after
 
@@ -143,11 +143,11 @@ Immediate Argument Type Unsigned
 
 Description
 
-Stores ang1, the contents of the top of stack, into the instance variable indexed by the immediate argument J. Does not pop the stack. See the section".Mapped Accesses to Self". page 201. Note that only 38 bits are stored: the cdr-code bits of memory are unchanged.
+Stores ang1, the contents of the top of stack, into the instance variable indexed by the immediate argument J. Does not pop the stack. See the section".Mapped Accesses to Self". page 201. Note that only 38 bits are stored: the `cdr-code` bits of memory are unchanged.
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read (to mapping table), data-write
+Memory Reference `header-read`  (to header of mapping table), `data-read`  (to mapping table), `data-write`
 
 Register Effects TOS: Valid after
 
@@ -171,7 +171,7 @@ Description Pushes the address. of the instance variable indexed by J on the sta
 
 Exception None
 
-Memory Reference Header-read (to header of mapping table), data-read (to mapping table)
+Memory Reference `header-read`  (to header of mapping table), `data-read`  (to mapping table)
 
 Register Effects TOS: Valid after
 
@@ -189,7 +189,7 @@ Format Operand from stack, immediate Value(s) Returned 1 Argument(s) 1: Opcode 3
 
 Immediate Argument Type Unsigned - Description Pushes the variable indexed by J on the stack. See. the-section".Unmapped Accesses to Self". page 205. Exception None
 
-Memory Reference Data-read
+Memory Reference `data-read`
 
 Register Effects TOS: Valid after
 
@@ -199,7 +199,7 @@ Format Operand from stack, immediate Values) Returned 0
 
 Argument(s) 2: Opcode 322 argl any Lisp data' type
 
-l arg? `dtp-fixnum`, must not be 0
+l arg2 `dtp-fixnum`, must not be 0
 
 (Note that the implicit argument
 
@@ -209,9 +209,9 @@ Immediate Argument Type Unsigned
 
 Description
 
-Pops argl off the top of stack and stores it into the instance. variable indexed by I. Note that only 38 bits. are stored: the cdr-code bits of memory are unchanged. See the section".Unmapped Accesses to: Self". page 205. Exception None
+Pops argl off the top of stack and stores it into the instance. variable indexed by I. Note that only 38 bits. are stored: the `cdr-code` bits of memory are unchanged. See the section".Unmapped Accesses to: Self". page 205. Exception None
 
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS: Invalid after
 
@@ -219,7 +219,7 @@ movem-instance-variable-ordered I Instruction.
 
 Format Operand from stack, immediate Velue(s) Returned 1
 
-Argumeni(s). 2: Opcode 323
+Argument(s). 2: Opcode 323
 
 argl any Lisp data type
 
@@ -231,11 +231,11 @@ Immediate Argument Type Unsigned
 
 Description
 
-Stores argi, the contents of the top of stack, inte the instance variable indexed by J. Does not pop the stack. Note that only 38 bits are stored: the cdr-code bits of memory are-unchanged. See the section".Unmapped Accesses to Self". page 205,
+Stores arg1, the contents of the top of stack, inte the instance variable indexed by J. Does not pop the stack. Note that only 38 bits are stored: the `cdr-code` bits of memory are-unchanged. See the section".Unmapped Accesses to Self". page 205,
 
 Exception None
 
-Memory Reference Data-write
+Memory Reference `data-write`
 
 Register Effects TOS: Valid after
 
@@ -271,11 +271,11 @@ Immediate. Argument Type Unsigned
 
 Description
 
-Pushes on the stack the instance variable of instance argI at the offset specified by arg2. Takes an error pre-trap if arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section".Accesses to Arbitrary Instances," page 209.
+Pushes on the stack the instance variable of instance arg1 at the offset specified by arg2. Takes an error pre-trap if arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section".Accesses to Arbitrary Instances," page 209.
 
 Exception None
 
-Memory Reference Header-read, data-read (to flavor descriptor), data-read (to instance-variable slot)
+Memory Reference `header-read` , `data-read`  (to flavor descriptor), `data-read`  (to instance-variable slot)
 
 Register Effects TOS: Valid before, valid after
 
@@ -287,13 +287,13 @@ arg2 `dtp-instance`, `dtp-list-instance`, `dtp-array-instance`, or `dtp-string-i
 
 Immediate Argument Type Unsigned
 
-Description a oS 5 Pops argi off of the stack and stores it into the instance variable-of------ 2ino\~ Qe La, instance arg2 at the offset specified by arg3,Takes an error pre-trap if S
+Description a oS 5 Pops arg1 off of the stack and stores it into the instance variable-of------ 2ino\~ Qe La, instance arg2 at the offset specified by arg3,Takes an error pre-trap if S
 
 arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section".Accesses to Arbitrary Instances," page. 209.
 
 al wo
 
-Exception None Memory Reference Header-read, data-read, data-write
+Exception None Memory Reference `header-read` , `data-read` , `data-write`
 
 Register Effects TOS: Valid before, invalid after
 
@@ -307,6 +307,6 @@ Description
 
 Pushes on the stack the address of the instance variable of instance arg at the offset specified by arg2. Takes an error pre-trap if arg2 is greater than or equal to the size field of the flavor, using unsigned comparison. See the section "Accesses to Arbitrary Instances". page 209.
 
-Exception None Memory Reference Header-read, data-read
+Exception None Memory Reference `header-read` , `data-read`
 
 Register Effects TOS: Valid before, valid after

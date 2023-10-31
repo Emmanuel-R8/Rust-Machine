@@ -6,7 +6,7 @@ The branch and loop instructions contain a 10-bit signed offset, This offset is 
 
 branch J Instruction
 
-Format 10-bit immediate Value(s) Returned 0 Argumeni(s) 1: Opcode 174
+Format 10-bit immediate Value(s) Returned 0 Argument(s) 1: Opcode 174
 
 I is `dtp-fixnum` Immediate Argument Type Not applicable Description Continues execution at the location offset IT halfwords from the current program counter (PC). Note that instruction tracing may ignore this instruction. Exception None Memory Reference None Register Effects TOS: Unchanged branch-true{-else}{-and}{-no-pop }{-extra-pop} I Instruction
 
@@ -18,7 +18,7 @@ Lis dtp-fixmum
 
 Immediate Argument Type Not applicable
 
-Description : branch-false branches if the top of stack is nil. branch-true branches if the top of stack is not nil, A branch instruction always pops the argument off the top of. stack whether or not the branch is taken unless otherwise specified by one of the no-pop conditions.
+Description : branch-false branches if the top of stack is `nil`. branch-true branches if the top of stack is not `nil`, A branch instruction always pops the argument off the top of. stack whether or not the branch is taken unless otherwise specified by one of the no-pop conditions.
 
 If the branch is taken, and -and-no-pop is specified, the stack is not popped. If -else-no-pop is specified, and the branch is not taken, the stack is not popped.
 
@@ -68,13 +68,13 @@ Immediate Argument Type Not applicable
 
 Description
 
-Decrements argl, the top of stack. If the result is greater than zero, then branches to the location offset from the current program counter (PC) by I halfwords. Changes the cdr code of TOS to `cdr-next`. Does not pop the stack, whether or not the branch is taken.
+Decrements argl, the top of stack. If the result is greater than zero, then branches to the location offset from the current program counter (PC) by I halfwords. Changes the `cdr` code of TOS to `cdr-next`. Does not pop the stack, whether or not the branch is taken.
 
 Exception
 
-Conditions: Type of argi is not `dtp-fixnum`.
+Conditions: Type of arg1 is not `dtp-fixnum`.
 
-Decrementing argi overflows (should. turn into an
+Decrementing arg1 overflows (should. turn into an
 
 error).
 
@@ -92,9 +92,9 @@ Immediate Argument Type Not applicable
 
 Description
 
-If arg2, the top of stack, is less than argi, the next on-stack, then branches by the number of halfwords from the current program counter (PC)
+If arg2, the top of stack, is less than arg1, the next on-stack, then branches by the number of halfwords from the current program counter (PC)
 
-\_ Specified by J. In any case, increments the top of stack. Changes the cdr code of TOS to `cdr-next`. Does not pop the stack, whether or not the branch is taken.
+\_ Specified by J. In any case, increments the top of stack. Changes the `cdr` code of TOS to `cdr-next`. Does not pop the stack, whether or not the branch is taken.
 
 Exception
 

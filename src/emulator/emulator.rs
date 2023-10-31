@@ -1,7 +1,6 @@
 use std::cmp::min;
 use std::collections::HashMap;
-use std::fs::{ read_dir, DirEntry, File };
-use std::io::Read;
+use std::fs::{ read_dir, DirEntry };
 use std::mem::size_of;
 use std::ops::Div;
 use std::path::{ Path, PathBuf };

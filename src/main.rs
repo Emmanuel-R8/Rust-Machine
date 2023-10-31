@@ -21,7 +21,6 @@ mod world {
 }
 mod hardware {
     pub mod cpu;
-    pub mod instructions;
     pub mod machine;
     pub mod memory;
     pub mod network;

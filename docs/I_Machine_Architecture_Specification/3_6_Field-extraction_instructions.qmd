@@ -8,7 +8,7 @@ Ildb. BB FS Instruction Format Field-Extraction Value(s) Returned 1 Argument(s) 
 
 argl any numeric data type BB and FS 10-bit immediate
 
-Description Extracts the field specified by BB and FS from argi, then pushes the result on the stack. See the section".Format for Field Extraction". page 82.
+Description Extracts the field specified by BB and FS from arg1, then pushes the result on the stack. See the section".Format for Field Extraction". page 82.
 
 Exception Conditions: Type of arg1 is numeric, but not `dtp-fixnum` Arguments; arg Values: 1 Note: The trap handler is responsible for manually extracting the byte specifier from the trapped instruction.
 
@@ -24,7 +24,7 @@ argl any numeric data type arg2 any numeric data type BB and FS 10-bit immediate
 
 See the section".Format for Field Extraction". page 82.
 
-Exception Conditions: Types of argi and arg? are numeric, but not beth `dtp-fixnum`. Arguments: argl, arg2 Values: 1 . Note: The trap handler is responsible for manually extracting the byte specifier from the trapped instruction.
+Exception Conditions: Types of arg1 and arg2 are numeric, but not beth `dtp-fixnum`. Arguments: argl, arg2 Values: 1 . Note: The trap handler is responsible for manually extracting the byte specifier from the trapped instruction.
 
 Memory Reference None
 
@@ -52,19 +52,19 @@ BB. and FS 10-bit immediate
 
 Description
 
-Deposits the value argl into field in arg? specified by BB and FS, then pushes the result, a `dtp-character` object, on the stack. See the section \`\`Format for Field Extraction". page 82.
+Deposits the value argl into field in arg2 specified by BB and FS, then pushes the result, a `dtp-character` object, on the stack. See the section \`\`Format for Field Extraction". page 82.
 
 -   Exceptions None Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%p-idb BB FS Instruction Format Field-Extraction Value(s) Returned 1 Argumeni(s) 2: Opcode 172
+%p-idb BB FS Instruction Format Field-Extraction Value(s) Returned 1 Argument(s) 2: Opcode 172
 
 arg\] any data type BB. and FS 10-bit immediate
 
 Description
 
-Extracts the field specified by. BB and FS from the bottom 32 bits of the word at the address contained in argI, then pushes the extracted field on the stack.. The data type of the result is dtp-fixmum. See the section".Format for Field Extraction". page 82.
+Extracts the field specified by. BB and FS from the bottom 32 bits of the word at the address contained in arg1, then pushes the extracted field on the stack.. The data type of the result is dtp-fixmum. See the section".Format for Field Extraction". page 82.
 
 Exceptions None
 
@@ -72,7 +72,7 @@ Memory Reference Raw-read
 
 Register Effects TOS: Valid after
 
-Jop-dpb BB FS Instruction Format Field-Extraction Value(s) Returned 0 Argumeni(s) 3: Opcode 372
+Jop-dpb BB FS Instruction Format Field-Extraction Value(s) Returned 0 Argument(s) 3: Opcode 372
 
 arg\] `dtp-fixnum`
 
@@ -90,9 +90,9 @@ Memory Reference Raw-read followed by raw-write
 
 Register Effects TOS: Valid before, invalid after
 
-%p-tag-ldb BB FS Instruction Format Field-Extraction Value(s} Returned 1 Argumeni(s) 2: \_ Opcode 173
+%p-tag-ldb BB FS Instruction Format Field-Extraction Value(s} Returned 1 Argument(s) 2: \_ Opcode 173
 
-argi any Lisp data type
+arg1 any Lisp data type
 
 BB and FS 10-bit immediate
 
@@ -112,7 +112,7 @@ argl dtp-fmum arg2 any Lisp data type BB and FS 10-bit immediate
 
 Description
 
-Deposits the value argi into the field specified by BB and FS in the top 8 bits of the word at the address contained in arg2. It is illegal, though not checked, to specify a field with bits outside the top 8 bits. See the section".Format for Field Extraction". page 82.
+Deposits the value arg1 into the field specified by BB and FS in the top 8 bits of the word at the address contained in arg2. It is illegal, though not checked, to specify a field with bits outside the top 8 bits. See the section".Format for Field Extraction". page 82.
 
 Exceptions None
 

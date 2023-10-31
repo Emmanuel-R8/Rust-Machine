@@ -109,7 +109,7 @@ These locations are as follows (all addresses relative to the beginning of VMA=P
 | 0o0_0101_0000 : 0o0_0101_0377 | FEP communication area                      |
 | 0o0_0101_0400 : 0o0_0101_0777 | System communication area                   |
 | 0o0_0101_1000 : 0o0_0101_1004 | NIL                                         |
-| 0o0_0101_1010 : 0o0_0101_1014 | T                                           |
+| 0o0_0101_1010 : 0o0_0101_1014 |`t`                                          |
 | 0o7_7740_0000 : 0o7_7757_7777 | Boot prom (64k)                             |
 | 0o7_7760_0000 : 0o7_7760_7777 | Reserved for Ibus configuration space (64K) |
 

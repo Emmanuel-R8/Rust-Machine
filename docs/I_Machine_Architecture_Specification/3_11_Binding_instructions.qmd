@@ -20,7 +20,7 @@ bind-locative-to-value
 
 Format Operand from stack Value(s). Returned 0
 
-Arguments) 2: argi `dtp-locative` arg2 any data type
+Arguments) 2: arg1 `dtp-locative` arg2 any data type
 
 Opcode 236 \|
 
@@ -34,7 +34,7 @@ eet
 
 Instruction
 
-Control register binding-cleanup bit into \> bit 38 of argi on the binding stock and sets this `Control` register bit to 1. Does.not follow external-value-ccil \_ pointers as invisible pointers when reading and writing the cell. Takes an
+Control register binding-cleanup bit into \> bit 38 of arg1 on the binding stock and sets this `Control` register bit to 1. Does.not follow external-value-ccil \_ pointers as invisible pointers when reading and writing the cell. Takes an
 
 error trap if the binding-stack pointer would be greater than the contents
 
@@ -62,7 +62,7 @@ unbind-n Instruction
 
 Format Operand from stack Value(s) Returned. 0 (only sp-pop operands and the immediate constant 1 are legal)
 
-Argumeni(s) 1: Opcode 107 arg dtp-fxmum
+Argument(s) 1: Opcode 107 arg dtp-fxmum
 
 Immediate Argument Type Unsigned
 
@@ -72,7 +72,7 @@ ye Exception None Memory Reference Two bind-reads,. followed by bind-write
 
 Register Effects TOS: Unchanged
 
-%restore-binding-stack Instruction Format Operand from. stack . Value(s) Returned 0 Argumeni(s) 1: Opcode 6
+%restore-binding-stack Instruction Format Operand from. stack . Value(s) Returned 0 Argument(s) 1: Opcode 6
 
 arg `dtp-locative` Immediate Argument Type Signed
 

@@ -909,7 +909,7 @@ pub const VLMWORLD_FILE_COOKIE: u32 = 0xA3_8A_89_88; // 0o24_342_504_610
 pub const VLMWORLD_FILE_COOKIE_SWAPPED: u32 = 0x88_89_8A_A3; // 0o21_042_305_243
 pub const VLMBLOCK_SIZE: u32 = 0x2_000; // 8192, 0o20_000
 pub const VLMBLOCKS_PER_DATA_PAGE: u32 = 4;
-pub const VLMBLOCKS_PER_TAGS_PAGE: u32 = 1; // tag+cdr = 1 byte
+pub const VLMBLOCKS_PER_TAGS_PAGE: u32 = 1; // tag+`cdr` = 1 byte
 pub const VLMMAXIMUM_HEADER_BLOCKS: u32 = 14;
 pub const VLMPAGE_SIZE_QS: u32 = 0x2_000; // 8192, 0o20_000
 pub const VLMDATA_PAGE_SIZE_BYTES: u32 = 4 * VLMPAGE_SIZE_QS;

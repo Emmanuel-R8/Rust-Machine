@@ -8,11 +8,14 @@ If either argument to.a numeric instruction is a non-number, then the instructio
 
 Note that, if there is no floating-point coprocessor, all the numeric operations will take an instruction exception on encountering operands of type `dtp-single-float`. This instruction exception is in addition to any mentioned in the instruction definitions, See the section @revision-0-numeric-operations page 299.
 
+
+--------------------------------------
+
 `add` / Instruction
 
 Format Operand from stack Value(s) Returned 1
 
-Argument(s) 2: Opeode 300 argl any numeric data type arg2 any numeric data type
+Argument(s) 2: Opcode 300 argl any numeric data type arg2 any numeric data type
 
 Immediate Argument Type Unsigned
 
@@ -24,7 +27,7 @@ Exceptions
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argl and arg2 are numeric, but not both `dtp-fixnum` or `dtp-single-float`. argi and arg2 are both `dtp-fixnum`, but result overflows. Floating point. exceptions.
+Conditions: Types of argl and arg2 are numeric, but not both `dtp-fixnum` or `dtp-single-float`. arg1 and arg2 are both `dtp-fixnum`, but result overflows. Floating point. exceptions.
 
 Arguments: argl, arg2
 
@@ -33,6 +36,9 @@ Values: 1
 Memory Reference None
 
 \_ Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
 
 `sub`
 
@@ -54,7 +60,7 @@ Exceptions:
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argi and arg? are numeric, but not both `dtp-fixnum` or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result overflows. Floating point exceptions.
+Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum` or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result overflows. Floating point exceptions.
 
 Arguments: arg, arg2
 
@@ -64,7 +70,12 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-`unary-minus` Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 1: Opcode 114
+
+--------------------------------------
+
+`unary-minus` Instruction
+Format Operand from stack Value(s) Returned 1 Argument(s) 1:
+Opcode 114
 
 arg any numeric data type
 
@@ -88,7 +99,12 @@ Values: 1
 
 Memory Reference None
 
-Register Effects TOS: Valid after increment Instruction
+Register Effects TOS: Valid after
+
+
+--------------------------------------
+
+`increment` Instruction
 
 Format Operand from stack, Value(s) Returned 0 address-operand mode (immediate and sp-pop addressing modes illegal)
 
@@ -106,7 +122,10 @@ Memory Reference None
 
 Register Effects TOS: Unchanged
 
-decrement Instruction
+
+--------------------------------------
+
+`decrement` Instruction
 
 Format Operand from stack, Value(s) Returned 0 address-operand mode (immediate and sp-pop addressing modes illegal)
 
@@ -120,7 +139,11 @@ Memory Reference None
 
 Register Effects TOS: Unchanged
 
-multiply. . Instruction Format. Operand from stack Value(s). Returned 1 Argumenit(s) 2: Opcode 202
+
+--------------------------------------
+
+`multiply` Instruction Format. Operand from stack Value(s). Returned 1 Argumentt(s) 2:
+Opcode 202
 
 argl any numeric data. type arg2 any numeric data type
 
@@ -132,9 +155,9 @@ Exceptions
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argi and arg? are numeric, but not both dtp-fimmum or `dtp-single-float`. argl and arg? are both `dtp-fixnum`, but result overflows. Floating point exceptions.
+Conditions: Types of arg1 and arg2 are numeric, but not both dtp-fimmum or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result overflows. Floating point exceptions.
 
-Arguments: argi, arg2
+Arguments: arg1, arg2
 
 Values: 1
 
@@ -142,7 +165,12 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-quotient Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcode 203
+
+--------------------------------------
+
+`quotient` Instruction
+
+Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcode 203
 
 argl any numeric data type arg2 any numeric data type; if `dtp-fixnum`, must not be zero
 
@@ -150,9 +178,9 @@ Immediate Argument Type Signed
 
 Description
 
-Divides argi by arg2, and pushes the quotient on the stack. If both operands are integers, the result is the integer obtained by truncating the quotient toward 0; otherwise, the result is a single-precision floating-point number. quotient implements the function zl:/ of two arguments. See the section".Revision 0 Numeric Operations". page 299.
+Divides arg1 by arg2, and pushes the quotient on the stack. If both operands are integers, the result is the integer obtained by truncating the quotient toward 0; otherwise, the result is a single-precision floating-point number. quotient implements the function zl:/ of two arguments. See the section".Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of arg and erg2 are numeric, but not both dtp-fixmum or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result overflows. Floating point exceptions. Arguments: argi, arg2 Values: 1 Note: the only possible fixnum-fixnum overflow is -1_81. / -1 = 1_81.
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg and erg2 are numeric, but not both dtp-fixmum or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but result overflows. Floating point exceptions. Arguments: arg1, arg2 Values: 1 Note: the only possible fixnum-fixnum overflow is -1_81. / -1 = 1_81.
 
 Memory Reference None
 
@@ -162,11 +190,15 @@ Register Effects TOS: Valid before, valid after
 
 Note that, if only one of the two results is desired, the division instruction can be followed by an instruction to discard the unwanted result: to discard the first result (quotient), use set-sp-to-address-save-tos SP\|-1, to discard the second result (remainder), use set-sp-to-address SPj-l. Trap handlers for division operations, on encountering these particular instructions, can avoid computing results that are going to be discarded. ;
 
-ceiling Instruction
+
+--------------------------------------
+
+`ceiling` Instruction
 
 Format Operand from stack Value(s) Returned 2
 
-Arguments) 2: Opcode 204 'argi any numeric data type (an integer) arg2 any numeric data type;
+Arguments) 2:
+Opcode 204 'arg1 any numeric data type (an integer) arg2 any numeric data type;
 
 if `dtp-fixnum`, must not be zero
 
@@ -176,15 +208,16 @@ Description .
 
 Divides arg1 by arg2, pushes the quotient on. the stack, then pushes the remainder on the stack. If the remainder is not zero, the resulting quotient (NOS) is truncated toward positive infinity, and the remainder (TOS) is such that argl = arg2 \* NOS + TOS. See the section".Division Operations That Return Two Values". page 120. See the section \`\`Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg2 are numeric, but not both `dtp-fixnum`. ; argl and arg? are both `dtp-fixnum`, but result overflows. Arguments: argl, arg2 Values: 2 Note: the only possible fixnum-fixnum overflow is -1_81. / -1 = 1_31.
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`. ; argl and arg2 are both `dtp-fixnum`, but result overflows. Arguments: argl, arg2 Values: 2 Note: the only possible fixnum-fixnum overflow is -1_81. / -1 = 1_31.
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-floor
 
-Instruction \|
+--------------------------------------
+
+`floor` Instruction \|
 
 -   Format Operand from stack \_ : - Value(s) Returned 2
 
@@ -198,7 +231,7 @@ if `dtp-fixnum`, must not be zero ---
 
 Description
 
-. Divides argi by arg?, pushes the quotient on the stack, then pushes the
+. Divides arg1 by arg2, pushes the quotient on the stack, then pushes the
 
 remainder on the stack. If the remainder is not zero, the resulting
 
@@ -214,13 +247,15 @@ Exceptions
 
 Conditions: Types of ergi and arg2 are numeric, but not both `dtp-fixnum`. \| argl and arg2 are both `dtp-fixnum`, but result overflows.
 
-Arguments: argl, arg? ---
+Arguments: argl, arg2 ---
 
 Values: 2 \| Note: the only possible fixnum-fixnum overflow is -1_81. / -l= 131 Memory Reference None -
 
 Register Effects TOS: Valid before, valid after
 
-truncate Instruction Format Operand from stack Value(s) Returned 2 Argument(s) 2: Opcode 206
+--------------------------------------
+
+`truncate` Instruction Format Operand from stack Value(s) Returned 2 Argument(s) 2: Opcode 206
 
 argl any numeric data type (an integer) arg2 any numeric data type; if `dtp-fixnum`, must not be zero
 
@@ -228,15 +263,17 @@ Immediate Argument Type Signed
 
 Description
 
-Divides arg1 by arg2, pushes the quotient on. the stack, then. pushes the remainder on the. stack. If the remainder is not zero, the resulting quotient (NOS), is truncated toward zero, and the remainder (TOS) is. such that arg\] = arg? \* NOS + TOS. See the section".Division Operations That Return Two Values". page 120. See the section".Revision 0 Numeric Operations". page 299. :
+Divides arg1 by arg2, pushes the quotient on. the stack, then. pushes the remainder on the. stack. If the remainder is not zero, the resulting quotient (NOS), is truncated toward zero, and the remainder (TOS) is. such that arg\] = arg2 \* NOS + TOS. See the section".Division Operations That Return Two Values". page 120. See the section".Revision 0 Numeric Operations". page 299. :
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg2 are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`, but result overflows. Arguments: argl, arg2 Values: .2 Note: the only possible fixnum-fixnum overflow is -1_31. / -1 = 1_81.
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`, but result overflows. Arguments: argl, arg2 Values: .2 Note: the only possible fixnum-fixnum overflow is -1_31. / -1 = 1_81.
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-round Instruction
+--------------------------------------
+
+`round` Instruction
 
 Format Operand from stack Value(s) Returned 2
 
@@ -250,13 +287,15 @@ Description
 
 Divides arg1 by arg2, pushes the quotient on the stack, then pushes the remainder on the stack. If the remainder is not zero, the resulting quotient (VOS) is rounded toward the nearest integer, and the remainder (TOS) is such that argl = arg2 \* NOS + TOS. If the resulting quotient (NOS) is exactly halfway between two integers, it is rounded to the one that is even. See the section".Division Operations That Return Two Values". page 120. See the section".Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of arg and arg2 are numeric, but not both `dtp-fixnum`. argl and arg? are both `dtp-fixnum`, but result overflows. Arguments: argl, arg2 : Values: 2 : : Note: the only possible fixmum-fixnum overflow is -1_81. / -1 = 1,81.
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg and arg2 are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`, but result overflows. Arguments: argl, arg2 : Values: 2 : : Note: the only possible fixmum-fixnum overflow is -1_81. / -1 = 1,81.
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-remainder Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcode 210
+--------------------------------------
+
+`remainder` Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcode 210
 
 argl any numeric data type arg2 any numeric data. type; if `dtp-fixnum`, must not be zero
 
@@ -266,13 +305,16 @@ Description
 
 Divides argl by arg2, adjusts the remainder to have the same sign as the dividend, and pushes the remainder on the stack. See the section \`\`Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg? are numeric, but not both `dtp-fixnum`. " argl and arg2 are both `dtp-fixnum`, but result overflows. Arguments: .argl, arg2 Values: 1 Note: the only possible fixnum-fixnum overflow is -1_31. / -1 = 131. This overflow is only in an intermediate result, some implementations may in fact return 0 without trapping.
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`. " argl and arg2 are both `dtp-fixnum`, but result overflows. Arguments: .argl, arg2 Values: 1 Note: the only possible fixnum-fixnum overflow is -1_31. / -1 = 131. This overflow is only in an intermediate result, some implementations may in fact return 0 without trapping.
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-rational-quotient Instruction Format Operand from stack Value(s). Returned 1 Argument(s) 2: Opeode 211
+
+--------------------------------------
+
+`rational-quotient` Instruction Format Operand from stack Value(s). Returned 1 Argument(s) 2: Opcode 211
 
 argl any numeric data type arg2 any numeric data type; if `dtp-fixnum`, must not be zero
 
@@ -280,23 +322,27 @@ Immediate Argument Type Signed
 
 Description
 
-Divides argi by arg2, and pushes the quotient on the stack. If both operands are integers and the remainder is not zero, the instruction traps to a routine that returns the ratio (`dtp-small-ratio` or `dtp-big-ratio`) of argllarg2 reduced to lowest terms. If the remainder is zero, the result is an integer if both arguments are integers, or the result type is dtp-single-fleat if either or both arguments are `dtp-single-float` types. See the section".Revision 0 Numeric Operations". page 299.
+Divides arg1 by arg2, and pushes the quotient on the stack. If both operands are integers and the remainder is not zero, the instruction traps to a routine that returns the ratio (`dtp-small-ratio` or `dtp-big-ratio`) of argllarg2 reduced to lowest terms. If the remainder is zero, the result is an integer if both arguments are integers, or the result type is dtp-single-fleat if either or both arguments are `dtp-single-float` types. See the section".Revision 0 Numeric Operations". page 299.
 
-Exceptions Type: Arithmetic dispatch Conditions: Types of argi and arg2 are numeric, but. not both `dtp-fixnum` or `dtp-single-float`. arg and arg2 are both `dtp-fixnum`, but result overflows.
+Exceptions Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but. not both `dtp-fixnum` or `dtp-single-float`. arg and arg2 are both `dtp-fixnum`, but result overflows.
 
-argi and arg2 are both `dtp-fixnum`, but remainder is non-zero. Floating point exceptions. Arguments: ergi, arg2 Values: 1 Note: the only possible fisnum-fixnum overflow is -1_81. / -1 = 1_81.
+arg1 and arg2 are both `dtp-fixnum`, but remainder is non-zero. Floating point exceptions. Arguments: ergi, arg2 Values: 1 Note: the only possible fisnum-fixnum overflow is -1_81. / -1 = 1_81.
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-126
+
+--------------------------------------
+
+`max`
 
 Instruction
 
 Format Operand from stack Value(s) Returned 1
+Argument{(s) 2: Opcode 213
 
-Argument{(s) 2: Opcode 213° argl any numeric data type arg2 any numeric data type
+argl any numeric data type arg2 any numeric data type
 
 Immediate Argument Type Signed
 
@@ -312,11 +358,16 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-Instruction
+
+--------------------------------------
+
+`min` Instruction
 
 Format Operand from stack Value(s) Returned 1
 
-Argument(s) 2: Opcode 212 argl any numeric data type arg2 any numeric data type
+Argument(s) 2: Opcode 212
+
+argl any numeric data type arg2 any numeric data type
 
 Immediate Argument Type Signed
 
@@ -326,57 +377,35 @@ If the arguments are a mixture of rationals and floating-point numbers, and the 
 
 The implementation has a choice of returning the smallest argument as is or applying the rules of floating-point contagion. If the arguments are equal, then either one of them may be returned.
 
-Exception Type: Arithmetic dispatch Conditions: Types of argI and arg2. are numeric, but not both `dtp-fixnum` or `dtp-single-float`. Floating point exceptions. Arguments: argi, arg2 Values: 1
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2. are numeric, but not both `dtp-fixnum` or `dtp-single-float`. Floating point exceptions. Arguments: arg1, arg2 Values: 1
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-logand : Instruction
+
+--------------------------------------
+
+`logand` : Instruction
 
 Format Operand from stack Value(s) Returned 1
 
-Argument{s) 2: Opeode 215 argl any numeric data type , arg2 any numeric data type
+Argument{s) 2: Opcode 215 argl any numeric data type , arg2 any numeric data type
 
 Immediate Argument Type Signed
 
-Description Forms the. bit-by-bit logical AND of argi and arg2, and. pushes the result on the stack. .
+Description Forms the. bit-by-bit logical AND of arg1 and arg2, and. pushes the result on the stack. .
 
-Exception Type: Arithmetic dispatch Conditions: Types of argi and arg2 are numeric, but not both `dtp-fixnum`. Arguments: argl, arg? Values: 1
-
-Memory Reference None
-
-Register Effects TOS:. Valid before, valid after logior
-
-Format Operand from stack
-
-Argumeni(s) 2: argl any numeric data type arg2.any numeric data type
-
-Immediate Argument Type Signed
-
-Description
-
-Value(s) Returned 1
-
-Opcode 217
-
-Instruction
-
-Forms the bit-by-bit inclusive OR of argi and arg2, and pushes the result
-
-on the stack.
-
-Exception Type: Arithmetic dispatch
-
-Conditions: Types of arg and arg2 are numeric,
-
-but not both `dtp-fixnum`.
-
-Arguments: argi, arg2 Values: 1
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`. Arguments: argl, arg2 Values: 1
 
 Memory Reference None
 
-Register Effects TOS: Valid before, valid after logxor. 7
+Register Effects TOS:. Valid before, valid after
+
+
+--------------------------------------
+
+`logxor`. 7
 
 .- Instruction -
 
@@ -410,7 +439,44 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-ash
+--------------------------------------
+
+`logior`
+
+Format Operand from stack
+
+Argument(s) 2: argl any numeric data type arg2.any numeric data type
+
+Immediate Argument Type Signed
+
+Description
+
+Value(s) Returned 1
+
+Opcode 217
+
+Instruction
+
+Forms the bit-by-bit inclusive OR of arg1 and arg2, and pushes the result
+
+on the stack.
+
+Exception Type: Arithmetic dispatch
+
+Conditions: Types of arg and arg2 are numeric,
+
+but not both `dtp-fixnum`.
+
+Arguments: arg1, arg2 Values: 1
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`ash`
 
 Instruction
 
@@ -428,15 +494,20 @@ Exception
 
 Type: Arithmetic dispatch
 
-Conditions: Types of argI and arg2 are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`, but result overflows.
+Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`. argl and arg2 are both `dtp-fixnum`, but result overflows.
 
-Arguments: argi, arg2
+Arguments: arg1, arg2
 
 Values: 1
 
 Memory Reference None
 
-Register Effects TOS: Valid before, valid after \~ DP Op register modified
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+\~ DP Op register modified
 
 rot
 
@@ -456,13 +527,18 @@ Immediate Argument Type Signed
 
 Description
 
-Rotates arg! left arg2 bit positions. when arg? is positive, or rotates arg!
+Rotates arg! left arg2 bit positions. when arg2 is positive, or rotates arg!
 
 right jarg2\| bit. positions when arg2.is negative, then pushes the result on the stack. Bits that are shifted out one side are shifted in the other side.
 
 Exception. None Memory Reference None
 
-Register Effects TOS: Valid before, valid after. DP Op. register modified
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+. DP Op. register modified
 
 Instruction
 
@@ -478,23 +554,28 @@ Immediate Argument Type Signed
 
 Description
 
-Shifts argi left arg2 places when arg2 is positive, or shifts arg1 right Jarg2\| places when arg? is negative. Unused positions are filled by zeroes. Exception None
+Shifts arg1 left arg2 places when arg2 is positive, or shifts arg1 right Jarg2\| places when arg2 is negative. Unused positions are filled by zeroes. Exception None
 
 Memory Reference None
 
-Register Effects TOS: Valid before, valid after DP Op register modified
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+DP Op register modified
 
 :
 
 %82-bit-plus Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 2: Opcode 302
 
-argi `dtp-fixnum` arg2 `dtp-fixnum`
+arg1 `dtp-fixnum` arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned
 
 Description
 
-Pushes argi + arg2 on the stack, ignoring overflow (addition uses signed 32-bit arithmetic).
+Pushes arg1 + arg2 on the stack, ignoring overflow (addition uses signed 32-bit arithmetic).
 
 Exception None
 
@@ -502,19 +583,25 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%32-bit-difference Instruction. Format Operand from stack - . Value(s) Returned 1 Argument(s) 2: Opcode 303
+--------------------------------------
+
+
+`%32-bit-difference` Instruction. Format Operand from stack - . Value(s) Returned 1 Argument(s) 2: Opcode 303
 
 argl `dtp-fixnum` arg2 `dtp-fixnum`
 
 Immediate Argument Type Unsigned.
 
-Description. Pushes argi - arg2 on the stack, ignoring overflow.
+Description. Pushes arg1 - arg2 on the stack, ignoring overflow.
 
 Exception None Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%umultiply-double : Instruction Format Operand from stack Value(s) Returned 2 Argument(s) 2: Opcode 222
+--------------------------------------
+
+
+`%umultiply-double` : Instruction Format Operand from stack Value(s) Returned 2 Argument(s) 2: Opcode 222
 
 argl `dtp-fixnum` arg2 `dtp-fixnum`
 
@@ -530,7 +617,10 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%add-bignum-step Instruction Format Operand from stack Value(s) Returned 2 'Argument(s) 3: Opcode 304
+
+--------------------------------------
+
+`%add-bignum-step` Instruction Format Operand from stack Value(s) Returned 2 'Argument(s) 3: Opcode 304
 
 argl `dtp-fixnum`
 
@@ -550,9 +640,12 @@ Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%sub-bignum-step . ; Instruction Format Operand from stack Value(s) Returned 2 Arguments) 8: Opcode 305
+--------------------------------------
 
-argi `dtp-fixnum`
+
+`%sub-bignum-step` . ; Instruction Format Operand from stack Value(s) Returned 2 Arguments) 8: Opcode 305
+
+arg1 `dtp-fixnum`
 
 arg2 `dtp-fixnum`
 
@@ -562,7 +655,7 @@ Immediate Argument Type Unsigned
 
 Deseription
 
-Computes ((argi - arg2) - arg3), pushes this value on the stack, then pushes the value 1 on the stack if a".borro". was necessary or 2 if a double borrow was necessary; otherwises pushes a 0.
+Computes ((arg1 - arg2) - arg3), pushes this value on the stack, then pushes the value 1 on the stack if a".borro". was necessary or 2 if a double borrow was necessary; otherwises pushes a 0.
 
 Exception None
 
@@ -570,7 +663,10 @@ Memory. Reference None
 
 Register Effects TOS: Valid before, valid after
 
-Zmultiply-bignum-step Instruction Format Operand from stack ' Value(s) Returned 2 Argument(s) 2: Opcode 306.
+
+--------------------------------------
+
+`%multiply-bignum-step` Instruction Format Operand from stack ' Value(s) Returned 2 Argument(s) 2: Opcode 306.
 
 argl `dtp-fixnum` arg2 dtp-fixmnum
 
@@ -578,7 +674,7 @@ Immediate Argument Type Unsigned
 
 Description
 
-Pushes the 2-word result. of multiplying 32-bit unsigned arg1 by 32-bit unsigned arg? on the stack: first the least-significant word, then the most- significant word.
+Pushes the 2-word result. of multiplying 32-bit unsigned arg1 by 32-bit unsigned arg2 on the stack: first the least-significant word, then the most- significant word.
 
 Exception. None
 
@@ -586,7 +682,10 @@ Memory. Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%divide-bignum-step. : Instruction Format Operand from stack Value(s). Returned 2 Argiiment(s) 8: Opcode 307
+
+--------------------------------------
+
+`%divide-bignum-step`. : Instruction Format Operand from stack Value(s). Returned 2 arg1iment(s) 8: Opcode 307
 
 argl `dtp-fixnum` arg2 `dtp-fixnum` arg3 `dtp-fixnum`, must not be 0
 
@@ -594,13 +693,16 @@ Immediate Argument Type Unsigned
 
 Description
 
-Performs an unsigned divide of the 64-bit number ¢ argl (ash.arg2 82.)) by arg3, pushes the quotient on the stack, then pushes the remainder on the stack. Only the low 32 bits of the quotient and remainder are pushed (implying that arg3 is expected to be greater than or equal to arg? using an unsigned compare): If arg3 is 0, the instruction takes a divide-by-zero error pre-trap.
+Performs an unsigned divide of the 64-bit number ¢ argl (ash.arg2 82.)) by arg3, pushes the quotient on the stack, then pushes the remainder on the stack. Only the low 32 bits of the quotient and remainder are pushed (implying that arg3 is expected to be greater than or equal to arg2 using an unsigned compare): If arg3 is 0, the instruction takes a divide-by-zero error pre-trap.
 
 Exception None Memory Reference None
 
 Register Effects TOS: Valid before, valid after
 
-%-bignum-step Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 3: Opcode 223
+--------------------------------------
+
+
+`%-bignum-step` Instruction Format Operand from stack Value(s) Returned 1 Argument(s) 3: Opcode 223
 
 argl `dtp-fixnum`
 
@@ -612,12 +714,15 @@ Immediate Argument Type Signed
 
 Description
 
-argl and arg? are unsigned digits. Has the effect of pushing (db (byte 32. 82.) (ash G arg\] (ash arg? 32.)) arg3)) on the stack as a fixnum.
+argl and arg2 are unsigned digits. Has the effect of pushing (db (byte 32. 82.) (ash G arg\] (ash arg2 32.)) arg3)) on the stack as a fixnum.
 
 Exception None
 
 Memory Reference None
 
 Register Effects TOS: Valid before, valid after
+
+--------------------------------------
+
 
 DP Op register modified Rotate-latch modified -

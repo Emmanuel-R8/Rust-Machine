@@ -267,7 +267,7 @@ impl Clone for MemoryCell {
 
 impl Copy for MemoryCell {}
 
-// Implement PartialEq and Eq for MemoryCell
+// Implement PartialEq and`eq`for MemoryCell
 // todo: tHIS PROBABLY ONLY WORKS FOR PRIMITIVE TYPES.
 impl PartialEq for MemoryCell {
     fn eq(&self, other: &Self) -> bool {

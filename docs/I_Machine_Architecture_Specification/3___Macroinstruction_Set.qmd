@@ -4,7 +4,7 @@
 
 This chapter defines all the instructions executed by the I machine. The instructions are grouped according to their function. The index in the end matter of this manual lists the instructions alphabetically, and an appendix lists them by opcode and by instruction format. Another appendix contains a list of 3600 instructions not implemented by the I-machine and, in some cases, descriptions of how. to obtain their results with I-machine instructions.
 
-Before presenting the individual instructions, the chapter includes introductory sections applicable to all instructions: instruction sequencing, internal registers, and explanations of the various fields in the instruction definitions, including instruction formats and control stack addressing modes, argument descriptions, types of instruction exceptions, types of memory references, top-of-stack register effects,and the cdr codes of values returned.
+Before presenting the individual instructions, the chapter includes introductory sections applicable to all instructions: instruction sequencing, internal registers, and explanations of the various fields in the instruction definitions, including instruction formats and control stack addressing modes, argument descriptions, types of instruction exceptions, types of memory references, top-of-stack register effects,and the `cdr` codes of values returned.
 
 ### Instruction Sequencing
 
@@ -33,7 +33,7 @@ The program counter PC keeps track of the address and of the even/odd status of 
 
 :::
 
-The cdr code field of each word executed contains sequencing information to minimize this waste. The cdr code takes on one of four values, which specify how much the PC is incremented after executing an instruction from this word. Note that the PC contains a half-word address.
+The `cdr` code field of each word executed contains sequencing information to minimize this waste. The `cdr` code takes on one of four values, which specify how much the PC is incremented after executing an instruction from this word. Note that the PC contains a half-word address.
 
 | CDR Code | PC Increment | Comment                                  |
 |:--------:|:------------:|:-----------------------------------------|
@@ -45,7 +45,7 @@ The cdr code field of each word executed contains sequencing information to mini
 
 : CDR Header
 
-When a constant follows an odd half-word instruction, the half-word instruction pair has cdr code 0 and the constant has cdr code 3. When a constant follows an even half-word instruction, the constant follows the odd half-word paired with the constant's predecessor. The half-word instruction pair has cdr code 3 and the constant has cdr code 2.
+When a constant follows an odd half-word instruction, the half-word instruction pair has `cdr` code 0 and the constant has `cdr` code 3. When a constant follows an even half-word instruction, the constant follows the odd half-word paired with the constant's predecessor. The half-word instruction pair has `cdr` code 3 and the constant has `cdr` code 2.
 
 For example, straightline execution of the following sequence of instructions:
 
@@ -70,9 +70,9 @@ proceeds as follows:
 | 104 even   | G                    | 0        | +1           | Increases to next half-word 104 even -> 104 odd       |
 | 104 odd    | H                    | 0        | +1           |                                                       |
 
-A cdr-code value of 1 (`cdr-nil`) is used to mark the end of compiled functions. This value is placed in the word after the final instruction of the function. See the section \<\<\_representation_of_compiled_functions\>\>. It is an error if the processor attempts to execute this word. The chapter on traps and handlers contains more information, See the section \<\<\_exception_handling\>\>.
+A `cdr-code` value of 1 (`cdr-nil`) is used to mark the end of compiled functions. This value is placed in the word after the final instruction of the function. See the section \<\<\_representation_of_compiled_functions\>\>. It is an error if the processor attempts to execute this word. The chapter on traps and handlers contains more information, See the section \<\<\_exception_handling\>\>.
 
-The cdr code sequencing described above only indicates the default next instruction. When an instruction specifically alters the flow of control (for example, branch) the cdr code has no effect.
+The `cdr` code sequencing described above only indicates the default next instruction. When an instruction specifically alters the flow of control (for example, branch) the `cdr` code has no effect.
 
 ### Internal Registers
 
@@ -152,7 +152,7 @@ Table @tab-i-machine-internal-registers lists I-machine internal registers. With
 
 * Implementation Specific
 
-The `%read-internal-register` instruction always returns the object from the specified register with its cdr code set to `cdr-next`. If an internal register has cdr-code bits, they can not be read by this instruction.
+The `%read-internal-register` instruction always returns the object from the specified register with its `cdr` code set to `cdr-next`. If an internal register has `cdr-code` bits, they can not be read by this instruction.
 
 The `rotate-latch` register does not have an internal address and can not be read or written with `%read-internal-register` or `%write-internal-register`.
 
@@ -272,11 +272,11 @@ The. hardware will dispatch to one of two microcode starting addresses according
 
 ##### Constant Formats
 
-The processor treats any word whose data type is that of an object reference as a constant. The processor pushes the object reference itself onto the control stack and sets its cdr code to `cdr-next` for any object, that is pushed onto the control stack, unless otherwise specified.
+The processor treats any word whose data type is that of an object reference as a constant. The processor pushes the object reference itself onto the control stack and sets its `cdr` code to `cdr-next` for any object, that is pushed onto the control stack, unless otherwise specified.
 
 ##### Value Cell Contents
 
-A word of data type `dtp-external-value-cell-pointer` contains the address of a memory cell. Using a data-read operation, the processor pushes the word contained in the addressed cell onto the control stack, following invisible pointers if necessary. Typically this pointer addresses a symbol's value or function cell.
+A word of data type `dtp-external-value-cell-pointer` contains the address of a memory cell. Using a `data-read`  operation, the processor pushes the word contained in the addressed cell onto the control stack, following invisible pointers if necessary. Typically this pointer addresses a symbol's value or function cell.
 
 ##### Illegal Instruction Formats
 
@@ -322,11 +322,11 @@ For example, if the offset is 255, then the operand is the top of stack.. Note t
 
 In the special case when the offset is 0, the operand is popped off the top of stack, before any other operands have been popped off (this operand is still the last argument of the function, though). This special case is called the".sp-pop addressing mode". For example, the following sequence could be used to add two numbers, neither of which is to be saved on the stack for later use, and to leave the result of the addition on the stack.
 
-push LP\|\@ ;push -argZ on the stack
+push LP\|\@ ;push -arg2 on the stack
 
 push LP\]4 ;push arg2 on the stack
 
-add sp-pop ;pops arg2 then argi off stack, jadds, then pushes the result
+add sp-pop ;pops arg2 then arg1 off stack, jadds, then pushes the result
 
 i Immediate - The last operand is not on the stack at all, but is a fixnum whose value is. the offset possibly sign-extended to 32 bits, depending on the instruction. This case is called the".immediate addressing mode". not to be confused with 10-bit immediate format instructions, which have no operand specifier since they are always immediate. In some cases, the stack location address specified is the operand used as an object of the instruction in some way. This case is called".address-operand addressing mode". For instructions that employ the address-operand mode, the immediate and sp-pop modes are illegal.
 
@@ -358,7 +358,7 @@ Table \<\<\_memory_cycles\>\> shows the action taken for each category of data w
 
 ' Table 13. . Memory Cycles
 
-Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor er data-read \@ -- trap trap ind ind ind ind trap mtrp. trnspt data-write 1 - \~ trap 'ind ind ind ind trap mtrp - cdr-read 9 - - trap ind ind - - trap - - bind-read 4 - - trap 'ind tnd ind - trap mtrp trnspt bind-r-mon 2 - of trap ind ind ind - trap ind trnspt bind-write 5 - - trap ind ind ind - trap mtrp \<= bind-w-mon 3 - - trap ind ind ind - trap ind = - header-rd 6 trap trap - ind trap trap trap trap trap trnspt struc-offset 7 - - - ind - - - trap. - - scavenge 8 - - - - - - - trap. - trnspt gc-copy 18 - \> - - - - - trap - \~ raw-read a1 - - - - - - - = - - Legend: Normal action ind Indirect through forwarding pointer. This also enables transport trap if word addresses oldspace, and transport trap takes precedence if it occurs. trap Error trap. Takes precedence over transport. mtrp Monitor trap (different trap vector entry than error trap). This
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor er `data-read`  \@ -- trap trap ind ind ind ind trap mtrp. trnspt  `data-write`  1 - \~ trap 'ind ind ind ind trap mtrp - `cdr-read` 9 - - trap ind ind - - trap - - bind-read 4 - - trap 'ind tnd ind - trap mtrp trnspt bind-r-mon 2 - of trap ind ind ind - trap ind trnspt bind-write 5 - - trap ind ind ind - trap mtrp \<= bind-w-mon 3 - - trap ind ind ind - trap ind = - header-rd 6 trap trap - ind trap trap trap trap trap trnspt struc-offset 7 - - - ind - - - trap. - - scavenge 8 - - - - - - - trap. - trnspt gc-copy 18 - \> - - - - - trap - \~ raw-read a1 - - - - - - - = - - Legend: Normal action ind Indirect through forwarding pointer. This also enables transport trap if word addresses oldspace, and transport trap takes precedence if it occurs. trap Error trap. Takes precedence over transport. mtrp Monitor trap (different trap vector entry than error trap). This
 
 ' also enables transport trap if word addresses oldspace, and transport trap takes precedence if it occurs.
 
@@ -368,31 +368,31 @@ Note that the operations described apply. only to objects addressed as though th
 
 If an error occurs during a memory operation, the processor aborts the instruction and invokes a Lisp error handler. The arguments to the error handler are the microstate, and the virtual memory address (VMA). From the microstate, the Lisp handler will look up the type of error in an error table. See the section".Exception Handling".
 
-Data-Read Operations
+`data-read`  Operations
 
-Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor er data-read a - trap trap ind ind ind ind trap mtrp trnspt
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor er `data-read`  a - trap trap ind ind ind ind trap mtrp trnspt
 
-Most operands are fetched with a data-read operation. This reads the word located at the requested memory address. If the word obtained is a forwarding, that is, invisible, pointer (`dtp-header-forward`, `dtp-element-forward`, `dtp-one-q-forward`, or `dtp-external-value-cell-pointer`), then the pointer's address field is used as the new address of the cell. The content of this new address is then read and checked to see if it is an invisible pointer. The process is repeated until a non-invisible-pointer data type is encountered. The word finally obtained is returned as the result of the data-read operation. During this pointer following, sequence breaks are allowed so that loops can be aborted. If at any point' `dtp-null`, a header (`dtp-header-p`, `dtp-header-i`), or a special marker (non-invisible pointer -- `dtp-gc-forward`) is encountered, the error causes the instruction performing the data read to take an error trap. If a dtp-mon'tor-forward is encountered, the instruction takes a monitor trap. If a data location that is read contains an address in oldspace and transport traps are enabled for the page containing the word read , a transport trap handler is invoked to evacuate the object and then the data-read is resurned. See the section".I-machine Garbage Collection".
+Most operands are fetched with a `data-read`  operation. This reads the word located at the requested memory address. If the word obtained is a forwarding, that is, invisible, pointer (`dtp-header-forward`, `dtp-element-forward`, `dtp-one-q-forward`, or `dtp-external-value-cell-pointer`), then the pointer's address field is used as the new address of the cell. The content of this new address is then read and checked to see if it is an invisible pointer. The process is repeated until a non-invisible-pointer data type is encountered. The word finally obtained is returned as the result of the `data-read`  operation. During this pointer following, sequence breaks are allowed so that loops can be aborted. If at any point' `dtp-null`, a header (`dtp-header-p`, `dtp-header-i`), or a special marker (non-invisible pointer -- `dtp-gc-forward`) is encountered, the error causes the instruction performing the data read to take an error trap. If a dtp-mon'tor-forward is encountered, the instruction takes a monitor trap. If a data location that is read contains an address in oldspace and transport traps are enabled for the page containing the word read , a transport trap handler is invoked to evacuate the object and then the `data-read`  is resurned. See the section".I-machine Garbage Collection".
 
-Data-Write Operations
+ `data-write`  Operations
 
--   Cycle Code Data Nuil Header HFWD EFWD LFWD EVCP GC Mon- Point- Type itor . er data-write 4 - - 'trap ind ind ind ind trap mtrp -
+-   Cycle Code Data Nuil Header HFWD EFWD LFWD EVCP GC Mon- Point- Type itor . er  `data-write`  4 - - 'trap ind ind ind ind trap mtrp -
 
-When most operands are written to memory, a data-write memory read operation is first performed. This checks the requested location to determine whether an invisible pointer is present. If so, the address of the pointer is used as the new address of the cell. The contents of the new address is read and checked to see if
+When most operands are written to memory, a  `data-write`  memory read operation is first performed. This checks the requested location to determine whether an invisible pointer is present. If so, the address of the pointer is used as the new address of the cell. The contents of the new address is read and checked to see if
 
 it.is an invisible pointer. If.a 'header or special marker (`dtp-gc-forward` but not `dtp-null`) is encountered in any location, the error causes the instruction doing the data write to take an error trap. If a `dtp-monitor-forward` is encountered, the instruction takes a monitor trap. If the contents of a location is:a forwarding pointer, a check for oldspace is made before indirection. When the process terminates, the contents of the final location, which are being replaced; are not transported... The process is repeated until a non-invisible-pointer data type is
 
--   found, at which point a write normally follows and the data is stored in the last location, preserving the cdr code of the.location into which it stores.
+-   found, at which point a write normally follows and the data is stored in the last location, preserving the `cdr` code of the.location into which it stores.
 
-CDR-Read Operations Cycle Code Data Null Header HFWD EFWD IFWD EVCP GC... Mon- Point- 'Type . itor, er
+`cdr-read`  Operations Cycle Code Data Null Header HFWD EFWD IFWD EVCP GC... Mon- Point- 'Type . itor, er
 
-\_ cdr-read 9° - - trap ind ind - - trap - -
+\_ `cdr-read` 9° - - trap ind ind - - trap - -
 
-Memory references made only to determine the cdr-code of a location use a cdr- read operation. This kind of reference follows pointers of the type `dtp-header-forward` or `dtp-element-forward`, which forward the entire memory word, including the cdr code. (Recall that a `dtp-header-forward` pointer is used. by the system to replace an element when it is necessary to change the cdr-code of a \_ cell in the middle of a cdr-coded list. See the section \<\<\_forwarding_invisible_pointers\>\>. The cdr-read operation returns the contents of the cdr-code field of the finally found word.
+Memory references made only to determine the `cdr-code` of a location use a `cdr`- read operation. This kind of reference follows pointers of the type `dtp-header-forward` or `dtp-element-forward`, which forward the entire memory word, including the `cdr` code. (Recall that a `dtp-header-forward` pointer is used. by the system to replace an element when it is necessary to change the `cdr-code` of a \_ cell in the middle of a `cdr-code`d list. See the section \<\<\_forwarding_invisible_pointers\>\>. The `cdr-read` operation returns the contents of the `cdr-code` field of the finally found word.
 
-Forwarding pointers (`dtp-one-q-forward` and `dtp-external-value-cell-pointer`) that forward only the contents (that is, the data-type and pointer fields) of the cell are not followed. Instead, the cdr code of the word containing such a pointer is returned.
+Forwarding pointers (`dtp-one-q-forward` and `dtp-external-value-cell-pointer`) that forward only the contents (that is, the data-type and pointer fields) of the cell are not followed. Instead, the `cdr` code of the word containing such a pointer is returned.
 
-Having extracted the relevant cdr code, the instruction doing the cdr read takes action according to-the value returned, as explained in the section on lists. See the section \<\<\_representations_of_lists\>\>.
+Having extracted the relevant `cdr` code, the instruction doing the `cdr` read takes action according to-the value returned, as explained in the section on lists. See the section \<\<\_representations_of_lists\>\>.
 
 If a header or `dtp-gc-forward` data type is encountered, the error causes the instruction making the reference to take an error trap.
 
@@ -402,7 +402,7 @@ Cyele Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type ttor er
 
 bind-read 4 - - trap ind ind ind = trap mtrp trnspt bind-r-mon 2 - - trap ind tnd ind - trap ind = trnspt
 
-The binding instructions, unbind-n, %restore-binding-stack, and bind-locative-to-value, change the value cell, not the contents of the value cell, of a variable. `dtp-external-value-cell-pointer` is an invisible pointer 'that points to the value cell in memory. Since binding should create a new value cell, the system does not follow `dtp-external-value-cell-pointer` when doing bindings, In all other respects this operation is the same as a data-read memory operation, except that encountering `dtp-null` does not cause a trap. . .
+The binding instructions, unbind-n, %restore-binding-stack, and bind-locative-to-value, change the value cell, not the contents of the value cell, of a variable. `dtp-external-value-cell-pointer` is an invisible pointer 'that points to the value cell in memory. Since binding should create a new value cell, the system does not follow `dtp-external-value-cell-pointer` when doing bindings, In all other respects this operation is the same as a `data-read`  memory operation, except that encountering `dtp-null` does not cause a trap. . .
 
 A subcategory of this type of operation is the. bind-read-no-monitor operation. This operation, as opposed to the normal binding read, does not trap out if a `dtp-monitor-forward` pointer is encountered. Instead, it just follows the pointer.
 
@@ -410,17 +410,17 @@ Bind-Write Operations::
 
 Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type . \| \| utor er \| bind-write 5 - trap ind ind ind - trap mtrp - bind-w-mon 3. «- - trap ind ind ind = trap ind -
 
-A bind-write operation is like a data-write memory operation except that it does not follow external-value-cell pointers. See the section".Bind-Read Operation". in NS Users Manual. A subcategory of this type of operation is the bind-write-no- . monitor operation. This operation, as opposed to the normal binding write, does
+A bind-write operation is like a  `data-write`  memory operation except that it does not follow external-value-cell pointers. See the section".Bind-Read Operation". in NS Users Manual. A subcategory of this type of operation is the bind-write-no- . monitor operation. This operation, as opposed to the normal binding write, does
 
 ' not trap out if a `dtp-monitor-forward` pointer is encountered. Instead, it just follows the pointer.
 
-Header-Read Operations::
+`header-read`  Operations::
 
 Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point-
 
 Type \| itor er header-rd 6 £«trap trap - ind trap trap trap trap trap trnspt
 
-Instructions that reference objects represented in memory as structure objects use a header-read operation to access the header. This reads the word at the requested address. If the word is a header, the header is returned. If the word is a header-forward pointer, the address field of this invisible pointer is used as the new address of the header. The word at this new address is checked, and the process repeated until a header is found. If at any point something other than a header or header-forward pointer is found, the error causes, the instruction performing the header-read operation to take an error trap. If the data location that is read (without a trap) contains an address in oldspace, a transport trap handler is invoked to evacuate the object and then the header-read is resumed.
+Instructions that reference objects represented in memory as structure objects use a `header-read`  operation to access the header. This reads the word at the requested address. If the word is a header, the header is returned. If the word is a header-forward pointer, the address field of this invisible pointer is used as the new address of the header. The word at this new address is checked, and the process repeated until a header is found. If at any point something other than a header or header-forward pointer is found, the error causes, the instruction performing the `header-read`  operation to take an error trap. If the data location that is read (without a trap) contains an address in oldspace, a transport trap handler is invoked to evacuate the object and then the `header-read`  is resumed.
 
 Structure-Offset Operations::
 
@@ -456,25 +456,25 @@ Invalid after The register can be made. invalid by the instruction. Unchanged St
 
 Every operation that returns a value -- this includes all true Lisp operations
 
--   pushes that value on the stack. Thus, after an instruction has executed, the stack no longer contains the instruction's arguments but instead contains the result of the operation. Instructions that do not return a value -- for example, rplaed, aset, pop -- pop off all of their arguments. Every instruction that produces a value and pushes it on the stack sets the cdr code of the pushed word to 0 (`cdr-next`). The only exceptions are as follows:
+-   pushes that value on the stack. Thus, after an instruction has executed, the stack no longer contains the instruction's arguments but instead contains the result of the operation. Instructions that do not return a value -- for example, `rplacd`, aset, pop -- pop off all of their arguments. Every instruction that produces a value and pushes it on the stack sets the `cdr` code of the pushed word to 0 (`cdr-next`). The only exceptions are as follows:
 
--   The start-call instructions produce 3 (illegal in lists) in the cdr-code fields of the frame header on the stack.
+-   The start-call instructions produce 3 (illegal in lists) in the `cdr-code` fields of the frame header on the stack.
 
--   A memory read or block read instruction -- one of `%memory-read`, `%memory-read-address`, `%block-n-read`, or `%block-n-read-shift` -- can copy the cdr code of the word from memory into the word on the stack.
+-   A memory read or block read instruction -- one of `%memory-read`, `%memory-read-address`, `%block-n-read`, or `%block-n-read-shift` -- can copy the `cdr` code of the word from memory into the word on the stack.
 
--   The `push-apply-args` operation. can produce 1 (`cdr-nil`) or 2 (`cdr-normal`) in the cdr-code field of words on the stack.
+-   The `push-apply-args` operation. can produce 1 (`cdr-nil`) or 2 (`cdr-normal`) in the `cdr-code` field of words on the stack.
 
--   The `catch-open` instruction can produce any value in the cdr-eode field of certain words in the catch block.
+-   The `catch-open` instruction can produce any value in the `cdr`-eode field of certain words in the catch block.
 
--   The `catch-close` instruction produces 2 or 8 in the cdr code of the PC it saves before jumping to an unwind-protect cleanup handler.
+-   The `catch-close` instruction produces 2 or 8 in the `cdr` code of the PC it saves before jumping to an unwind-protect cleanup handler.
 
 -   `%p-tag-dpb` can be used to store into the stack.
 
--   `%set-tag` can be used to produce any cdr code but is usually programmed to produce `cdr-next`.
+-   `%set-tag` can be used to produce any `cdr` code but is usually programmed to produce `cdr-next`.
 
--   The instructions increment, decrement, set-to-car, set-to-cdr, `set-to-cdr-push-car` (car pushed with `cdr-next`), %block-n-read-alu, and %pointer-increment store into their stack,operands, preserving the cdr code that was in.the stack location,
+-   The instructions increment, decrement, set-to-car, set-to-cdr, `set-to-cdr-push-car` (`car` pushed with `cdr-next`), %block-n-read-alu, and %pointer-increment store into their stack,operands, preserving the `cdr` code that was in.the stack location,
 
--   movem, pop, set-sp-to-address-save-tos, stack-bit, stack-bit-address, `return-kludge`, %merge-cdr-no-pop, and %set-cdr-code-n store into their stack operands and set the cdr code to some value other than.that of the stack location (that is, these instructions do not. preserve the original cdr code); See the section ".Revision 0 Stack-bit". See the section ".Revision 0 Stack-bit-address".. See the section ".Revision 0 Return-kludge".
+-   movem, pop, set-sp-to-address-save-tos, stack-bit, stack-bit-address, `return-kludge`, %merge-cdr-no-pop, and %set-cdr-code-n store into their stack operands and set the `cdr` code to some value other than.that of the stack location (that is, these instructions do not. preserve the original `cdr` code); See the section ".Revision 0 Stack-bit". See the section ".Revision 0 Stack-bit-address".. See the section ".Revision 0 Return-kludge".
 
 ## The Instructions
 
