@@ -17,7 +17,7 @@ use crate::common::types::MemoryCell;
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::pack_8_to_32;
 
-/// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
+// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct LoadMapEntry {
     pub addr: u32, // VMA to be filled in by this load map entry
