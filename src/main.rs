@@ -34,6 +34,14 @@ mod emulator {
     pub mod config;
     pub mod disassembly;
     pub mod emulator;
+    pub mod instructions{
+        pub mod common;
+        pub mod list;
+        pub mod interruptible;
+        pub mod predicate;
+        pub mod numeric;
+        pub mod datamovement;
+    }
 }
 
 mod utils;
@@ -50,6 +58,8 @@ use std::fs::File;
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 
+//
+//
 pub fn main() {
     // Global state
     let mut ctx: GlobalContext = GlobalContext::new();

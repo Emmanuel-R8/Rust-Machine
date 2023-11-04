@@ -108,7 +108,7 @@ Register Effects TOS: Valid after
 
 Format Operand from stack, Value(s) Returned 0 address-operand mode (immediate and sp-pop addressing modes illegal)
 
-Arguments) 1: Opcode 148 arg, the address operand, any numeric data type
+Arguments) 1: Opcode 143 arg, the address operand, any numeric data type
 
 Immediate Argument Type Not applicable
 
@@ -507,13 +507,7 @@ Register Effects TOS: Valid before, valid after
 
 --------------------------------------
 
-\~ DP Op register modified
-
-rot
-
-Ish
-
-Instruction
+`rot` Instruction
 
 Format Operand from: stack Value(s) Returned 1
 
@@ -538,9 +532,7 @@ Register Effects TOS: Valid before, valid after
 
 --------------------------------------
 
-. DP Op. register modified
-
-Instruction
+`lsh` Instruction
 
 Format Operand from stack Value(s) Returned 1
 
