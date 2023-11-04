@@ -24,7 +24,7 @@ pub struct LoadMapEntry {
     // NOTE: opcount and opcode are field of a struct op{} in the C code
     pub count: u32,                   // Number of words to be filled in by this entry
     pub map_code: LoadMapEntryOpcode, // An LoadMapEntryOpcode specifying how to do so
-    pub data: MemoryCell,                  // Interpretation is based on the opcode
+    pub data: MemoryCell,             // Interpretation is based on the opcode
                                       // pub world: Rc<RefCell<World<'a>>>, // Ref to World from which this entry was obtained
                                       // !!!!!!!!! Should not be needed to link back
 }
@@ -110,16 +110,17 @@ pub struct World {
     pub byte_swapped: bool,     // World is byte swapped on this machine (VLM only)
 
     pub page_base: u32,
-    pub page: Vec<MemoryCell>,            // -> The current VLM format pagemut
-    pub data_page_base: u32,         // Block number of first page of data (VLM only)
-    pub data_page: Vec<u32>,         // -> The data of the current VLM format page
-    pub tags_page_base: u32,         // Block number of first page of tags (VLM only)
-    pub tags_page: Vec<QTag>,        // -> The tags of the current VLM format page
-    pub ivory_data_page: Vec<MemoryCell>, // [MemoryCell; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page. TODO: rename to current_data-page
+    pub page: Vec<MemoryCell>, // -> The current VLM format pagemut
+    pub data_page_base: u32,   // Block number of first page of data (VLM only)
+    pub data_page: Vec<u32>,   // -> The data of the current VLM format page
+    pub tags_page_base: u32,   // Block number of first page of tags (VLM only)
+    pub tags_page: Vec<QTag>,  // -> The tags of the current VLM format page
+    // [MemoryCell; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page.
+    // TODO: rename to current_data-page
+    pub ivory_data_page: Vec<MemoryCell>,
     // Size is 0x500 = 0x100 for tags + 0x400 for data
     // pub current_page_number: u32, // Page number of the page in the buffer, if any. -1 means not pointing yet
     // pub current_q_number: u32,    // Q number within the page to be read
-
     pub timestamp_1: u32, // Unique ID of this world, part 1 ...
     pub timestamp_2: u32, // ... part 2
 
@@ -154,7 +155,6 @@ impl World {
 
             // current_page_number: 0,
             // current_q_number: 0,
-
             timestamp_1: 0,
             timestamp_2: 0,
 
@@ -170,7 +170,6 @@ impl World {
         };
         return w;
     }
-
 
     pub fn load_image(&mut self, pathname: &str, punt_on_errors: bool) {
         let mut page_bases: MemoryCell = MemoryCell::default();
@@ -233,12 +232,10 @@ impl World {
                     first_map_q = 8;
                 }
                 _ => {
-                    panic_exit(
-                        format!(
-                            "Format magic code of world file {} is unrecognized",
-                            pathname
-                        )
-                    );
+                    panic_exit(format!(
+                        "Format magic code of world file {} is unrecognized",
+                        pathname
+                    ));
                 }
             }
         }
@@ -246,7 +243,7 @@ impl World {
         if self.format == LoadFileFormat::VLMWorldFormat {
             page_bases = read_ivory_world_file_q(self, pages_base_q);
             self.data_page_base = page_bases.as_raw();
-             self.tags_page_base = page_bases.tag() as u32;
+            self.tags_page_base = page_bases.tag() as u32;
         }
 
         if first_sysout_q != 0 {
@@ -280,7 +277,6 @@ impl World {
 
         self.fd = Some(f);
     }
-
 
     // Select the specified Set<LoadMapEntry>
     pub fn select_entries(&mut self, selector: MapEntrySelector) -> &Set<LoadMapEntry> {
@@ -833,49 +829,49 @@ impl World {
 //         return;
 //     }
 
-    // todo!()
-    // let mut offset: u32 = world.current_page_number * IVORY_PAGE_SIZE_BYTES ;
-    // if offset != lseek(world.fd, offset, 0) {
-    //     world.close(true);
-    //     vpunt(format!("Unable to seek to offset {} in world file {}",
-    //         offset,
-    //         world.pathname.display())
-    //     );
-    // }
-    // if IVORY_PAGE_SIZE_BYTES
-    //     != write(
-    //         world.fd,
-    //         world.ivory_data_page ,
-    //         IVORY_PAGE_SIZE_BYTES,
-    //     )
-    // {
-    //     world.close(true);
-    //     vpunt(format!("Unable to write page {} into world file {}" ,
-    //         world.current_page_number,
-    //         world.pathname.display())
-    //     );
-    // }
-    // let ref mut fresh56 = world.current_page_number;
-    // *fresh56 += 1;
-    // prepare_to_write_ivory_world_file_page(world, world.current_page_number);
+// todo!()
+// let mut offset: u32 = world.current_page_number * IVORY_PAGE_SIZE_BYTES ;
+// if offset != lseek(world.fd, offset, 0) {
+//     world.close(true);
+//     vpunt(format!("Unable to seek to offset {} in world file {}",
+//         offset,
+//         world.pathname.display())
+//     );
+// }
+// if IVORY_PAGE_SIZE_BYTES
+//     != write(
+//         world.fd,
+//         world.ivory_data_page ,
+//         IVORY_PAGE_SIZE_BYTES,
+//     )
+// {
+//     world.close(true);
+//     vpunt(format!("Unable to write page {} into world file {}" ,
+//         world.current_page_number,
+//         world.pathname.display())
+//     );
+// }
+// let ref mut fresh56 = world.current_page_number;
+// *fresh56 += 1;
+// prepare_to_write_ivory_world_file_page(world, world.current_page_number);
 // }
 
 // pub fn byte_swap_world(mut world_pathname: &str, mut search_path: &str) {
-    // let mut world = World::new();
-    // let mut a_world= World::new();
+// let mut world = World::new();
+// let mut a_world= World::new();
 
-    // world.pathname = world_pathname;
-    // open_world_file(&mut world, true);
-    // let originalWorld = &mut world;
-    // find_parent_worlds(&mut world, search_path);
-    // a_world = &mut world;
+// world.pathname = world_pathname;
+// open_world_file(&mut world, true);
+// let originalWorld = &mut world;
+// find_parent_worlds(&mut world, search_path);
+// a_world = &mut world;
 
-    // while !a_world.is_none() {
-    //     if a_world.format == LoadFileFormat::VLMWorldFormat && a_world.byte_swapped ==true {
-    //         ByteSwapOneWorld(a_world);
-    //     }
-    //     a_world = a_world.parent_world;
-    // }
+// while !a_world.is_none() {
+//     if a_world.format == LoadFileFormat::VLMWorldFormat && a_world.byte_swapped ==true {
+//         ByteSwapOneWorld(a_world);
+//     }
+//     a_world = a_world.parent_world;
+// }
 // }
 
 fn byte_swap_one_world(world: &mut World) {

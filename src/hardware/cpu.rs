@@ -2,20 +2,19 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::common::constants::{
-    QTag,
-    TrapMode,
-    CDR,
-    IVORY_PAGE_SIZE_QS,
-    IVORY_STACK_CACHE_SIZE,
-    MEMORY_STACK_CACHE_BASE,
+    QTag, TrapMode, CDR, IVORY_PAGE_SIZE_QS, IVORY_STACK_CACHE_SIZE, MEMORY_STACK_CACHE_BASE,
 };
 use crate::common::types::{
+<<<<<<< Updated upstream
     Bar,
     InstructionCacheLine,
     MemoryCell,
     INSTRUCTION_CACHE_SIZE, Address,
+=======
+    Address, Bar, InstructionCacheLine, MemoryCell, QCDRTagData, INSTRUCTION_CACHE_SIZE,
+>>>>>>> Stashed changes
 };
-use crate::utils::{ dpb, ldb };
+use crate::utils::{dpb, ldb};
 
 const CONTROL_ARGUMENT_SIZE: u32 = 0o377;
 const CONTROL_EXTRA_ARGUMENT: u32 = 0o400;
@@ -218,17 +217,15 @@ impl Default for CPU {
             pc: MemoryCell::new_cdr_tag_a(
                 CDR::Normal,
                 QTag::EvenPC, // See IMAS p. 59
-                PROGRAM_COUNTER_INIT
+                PROGRAM_COUNTER_INIT,
             ),
             continuation: MemoryCell::default(),
             instruction_cache: vec![
                 InstructionCacheLine::default();
                 INSTRUCTION_CACHE_SIZE as usize
             ],
-            stack_cache: [
-                MemoryCell::default();
-                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize
-            ],
+            stack_cache: [MemoryCell::default();
+                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize],
             stack_cache_limit: MemoryCell::default(),
             allocated_caches: false,
 
@@ -277,15 +274,13 @@ impl CPU {
             self.instruction_cache =
                 vec![InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE as usize];
 
-            self.stack_cache = [
-                MemoryCell::default();
-                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize
-            ];
+            self.stack_cache =
+                [MemoryCell::default(); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize];
 
             self.stack_cache_limit = MemoryCell::new_cdr_tag_u(
                 CDR::Jump,
                 QTag::Fixnum,
-                IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128
+                IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128,
             );
 
             self.allocated_caches = true;
@@ -353,7 +348,7 @@ impl CPU {
     }
 
     pub fn fp_dec(&mut self, addr: u32) {
-        self.fp-=MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
+        self.fp -= MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
     }
 
     pub fn fp_jump(&mut self, addr: i32) {
@@ -369,7 +364,7 @@ impl CPU {
     }
 
     pub fn lp_dec(&mut self, addr: u32) {
-        self.lp-=MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
+        self.lp -= MemoryCell::new_cdr_tag_a(CDR::Jump, QTag::OddPC, addr);
     }
 
     pub fn lp_jump(&mut self, addr: i32) {
