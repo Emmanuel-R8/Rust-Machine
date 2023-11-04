@@ -1,5 +1,4 @@
 use crate::common::constants::{
-<<<<<<< Updated upstream
     QTag,
     VMAttribute,
     VMResultCode,
@@ -20,15 +19,6 @@ use crate::common::constants::{
     VMATTRIBUTE_WRITE_FAULT,
 };
 use crate::common::types::{ Address, MemoryCell };
-=======
-    QTag, VMAttribute, VMResultCode, ADDRESS_NIL, ADDRESS_T, CDR, MEMORYWAD_ADDRESS_SHIFT,
-    MEMORY_ADDRESS_PAGE_SHIFT, MEMORY_PAGE_MASK, PROT_EXEC, PROT_READ, PROT_WRITE,
-    VMATTRIBUTE_ACCESS_FAULT, VMATTRIBUTE_EMPTY, VMATTRIBUTE_EPHEMERAL, VMATTRIBUTE_EXISTS,
-    VMATTRIBUTE_MODIFIED, VMATTRIBUTE_TRANSPORT_DISABLE, VMATTRIBUTE_TRANSPORT_FAULT,
-    VMATTRIBUTE_WRITE_FAULT,
-};
-use crate::common::types::{Address, MemoryCell, QCDRTagData};
->>>>>>> Stashed changes
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::{dpb, ldb};
 

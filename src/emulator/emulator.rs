@@ -638,7 +638,6 @@ impl<'a> GlobalContext<'a> {
 
         if q_address < 0 || q_address >= VLMPAGE_SIZE_QS {
             // self.close(true);
-<<<<<<< Updated upstream
             panic_exit(
                 format!(
                     "Invalid word number {} for world file {}",
@@ -646,13 +645,6 @@ impl<'a> GlobalContext<'a> {
                     w.pathname.display().to_string()
                 )
             );
-=======
-            panic_exit(format!(
-                "Invalid word number {} for world file {}",
-                q_number,
-                w.pathname.display().to_string()
-            ));
->>>>>>> Stashed changes
         }
 
         let datum: u32 = byte_swap_32(w.data_page[q_address as usize]);
