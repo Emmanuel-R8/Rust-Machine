@@ -291,24 +291,25 @@ impl AddAssign for MemoryCell {
     // TODO: Check big or low endian representation
     fn add_assign(&mut self, rhs: Self) {
         if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
-            let val = self.as_i32().unwrap() + rhs.as_i32().unwrap();
+            let val_i32 = self.as_i32().unwrap() + rhs.as_i32().unwrap();
+            let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
             *self = MemoryCell::new(
                 self.cdr(),
                 self.tag(),
-                ((val | 0xffff_0000) >> 16) as u16,
-                (val | 0x0000_ffff) as u16,
+                ((val_u32 & 0xffff_0000) >> 16) as u16,
+                (val_u32 & 0x0000_ffff) as u16,
             );
             return;
         }
 
         if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
-            let val = self.as_f32().unwrap() + rhs.as_f32().unwrap();
-            let val_u32 = f32::to_bits(val);
+            let val_f32 = self.as_f32().unwrap() + rhs.as_f32().unwrap();
+            let val_u32 = f32::to_bits(val_f32);
             *self = MemoryCell::new(
                 self.cdr(),
                 self.tag(),
-                ((val_u32 | 0xffff_0000) >> 16) as u16,
-                (val_u32 | 0x0000_ffff) as u16,
+                ((val_u32 & 0xffff_0000) >> 16) as u16,
+                (val_u32 & 0x0000_ffff) as u16,
             );
             return;
         }
@@ -322,12 +323,13 @@ impl SubAssign for MemoryCell {
     // TODO: Check big or low endian representation
     fn sub_assign(&mut self, rhs: Self) {
         if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
-            let val = self.as_i32().unwrap() - rhs.as_i32().unwrap();
+            let val_i32 = self.as_i32().unwrap() - rhs.as_i32().unwrap();
+            let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
             *self = MemoryCell::new(
                 self.cdr(),
                 self.tag(),
-                ((val | 0xffff_0000) >> 16) as u16,
-                (val | 0x0000_ffff) as u16,
+                ((val_u32 & 0xffff_0000) >> 16) as u16,
+                (val_u32 & 0x0000_ffff) as u16,
             );
             return;
         }
@@ -338,8 +340,8 @@ impl SubAssign for MemoryCell {
             *self = MemoryCell::new(
                 self.cdr(),
                 self.tag(),
-                ((val_u32 | 0xffff_0000) >> 16) as u16,
-                (val_u32 | 0x0000_ffff) as u16,
+                ((val_u32 & 0xffff_0000) >> 16) as u16,
+                (val_u32 & 0x0000_ffff) as u16,
             );
             return;
         }

@@ -1065,7 +1065,7 @@ pub enum SystemCommAreaSlot {
 pub const ADDRESS_FEPCOMM_AREA: u32 = 0xF804_1000;
 pub const FEPCOMM_AREA_SIZE: u32 = 256;
 pub const ADDRESS_FEPMODETRAPVECADDRESS: u32 = 0xF804_0A47;
-pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
+// pub const WADEXISTSMASK: u32 = 0x4040_4040_4040_4040;
 
 // // Genera version of FEP Communications area */
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]

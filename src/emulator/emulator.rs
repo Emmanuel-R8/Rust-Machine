@@ -734,8 +734,8 @@ impl<'a> GlobalContext<'a> {
             ));
         }
 
-        world.tags_page_base = block_count;
-        world.data_page_base = (world.tags_page_base + 1) * page_number;
+        // world.tags_page_base = block_count;
+        // world.data_page_base = (world.tags_page_base + 1) * page_number;
 
         return new_wired_map_entries;
     }
