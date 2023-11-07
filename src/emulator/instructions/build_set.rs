@@ -3,7 +3,7 @@ use super::binding::make_instructions_binding;
 use super::block::make_instructions_block;
 use super::branch_loop::make_instructions_branch_loop;
 use super::catch::make_instructions_catch;
-use super::common::{ INSTRUCTIONS_SET, Instruction, InstructionFamily, ImmediateArgumentType };
+use super::common::Instruction;
 use super::datamovement::make_instructions_datamovement;
 use super::field_extraction::make_instructions_field_extraction;
 use super::function_calling::make_instructions_function_calling;
@@ -50,23 +50,10 @@ pub fn build_instruction_set() {
         instructions_subprimitive,
     ].concat();
 
-    let instruction_set: [Box<Instruction<'static>>; 0o777];
-    for (i, _) in instruction_set.iter_mut().enumerate() {
-        instruction_set[i] = Box::new(Instruction {
-            family: InstructionFamily::UNDEFINED,
-            arg_count: 0,
-            ret_count: 0,
-            immediate_arg_type: ImmediateArgumentType::UNDEFINED,
-            name: "unknown",
-            opcode: 0,
-            is_implemented: false,
-        });
-    }
+    let mut instruction_set: Vec<Option<Box<Instruction<'static>>>> = vec![None; 0o777];
 
-    for instruction in &instructions {
+    for instruction in instructions.iter_mut() {
         let opcode = instruction.opcode as usize;
-        let inst = instruction.clone();
-
-        instruction_set[opcode] = inst;
+        instruction_set[opcode] = Some(Box::new(instruction.clone()));
     }
 }

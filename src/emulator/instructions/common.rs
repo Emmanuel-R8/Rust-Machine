@@ -112,9 +112,3 @@ impl Instruction<'static> {
         return self;
     }
 }
-
-const EMPTY_INSTRUCTION: Instruction = Instruction::default();
-pub static mut INSTRUCTIONS_SET: [Instruction<'static>; 0o777] = [
-    EMPTY_INSTRUCTION;
-    0o777
-];
