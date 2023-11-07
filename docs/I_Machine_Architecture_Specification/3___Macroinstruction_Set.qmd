@@ -1,0 +1,497 @@
+# Macroinstruction Set
+
+## Introduction
+
+This chapter defines all the instructions executed by the I machine. The instructions are grouped according to their function. The index in the end matter of this manual lists the instructions alphabetically, and an appendix lists them by opcode and by instruction format. Another appendix contains a list of 3600 instructions not implemented by the I-machine and, in some cases, descriptions of how. to obtain their results with I-machine instructions.
+
+Before presenting the individual instructions, the chapter includes introductory sections applicable to all instructions: instruction sequencing, internal registers, and explanations of the various fields in the instruction definitions, including instruction formats and control stack addressing modes, argument descriptions, types of instruction exceptions, types of memory references, top-of-stack register effects,and the `cdr` codes of values returned.
+
+### Instruction Sequencing
+
+Instructions are normally executed in the order in which they are stored in memory. Since full-word instructions cannot cross word boundaries, it would occasionally be necessary to insert a no-op instruction in places where a full-word instruction or constant followed a half-word instruction that did not fall on an odd halfword address. This costs address space, I Cache space, and possibly execution time to execute the no-op.
+
+------------------------------------------------------------------------
+
+
+:::callout-note
+NOTE: A full word address is split between an **even** half-world address, followed by an **odd** half-word address.
+
+A 32-bit word at a particular address is split into two 16-bit words. The lower
+2 bytes are stored at the __even__ half-word address, and the upper 2 bytes are
+at the __odd__ half-word address.
+
+For example, at word address 100 (in _words_, each address addresses a 4-byte content)
+    EVEN HALF-WORD 100.
+    Byte 100.0
+    Byte 100.1
+
+    ODD HALF-WORD
+    Byte 100.2
+    Byte 100.3
+
+The program counter PC keeps track of the address and of the even/odd status of the current word.
+
+:::
+
+The `cdr` code field of each word executed contains sequencing information to minimize this waste. The `cdr` code takes on one of four values, which specify how much the PC is incremented after executing an instruction from this word. Note that the PC contains a half-word address.
+
+| CDR Code | PC Increment | Comment                                  |
+|:--------:|:------------:|:-----------------------------------------|
+|    0     |      +1      | Normal instruction sequencing            |
+|    1     |   Illegal    | Fence; marks end of compiled function    |
+|    2     |      -1      | On some constants.                       |
+|    3     |  +2 PC even  | Before some constants, on some constants |
+|          |  +3 PC odd   |                                          |
+
+: CDR Header
+
+When a constant follows an odd half-word instruction, the half-word instruction pair has `cdr` code 0 and the constant has `cdr` code 3. When a constant follows an even half-word instruction, the constant follows the odd half-word paired with the constant's predecessor. The half-word instruction pair has `cdr` code 3 and the constant has `cdr` code 2.
+
+For example, straightline execution of the following sequence of instructions:
+
+| Word Address | CDR Code | Instruction(s) (High bits - Low bits) | Comment             |
+|:-------------|:--------:|:-------------------------------------:|:--------------------|
+| 100          | 0        | `B` `A`                               | Packed instructions |
+| 101          | 3        | `C`                                   | Constant            |
+| 102          | 3        | `F` `D`                               | Packed instructions |
+| 103          | 2        | `E`                                   | Constant            |
+| 104          | 0        | `H` `G`                               | Packed instructions |
+
+proceeds as follows:
+
+| Current PC | Instruction Executed | CDR Code | PC Increment | Action                                                |
+|:-----------|:--------------------:|:--------:|:------------:|:------------------------------------------------------|
+| 100 even   | A                    | 0        | +1           | Increases to next half-word 100 even -> 100 odd       |
+| 100 odd    | B                    | 0        | +1           | Increases to next half-word 100 odd -> 101 even       |
+| 101 even   | C                    | 3        | +2           | PC is even, so increments by 2 half words to 102 even |
+| 102 even   | D                    | 3        | +2           | PC is even, so increments by 2 half words to 103 even |
+| 103 even   | E                    | 2        | -1           | Decreases by 1 half word to 102 odd                   |
+| 102 odd    | F                    | 3        | +3           | PC is odd, so increments by 3 half words to 104 even  |
+| 104 even   | G                    | 0        | +1           | Increases to next half-word 104 even -> 104 odd       |
+| 104 odd    | H                    | 0        | +1           |                                                       |
+
+A `cdr-code` value of 1 (`cdr-nil`) is used to mark the end of compiled functions. This value is placed in the word after the final instruction of the function. See the section \<\<\_representation_of_compiled_functions\>\>. It is an error if the processor attempts to execute this word. The chapter on traps and handlers contains more information, See the section \<\<\_exception_handling\>\>.
+
+The `cdr` code sequencing described above only indicates the default next instruction. When an instruction specifically alters the flow of control (for example, branch) the `cdr` code has no effect.
+
+### Internal Registers
+
+Table @tab-i-machine-internal-registers lists I-machine internal registers. Within this table, an asterisk by an address entry means that the register may be defined by an implementation, and reserved means the register may be architecturally defined in the future. The information in this table is specific to Revision 0 of the Ivory chip. As the architecturally defined information in the table becomes determinate, implementation-specific details will be removed to an appendix.
+
+| Address | Read/Write | Data Type | Register Name                                 |
+|---------|------------|-----------|-----------------------------------------------|
+| 0 \*    | RW         | loc       | For use by microcode only                     |
+| 1       | RW         | loc       | Frame Pointer (FP)                            |
+| 2       | RW         | loc       | Local Pointer (LP)                            |
+| 3       |            |           | Stack Pointer (SP)                            |
+| 4 \*    |            |           | For use by. microcode only                    |
+| 5       | RW         | loc       | Stack Cache Lower Bound                       |
+| 6       | RW         | loc/pa    | BAR0 Contents                                 |
+| 206     | RW         | loc/pa    | BAR1 Contents                                 |
+| 406     | RW         | loc/pa    | BAR2 Contents                                 |
+| 606     | RW         | loc/pa    | BAR3. Contents                                |
+| 7       | R          | fix       | BAR0 Hashed                                   |
+| 207     | R          | fix       | BAR1 Hashed                                   |
+| 407     | R          | fix       | BAR2 Hashed                                   |
+| 607     | R          | fix       | BAR3 Hashed                                   |
+| 10\*    |            |           | For use. by microcode only                    |
+| 11\*    |            |           | For use by microcode only                     |
+| 12      | RW         | pc        | Continuation                                  |
+| 13      | RW         | fix       | DP Op                                         |
+| 14      | RW         | fix       | Control. Register                             |
+| 15\*    |            |           | For use by nicrecode only                     |
+| 16      | RW         | fix       | Ephemeral Oldspace Register                   |
+| 17      | RW         | fix       | Zone Oldspace Register                        |
+| 20      | R          | fix       | Implementation Revision                       |
+| 21\*    | RW         | fix       | FP coprocessor present                        |
+| 22\*    |            |           | For use by microcode only                     |
+| 23      | RW         | fix       | Preempt Register                              |
+| 24\*    | RW         | fix       | Icache Control                                |
+| 25\*    | RW         | fix       | Prefetcher Control                            |
+| 26\*    | RW         | fix       | Map Cache Control                             |
+| 27\*    | RW         | fix       | Memory Control                                |
+| 30\*    | R          | fix       | ECC Log                                       |
+| 31\*    | R          | fix       | ECC Log Address                               |
+| 32\*    | W          | \-        | Invalidate Matching Map Entry for VMA in BAR0 |
+| 232\*   | W          | \-        | Invalidate Matching Map Entry for VMA in BAR1 |
+| 432\*   | W          | \-        | Invalidate Matching Map Entry for VMA in BAR2 |
+| 632\*   | W          | \-        | Invalidate Matching Map Entry for VMA in BAR3 |
+| 33\*    |            |           | For use by microcode only                     |
+| 34      | RW         |           | Stack cache overflow limit                    |
+| 35\*    |            |           | For use by microcode only                     |
+| 36\*    |            |           | For use by microcode only                     |
+| 37      | Reserved   |           |                                               |
+| 40-47\* |            |           | For use by microcode only                     |
+| 50 \*   |            |           | For use by microcode only                     |
+| 51 \*   |            |           | For use by microcode only                     |
+| 52 \*   | W          |           | Load Matching Map Word 1 for VMA in BAR0      |
+| 252 \*  | W          |           | Load Matching Map Word 1 for VMA in BAR1      |
+| 452 \*  | W          |           | Load Matching Map Word 1 for VMA in BAR2      |
+| 652 \*  | W          |           | Load Matching Map Word 1 for VMA in BAR3      |
+| 53-777  | Reserved   |           |                                               |
+| 1000    | RW         | --        | Top of Stack (TOS)                            |
+| 1001    | RW         | --        | Array Event Count                             |
+| 1002    | RW         | --        | Binding Stack Pointer                         |
+| 1003    | RW         | --        | Catch Block Pointer                           |
+| 1004    | RW         | --        | Control Stack Limit                           |
+| 1005    | RW         | --        | Control Stack Extra Limit                     |
+| 1006    | RW         | --        | Binding Stack Limit                           |
+| 1007    | RW         | --        | PHT Base                                      |
+| 1010    | RW         | --        | PHT Mask                                      |
+| 1011    | RW         | --        | Count Map Reloads                             |
+| 1012    | RW         | --        | List Cache Area                               |
+| 1013    | RW         | --        | List Cache Address                            |
+| 1014    | RW         | --        | List Cache Length                             |
+| 1015    | RW         | --        | Structure Cache Area                          |
+| 1016    | RW         | --        | Structure Cache Address                       |
+| 1017    | RW         | --        | Structure Cache Length                        |
+| 1030    | RW         | --        | Maximum Frame Size                            |
+| 1031    | RW         | --        | Stack Cache Dump Quantum                      |
+
+: #tab-i-machine-internal-registers
+
+* Implementation Specific
+
+The `%read-internal-register` instruction always returns the object from the specified register with its `cdr` code set to `cdr-next`. If an internal register has `cdr-code` bits, they can not be read by this instruction.
+
+The `rotate-latch` register does not have an internal address and can not be read or written with `%read-internal-register` or `%write-internal-register`.
+
+### Memory Side Effects
+
+Reading memory may not cause side effects. The architecture permits an implementation to start a memory read. that it will not use, perhaps because of instruction prefetching, perhaps while starting an array reference before an out of bounds check is performed, perhaps because of instruction pipelining (an instruction preceding a memory read takes a trap after the memory read instruction has started its read), or perhaps for something else. Writing memory using a `dtp-physical-address` is allowed to cause side effects; `dtp-physical-address` is guaranteed not to be cached, and the write is guaranteed to happen exactly once. Also, both the `%coprocessor-read` and `%coprocessor-write` instructions may cause side effects; they are guaranteed to be performed exactly once.
+
+### Explanation of Instruction Definitions
+
+#### Instruction Formats
+
+In the chapter on data representation, words in Lisp-machine memory were interpreted either as Lisp object references or as parts of the stored representation - of these objects. This chapter reinterprets all memory words as instructions. The processor treats a memory word as an instruction whenever it is encountered in the body of a compiled function or, more specifically, when the program counter points to the memory word and the word is fetched as an instruction.
+
+With the exception of the data types specifically designated as instructions, there is no one-to-one correspondence between data types and instruction formats. Instead, the data types are subdivided into classes, and each class forms the basis of an instruction type. The packed half-word instruction data type uses two instruction formats. See the section \<\<\_half_word_instruction_data_types\>\>.
+
+Table 12 @tab-i-machine-instruction-formats summarizes I-machine instruction formats and lists the data types in each class.
+
+
+
+Class of Packed Half-Word Instructions:
+
+| Instruction Type | Data Types Included | Data-type Code |
+|-------------------|---------------------|----------------|
+| Operand from stack format | `dtp-packed-instruction` | 60-77 |
+| 18-bit immed. operand format | `dtp-packed-instruction` |60-77 |
+
+
+Class of Full-Word. Instructions (all full-word format):
+
+| Instruction Type               | Data Types Included      | Data-type Code |
+|--------------------------------|--------------------------|----------------|
+| Entry instruction              | `dtp-packed-instruction` | 60-77          |
+| Function-calling instructions  |                          |                |
+|                                | `dtp-call-compiled-even` | 50             |
+|                                | `dtp-call-compiled-odd` | 51             |
+|                                | `dtp-call-indirect` | 52             |
+|                                | `dtp-call-generic` | 53             |
+|                                | `dtp-call-compiled-even-prefetch` | 54             |
+|                                | `dtp-call-compiled-odd-prefetch` | 55             |
+|                                | `dtp-call-indirect-prefetch` | 56             |
+|                                | `dtp-call-generic-prefetch` | 57             |
+|   |                          |                |
+| Constants  |                          |                |
+|                                | `dtp-fixnum` | 10             |
+|                                | `dtp-small-ratio` | 11             |
+|                                | `dtp-single-float` | 12             |
+|                                | `dtp-double-float` | 13             |
+|                                | `dt-bignum` | 14             |
+|                                | `dtp-big-ratio` | 15             |
+|                                | `dtp-complex` | 16             |
+|                                | `dtp-spare-number` | 17             |
+|                                | `dtp-instance` | 20             |
+|                                | `dtp-list-instance` | 21             |
+|                                | `dtp-array-instance` | 22             |
+|                                | `dtp-string-instance` | 23             |
+|                                | `dtp-nil` | 24             |
+|                                | `dtp-list` | 25             |
+|                                | `dtp-array` | 26             |
+|                                | `dtp-string` | 27             |
+|                                | `dtp-symbol` | 30 |
+|                                | `dtp-locative` | 31             |
+|                                | `dtp-lexical-closure` | 32             |
+|                                | `dtp-dynamic-closure` | 33             |
+|                                | `dtp-compiled-function` | 34             |
+|                                | `dtp-generic-function` | 35             |
+|                                | `dtp-spare-pointer-1` | 36             |
+|                                | `dtp-spare-pointer-2` | 37             |
+|                                | `dtp-physical-address` | 40             |
+|                                | `dtp-spare-immediate-1` | 41             |
+|                                | `dtp-spare-pointer-3` | 42             |
+|                                | `dtp-character` | 43             |
+|                                | `dtp-spare-pointer-4` | 44             |
+| | UNUSED | 45 |
+|                                | `dtp-even-pc` | 46             |
+|                                | `dtp-odd-pc` | 47             |
+| Value cell contents  |                          |                |
+|                                | `dtp-external-value-cell-pointer` | 4             |
+| Illegal Instructions           |                          |                |
+|                                | `dtp-null` | 0               |
+|                                | `dtp-monitor-forward` | 1               |
+|                                | `dtp-header-p` | 2               |
+|                                | `dtp-header-i` | 3               |
+|                                | `dtp-one-q-forward` | 5               |
+|                                | `dtp-header-forward` | 6               |
+|                                | `dtp-element-forward` | 7               |
+|                                | `dtp-gc-forward` | 45              |
+
+: #tab-i-machine-instruction-formats
+
+
+The following paragraphs describe these formats and their interpretations.
+
+##### Full-Word Instruction Formats
+
+##### Function-Calling Instruction Formats
+
+A word of data type `dtp-call-xxx` contains a single instruction. The instruction contains a data-type field, which is used as the opcode, and an address field as shown in Figure 21. This kind of instruction starts a function call.
+
+Figure 21. I-machine instruction formats.
+
+##### Entry-Instruction Format
+
+An entry instruction is a word of type `dtp-packed-instruction`, that actually contains one full-word instruction. Its format, shown in Figure 21, is:
+
+| Bits | Meaning |
+|------|---------|
+| <39:38> | CDR Sequencing code ="add 2 to PC"|
+| <37:36> | `dtp-packed-instruction` |
+| <35:28> | Opcode of second half word, unused |
+| <27:26 > | Addressing mode of second half word, unused |
+| <25:18> | Number of required+optional args, biased by +2 |
+| <17:18> |  entry instruction opcode. 1 bit says whether `&rest` is accepted. |
+| <9:8> | Immediate addressing mode |
+| <7:0> |  Number of required args, biased by +2 |
+
+The. hardware will dispatch to one of two microcode starting addresses according to the value of the `&rest`-accepted bit.
+
+##### Constant Formats
+
+The processor treats any word whose data type is that of an object reference as a constant. The processor pushes the object reference itself onto the control stack and sets its `cdr` code to `cdr-next` for any object, that is pushed onto the control stack, unless otherwise specified.
+
+##### Value Cell Contents
+
+A word of data type `dtp-external-value-cell-pointer` contains the address of a memory cell. Using a `data-read`  operation, the processor pushes the word contained in the addressed cell onto the control stack, following invisible pointers if necessary. Typically this pointer addresses a symbol's value or function cell.
+
+##### Illegal Instruction Formats
+
+A word of any data type other than those listed above cannot be executed as an instruction. The processor will trap out if it encounters such a word. A later chapter contains further information on trapping. See the section @sec-exception-handling.
+
+##### Packed Half-Word instruction Formats
+
+This is the most common instruction format. The word with data type `dtp-packed-instruction` contains two 18-bit instructions, which are packed into the word as shown:
+
+The first instruction executed is called the "even half-word" instruction, and is found in bits 0 through 17, The "odd half-word" instruction is executed later, and is found in bits 18 through 35. Since the data portion of the word is normally only 82 bits, 4 bits are "borrowed". from the data type field. (The ones in bit positions <36:37> are the upper two binary digits of any `dtp-packed-instruction` opcode, a number between 60 and 77 octal.)
+
+Each of the two instructions in this format can be further decomposed. See Figure 21. As the figure shows, there are two basic 18-bit formats.
+
+##### Format for 10-Bit Immediate Operand
+
+The 10-bit-immediate-operand format is for those instructions that include an immediate operand in. their low-order ten bits. The immediate operand can be interpreted as a constant or as an offset -- signed or unsigned, depending on the instruction. There are two special subcases of this instruction format: field extraction instructions and branch and loop instructions.
+
+##### Format for Field Extraction
+
+The field-extraction format is for instructions used to extract and deposit fields from words of different data types. The field is specified in the instruction by the bottom 10 bits. Bits 0 through 4 specify the location of the bottom bit of the field, \~- that is, the rotate count -- and bits 5 through 9 specify (field size - 1). For load- byte. instructions, Idb, char-Idb, and the like, the rotate-count that the instruction should specify is (mod (- 32 bottom-bit-location) 32), and for deposit-byte instructions, dpb and the like, the rotate-count should specify the bottom-bit location.
+
+The. extraction instructions take a single argument. The deposit instructions take two arguments. The first is the new value of the field to deposit into the second argument. It is illegal, though not checked, to specify a field with bits outside the bottom 32 bits:
+
+##### Format for Branch Instructions
+
+Branch instructions are a subclass of 10-bit-immediate-format instructions. They use the immediate argument as a signed half-word offset.
+
+##### Format for Operand From Stack
+
+Packed half-word. instructions that address the control stack. use the operand-from- stack format: They. have a 10-bit field that specifies an address into the stack... If one of these. instructions takes more than one. operand, the addressed operand is the last operand of the instruction and the other operands are popped. off the top of the'stack. If the instruction produces a value, then the value is pushed 'on. top of the stack.
+
+##### Control Stack Addressing Modes
+
+Operand-from-stack instructions reference operands on the control stack relative to one of three pointers to various regions of the current stack frame. The lower -ten-bit field of one of these constitutes the operand specifier, whose bits are interpreted as follows. Bits 8 and 9 of the instruction are used to select the pointer, while bits 0 through 7 are used as an unsigned offset. The processor interprets bits 8 and 9 as:
+
+00 Frame Pointer - The address of the operand is the Frame Pointer plus the offset.
+
+01 Local Pointer - The address of the operand is the Local Pointer plus the offset.
+
+10 Stack Pointer - The address of the operand is the Stack Pointer (prior to popping any other operands) plus the offset minus 255, unless the offset is 0.
+
+For example, if the offset is 255, then the operand is the top of stack.. Note that this operand will not be popped. If the offset is 1, then the operand is the contents of the word pointed to by (Stack Pointer minus 254).. This mode is used 'for the management of arguments for pop instructions, as described in the next paragraphs. .
+
+In the special case when the offset is 0, the operand is popped off the top of stack, before any other operands have been popped off (this operand is still the last argument of the function, though). This special case is called the".sp-pop addressing mode". For example, the following sequence could be used to add two numbers, neither of which is to be saved on the stack for later use, and to leave the result of the addition on the stack.
+
+push LP\|\@ ;push -arg2 on the stack
+
+push LP\]4 ;push arg2 on the stack
+
+add sp-pop ;pops arg2 then arg1 off stack, jadds, then pushes the result
+
+i Immediate - The last operand is not on the stack at all, but is a fixnum whose value is. the offset possibly sign-extended to 32 bits, depending on the instruction. This case is called the".immediate addressing mode". not to be confused with 10-bit immediate format instructions, which have no operand specifier since they are always immediate. In some cases, the stack location address specified is the operand used as an object of the instruction in some way. This case is called".address-operand addressing mode". For instructions that employ the address-operand mode, the immediate and sp-pop modes are illegal.
+
+Note that it is always the last argument of an instruction that is specified by the operand specifier of the operand-from-stack format: the others, if there are any, are not explicitly specified by the instruction and are always popped off the stack in order.
+
+Refer to the chapter on function calling for a description of the control stack and the -processor's stack pointers. See the section \<\<\_control_stack\>\>.
+
+#### Arguments: the Data Types Accepted
+
+In the instruction definitions in this document, the Arguments field lists the arguments that the instruction requires and the valid data types for these arguments. The data types listed are those that the instruction accepts without taking an error pre-trap. See the section \<\<\_operand_reference_classification\>\>.
+
+Ali numeric instructions, including those listed in the section \<\<\_numeric_instruction\>\>. as well as equal-number, greaterp, lessp, plusp, minusp, zerop, and logtest, accept all numeric data types. The only spare data type that numeric instructions accept is `dtp-spare-number`, which will cause an instruction exception.
+
+The Exception field of an instruction definition lists those data types that the instruction accepts as valid (that is, that do not cause an-error pre-trap) but that are not supported in hardware.
+
+#### Types of Instruction Exceptions
+
+An instruction exception occurs when an instruction needs to perform some operation that is not an error, but is not directly supported by the hardware. Instruction exceptions are post-traps, called (usually) with whatever arguments the instruction takes. The contract of the trap handler is to emulate the behavior of the particular instruction. See the section".Exception Handling".
+
+The instruction definitions document any instruction exceptions that may occur during execution of the instruction. The description includes the conditions under which an exception will occur, the arguments passed to the exception handler (excluding the trap-vector-index and fault-pc supplied with all traps), and the number of values returned by the exception handler. Exception handlers always return values with `return-kludge`, and TOS is always valid afterwards. ---
+
+#### Types of Memory References
+
+There is a class of instructions that address main memory (as opposed to stack memory). The operands for these instructions are memory addresses. Different instructions make conceptually different kinds of read and write requests to the memory system. The different types of memory cycles for these different types of memory requests are summarized here and described later in this section: The classification of Lisp data types according to type of operand reference -- data, header, header-forward, and so on -- is made in the chapter on data: representation. See the section \<\<\_operand_reference_classification\>\>.
+
+Table \<\<\_memory_cycles\>\> shows the action taken for each category of data when read from memory in a given type of memory cycle. This table refers only to memory reads and to themory cycles that consist. of a read followed by a write. (An instruction that writes memory without reading first is called a "raw write". The table omits these.) Note that the categories overlap.
+
+.Memory Cycles \|=== \| \| \|===
+
+' Table 13. . Memory Cycles
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor er `data-read`  \@ -- trap trap ind ind ind ind trap mtrp. trnspt  `data-write`  1 - \~ trap 'ind ind ind ind trap mtrp - `cdr-read` 9 - - trap ind ind - - trap - - bind-read 4 - - trap 'ind tnd ind - trap mtrp trnspt bind-r-mon 2 - of trap ind ind ind - trap ind trnspt bind-write 5 - - trap ind ind ind - trap mtrp \<= bind-w-mon 3 - - trap ind ind ind - trap ind = - header-rd 6 trap trap - ind trap trap trap trap trap trnspt struc-offset 7 - - - ind - - - trap. - - scavenge 8 - - - - - - - trap. - trnspt gc-copy 18 - \> - - - - - trap - \~ raw-read a1 - - - - - - - = - - Legend: Normal action ind Indirect through forwarding pointer. This also enables transport trap if word addresses oldspace, and transport trap takes precedence if it occurs. trap Error trap. Takes precedence over transport. mtrp Monitor trap (different trap vector entry than error trap). This
+
+' also enables transport trap if word addresses oldspace, and transport trap takes precedence if it occurs.
+
+trnspt Enable transport trap if word addresses oldspace.
+
+Note that the operations described apply. only to objects addressed as though they were located in main memory, not those already on the control stack.
+
+If an error occurs during a memory operation, the processor aborts the instruction and invokes a Lisp error handler. The arguments to the error handler are the microstate, and the virtual memory address (VMA). From the microstate, the Lisp handler will look up the type of error in an error table. See the section".Exception Handling".
+
+`data-read`  Operations
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type itor er `data-read`  a - trap trap ind ind ind ind trap mtrp trnspt
+
+Most operands are fetched with a `data-read`  operation. This reads the word located at the requested memory address. If the word obtained is a forwarding, that is, invisible, pointer (`dtp-header-forward`, `dtp-element-forward`, `dtp-one-q-forward`, or `dtp-external-value-cell-pointer`), then the pointer's address field is used as the new address of the cell. The content of this new address is then read and checked to see if it is an invisible pointer. The process is repeated until a non-invisible-pointer data type is encountered. The word finally obtained is returned as the result of the `data-read`  operation. During this pointer following, sequence breaks are allowed so that loops can be aborted. If at any point' `dtp-null`, a header (`dtp-header-p`, `dtp-header-i`), or a special marker (non-invisible pointer -- `dtp-gc-forward`) is encountered, the error causes the instruction performing the data read to take an error trap. If a dtp-mon'tor-forward is encountered, the instruction takes a monitor trap. If a data location that is read contains an address in oldspace and transport traps are enabled for the page containing the word read , a transport trap handler is invoked to evacuate the object and then the `data-read`  is resurned. See the section".I-machine Garbage Collection".
+
+ `data-write`  Operations
+
+-   Cycle Code Data Nuil Header HFWD EFWD LFWD EVCP GC Mon- Point- Type itor . er  `data-write`  4 - - 'trap ind ind ind ind trap mtrp -
+
+When most operands are written to memory, a  `data-write`  memory read operation is first performed. This checks the requested location to determine whether an invisible pointer is present. If so, the address of the pointer is used as the new address of the cell. The contents of the new address is read and checked to see if
+
+it.is an invisible pointer. If.a 'header or special marker (`dtp-gc-forward` but not `dtp-null`) is encountered in any location, the error causes the instruction doing the data write to take an error trap. If a `dtp-monitor-forward` is encountered, the instruction takes a monitor trap. If the contents of a location is:a forwarding pointer, a check for oldspace is made before indirection. When the process terminates, the contents of the final location, which are being replaced; are not transported... The process is repeated until a non-invisible-pointer data type is
+
+-   found, at which point a write normally follows and the data is stored in the last location, preserving the `cdr` code of the.location into which it stores.
+
+`cdr-read`  Operations Cycle Code Data Null Header HFWD EFWD IFWD EVCP GC... Mon- Point- 'Type . itor, er
+
+\_ `cdr-read` 9° - - trap ind ind - - trap - -
+
+Memory references made only to determine the `cdr-code` of a location use a `cdr`- read operation. This kind of reference follows pointers of the type `dtp-header-forward` or `dtp-element-forward`, which forward the entire memory word, including the `cdr` code. (Recall that a `dtp-header-forward` pointer is used. by the system to replace an element when it is necessary to change the `cdr-code` of a \_ cell in the middle of a `cdr-code`d list. See the section \<\<\_forwarding_invisible_pointers\>\>. The `cdr-read` operation returns the contents of the `cdr-code` field of the finally found word.
+
+Forwarding pointers (`dtp-one-q-forward` and `dtp-external-value-cell-pointer`) that forward only the contents (that is, the data-type and pointer fields) of the cell are not followed. Instead, the `cdr` code of the word containing such a pointer is returned.
+
+Having extracted the relevant `cdr` code, the instruction doing the `cdr` read takes action according to-the value returned, as explained in the section on lists. See the section \<\<\_representations_of_lists\>\>.
+
+If a header or `dtp-gc-forward` data type is encountered, the error causes the instruction making the reference to take an error trap.
+
+Bind-Read Operations::
+
+Cyele Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type ttor er
+
+bind-read 4 - - trap ind ind ind = trap mtrp trnspt bind-r-mon 2 - - trap ind tnd ind - trap ind = trnspt
+
+The binding instructions, unbind-n, %restore-binding-stack, and bind-locative-to-value, change the value cell, not the contents of the value cell, of a variable. `dtp-external-value-cell-pointer` is an invisible pointer 'that points to the value cell in memory. Since binding should create a new value cell, the system does not follow `dtp-external-value-cell-pointer` when doing bindings, In all other respects this operation is the same as a `data-read`  memory operation, except that encountering `dtp-null` does not cause a trap. . .
+
+A subcategory of this type of operation is the. bind-read-no-monitor operation. This operation, as opposed to the normal binding read, does not trap out if a `dtp-monitor-forward` pointer is encountered. Instead, it just follows the pointer.
+
+Bind-Write Operations::
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point- Type . \| \| utor er \| bind-write 5 - trap ind ind ind - trap mtrp - bind-w-mon 3. «- - trap ind ind ind = trap ind -
+
+A bind-write operation is like a  `data-write`  memory operation except that it does not follow external-value-cell pointers. See the section".Bind-Read Operation". in NS Users Manual. A subcategory of this type of operation is the bind-write-no- . monitor operation. This operation, as opposed to the normal binding write, does
+
+' not trap out if a `dtp-monitor-forward` pointer is encountered. Instead, it just follows the pointer.
+
+`header-read`  Operations::
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon- Point-
+
+Type \| itor er header-rd 6 £«trap trap - ind trap trap trap trap trap trnspt
+
+Instructions that reference objects represented in memory as structure objects use a `header-read`  operation to access the header. This reads the word at the requested address. If the word is a header, the header is returned. If the word is a header-forward pointer, the address field of this invisible pointer is used as the new address of the header. The word at this new address is checked, and the process repeated until a header is found. If at any point something other than a header or header-forward pointer is found, the error causes, the instruction performing the `header-read`  operation to take an error trap. If the data location that is read (without a trap) contains an address in oldspace, a transport trap handler is invoked to evacuate the object and then the `header-read`  is resumed.
+
+Structure-Offset Operations::
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP.GC . Mon- Point- Type itor. er struc-offset- 7) - ee ind = - - trap - =
+
+The. Lisp operation %p-structure-offset uses the struc-offset type' of reference' to return `the structure header. This. type of reference. follows -header-forwarding pointers as. necessary and traps out if.a`dtp-gc-forward\` is encountered.' A structure-offset reference is enabled only by bits in a %memory-read or block-read type of instruction.
+
+Garbage-Collection Operations::
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC Mon Point- . Type itor er scavenge 8 - - - - - - - trap - trnspt gc-copy 18 - - \~ - \~ - \~- trap \~ --
+
+Memory references of the types scavenge and gc-copy.are used internally by the garbage collector. References of these types. trap out when a.`dtp-gc-forward` is encountered. Scavenge references perform transports; ge-copy references do not. Either type of reference is enabled. only by bits in a %memory-read or block-read type of instruction.
+
+Unchecked Operands::
+
+Cycle Code Data Null Header HFWD EFWD 1FWD EVCP GC .. Mon- Point- Type itor er raw-read 41 - - - \~ - - - - - \_
+
+A raw memory reference has all the indirection (pointer following), trapping, and transporting possibilities disabled. During stack encaching and decaching, transfers of data between main memory and the stack cache use raw-read and raw-write operations, %p-ldb and %p-dpb are among the users of raw references. Note' that raw-write operations maintain the modified and ephemeral-reference bits in. the PHT just as other write operations do.
+
+#### Top-of-Stack Register Effects
+
+The top-of-stack (TOS) register is a scratchpad location that contains a copy of the contents of the top of the control stack. The possible effects of an instruction on this register affect the code the compiler is allowed to generate. Sometimes the compiler must insert extra movem SP\|0 instructions to restore the cortect value to the TOS register. The TOS register is valid if its contents are known to be identical to the contents of the location indicated by the stack pointer (SP/0); otherwise, the TOS is invalid.
+
+In. the instruction descriptions that follow, the possible effects that an instruction can have on the TOS register are indicated by the following phrases:
+
+Valid before The register must be valid before the instruction.
+
+Valid after . The register will be made valid by the instruction.
+
+Invalid after The register can be made. invalid by the instruction. Unchanged Status after the instruction same as status before, except if an sp-pop operand is used or if the instruction modifies its operand and the operand happens to be the top word in the stack, in which case TOS is invalid after.
+
+#### Cdr Codes of Values Returned
+
+Every operation that returns a value -- this includes all true Lisp operations
+
+-   pushes that value on the stack. Thus, after an instruction has executed, the stack no longer contains the instruction's arguments but instead contains the result of the operation. Instructions that do not return a value -- for example, `rplacd`, aset, pop -- pop off all of their arguments. Every instruction that produces a value and pushes it on the stack sets the `cdr` code of the pushed word to 0 (`cdr-next`). The only exceptions are as follows:
+
+-   The start-call instructions produce 3 (illegal in lists) in the `cdr-code` fields of the frame header on the stack.
+
+-   A memory read or block read instruction -- one of `%memory-read`, `%memory-read-address`, `%block-n-read`, or `%block-n-read-shift` -- can copy the `cdr` code of the word from memory into the word on the stack.
+
+-   The `push-apply-args` operation. can produce 1 (`cdr-nil`) or 2 (`cdr-normal`) in the `cdr-code` field of words on the stack.
+
+-   The `catch-open` instruction can produce any value in the `cdr`-eode field of certain words in the catch block.
+
+-   The `catch-close` instruction produces 2 or 8 in the `cdr` code of the PC it saves before jumping to an unwind-protect cleanup handler.
+
+-   `%p-tag-dpb` can be used to store into the stack.
+
+-   `%set-tag` can be used to produce any `cdr` code but is usually programmed to produce `cdr-next`.
+
+-   The instructions increment, decrement, set-to-car, set-to-cdr, `set-to-cdr-push-car` (`car` pushed with `cdr-next`), %block-n-read-alu, and %pointer-increment store into their stack,operands, preserving the `cdr` code that was in.the stack location,
+
+-   movem, pop, set-sp-to-address-save-tos, stack-bit, stack-bit-address, `return-kludge`, %merge-cdr-no-pop, and %set-cdr-code-n store into their stack operands and set the `cdr` code to some value other than.that of the stack location (that is, these instructions do not. preserve the original `cdr` code); See the section ".Revision 0 Stack-bit". See the section ".Revision 0 Stack-bit-address".. See the section ".Revision 0 Return-kludge".
+
+## The Instructions
+
+The I-machine implements 210 instructions in 14 categories. There are:
+
+- 10 list-function
+- 3 interruptible instructions
+- 24 predicate
+- 29 numeric
+-  data-movement
+- 8 field-extraction
+- 10 array-operation
+- 19 branch-and-loop
+- 20 block
+- 12 function-calling
+- 4 binding
+- 2 catch
+- 24 lexical-variable-accessing
+- 11 instance-variable-accessing, and
+- 27 subprimitive instructions.

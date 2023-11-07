@@ -17,9 +17,9 @@ Ye%eDOUBLE-FRACTION-HIGH 22 %sub-bignunrstep instruction. 136
 %%ELEMENT-TYPE field 36 Yunsigned-lessp instruction 213
 %YEVENT-COUNT field 36 ‘write-internal-register instruction _ 220
 %YSINGLE-EXPONENT 22 add instruction 113
-%YSINGLE-FRACTION 22 aloc-1. instruction 155
+%YSINGLE-FRACTION 22 `aloc-1`. instruction 155
 RSINGLE-SIGN . 22 aloc-leader instruction 162
-%array-prefix-long 30 aref-1 instruction 154
+%array-prefix-long 30 `aref-1` instruction 154
 array-prefixshort 30 array-leader instruction. 161
 %header-lype-array 30 aset-1 instruction 154
 %header-type-bignum 19 ash instruction 131
@@ -32,18 +32,18 @@ branch instruction 164
 
 branch-true { -else} { -and}{ -no-pop} { -extra-pop)
 %32-bit-difference instruction 134 instruction 164
-%32-bii-pius instruction 133 car instruction 92
+%32-bii-pius instruction 133 `car` instruction 92
 %add-bignum-step instruction 135 `catch-close` instruction 196
 %allocate-list-block. instruction 214 `catch-open` instruction 195
-%allocate-structure-block instruction 216 cdr instruction 92
+%allocate-structure-block instruction 216 `cdr` instruction 92
 %block-n-read instruction 169 ceiling instruction 120
 %block-n-read-alu instruction 171 : char-dpb instruction 151
 block-n-read-shift. instruction 170 char-ldb instruction 150
 %block-n-read-test instruction 172 decrement instruction 117
 %biock-n-write instruction 174 dpb instruction 149
-%check-preempi-request instruction 232 dip-array 30
+%check-preempi-request instruction 232 dtp-array 30
 %coprocessor-read instruction 221 atp-array-Instance 17
-%coprocessor-write instruction 222 dip-big-ratio 22
+%coprocessor-write instruction 222 dtp-big-ratio 22
 %divide-bignum-step instruction 138 `dtp-bignum` = 19
 %ephemeraip instruction 213 `dtp-call-compiled-even` instruction 175
 `%generic-dispatch` instruction 229 . dtp-call-compiled-evern-prefetch 175
@@ -54,11 +54,11 @@ block-n-read-shift. instruction 170 char-ldb instruction 150
 %instance-set instruction 210 `dtp-call-indirect-prefetch` 176
 %jump instruction 231 `dtp-character` 17
 %lshe-bignum-step instruction 139 dtp-complled-function 40
-%memory-read instruction 222 dip-complex 24
+%memory-read instruction 222 dtp-complex 24
 %memory-read-address instruction 223 `dtp-double-float` 22
 %memory-write instruction 227 `dtp-dynamic-closure` 43
 Yemerge-cdr-no-pop instruction 229 `dtp-element-forward` 6, 8
-%messagé-dispatch instruction 230 dip-even-pe 46
+%messagé-dispatch instruction 230 dtp-even-pe 46
 %muitiply-bignum-step instruction 137. dtp-oxternal-value-cell-pointer - 8
 Ymultiply-double instruction 134 `dtp-fixnum` 19
 %p-dpb instruction 152 `dtp-generic-function` 43
@@ -74,8 +74,8 @@ dtp-list-instance
 `dtp-locative`. 46
 `dtp-monitor-forward`
 `dtp-null` 10
-dip-odd-pe 46
-dip-one-q-forward 8
+dtp-odd-pe 46
+dtp-one-q-forward 8
 `dtp-physical-address` 47
 `dtp-single-float` 22
 `dtp-small-ratio` 20
@@ -92,7 +92,7 @@ eql instruction 102
 egt-no-pop 102
 equal-number instruction
 equal-number-no-pop
-fast-aref-1 instruction
+fast-`aref-1` instruction
 fast-aset-1 instruction
 finish-call-n_ instruction
 finish-call-tos instruction
@@ -191,8 +191,8 @@ rplaca instruction 96
 `rplacd` instruction 97
 set-sp-to-address instruction 144
 set-sp-to-address-save-tos instruction
-set-to-car instruction 93
-set-to-cdr instruction 94
+`set-to-car` instruction 93
+set-to-`cdr` instruction 94
 `set-to-cdr-push-car` instruction
 setup-td-array instruction 156
 setup-force-1d-array instruction
@@ -315,7 +315,7 @@ Cdr code 24
 Cdr code tag 2
 
 Cdr Codes of Values. Retumed 90
-CDR-Read Operations 87
+`cdr-read`  Operations 87
 
 Classes of Stored Object Representations 3
 Collision-count mechanism 63
@@ -352,18 +352,18 @@ Data type tag 2
 
 Data Types for Program Counter Values 50
 Data-Movement Instructions 144
-Data-Read Operations 86
+`data-read`  Operations 86
 
 Data-Type Code Assignments 48
 Data-Type Descriptions 13
 
-Data-Write Operations 86
+ `data-write`  Operations 86
 
 327
 
 Division Operations That Return Two: Values 120
 Double-Precision Floating-Point Representation 22
-Dip-nil 13
+`dtp-nil`  13
 
 `dtp-symbol` 13
 
@@ -463,7 +463,7 @@ Handler table key 14
 
 Handler table parameter 14
 
-Header-Read Operations 88
+`header-read`  Operations 88
 
 Headers 6
 

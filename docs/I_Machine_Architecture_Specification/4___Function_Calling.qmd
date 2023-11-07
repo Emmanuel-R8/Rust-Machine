@@ -109,7 +109,7 @@ frame
 Binding is the temporary replacement of a memory cell’s contents. The Binding
 Stack saves the address and contents of memory cells that have been bound so the
 original contents can later be restored. Note that binding affects only the
-contents of a cell, not its cdr code.
+contents of a cell, not its `cdr` code.
 
 Entries on the binding stack are two words long. The fields of an entry are as
 follows:
@@ -311,7 +311,7 @@ Instructions.”
 
 Trap-on-exit This bit causes a trap to software when the frame is exited. Used
 for bottom frame in stack, debugger c-X E command, phantom stacks, metering, and
-so forth. The software can use the cdr-code bits of the two header words in the
+so forth. The software can use the `cdr-code` bits of the two header words in the
 frarne, which are initially set to 11 by the hardware, to distinguish these
 cases. The trap-on-exit bit is set and cleared only by software, and only in
 eopies of the `Control` register saved in memory, not in the live register.
@@ -432,12 +432,12 @@ generic calis are almost certainly not treated any differently from the normal
 versions by the hardware: they exist entirely for software reasons.
 
 The start-call instructions push the `Continuation` and `Control` registers (in that
-order) onto the control stack with their cdr codes both set to 3; they will become
+order) onto the control stack with their `cdr` codes both set to 3; they will become
 the header of the callee’s control stack frame. After the `Control` register is
 pushed, the control-register.call-started bit is set to 1.
 
 Depending | on the data type of the function being called, a start-call
-instruction may push a third word which is called the".extra argument". Its cdr
+instruction may push a third word which is called the".extra argument". Its `cdr`
 code is set to 0. All data types other than dtp-cumpiled-function receive an
 extra argument. In the case of instance or generic function, the word pushed on
 the stack is just a placeholder for the real extra argument the function will be
@@ -521,7 +521,7 @@ Figure 23 shows how the stack looks at this point.
 Control Stack and Registers at the End of Start-Call
 
 Gase-h data type of function being
-called is-dip-compiled-function _
+called is-dtp-compiled-function _
 
 LOC (OPC)
 
@@ -544,7 +544,7 @@ Control Register” : Callers: `Continuation` register ——.
 Increasing addresses —
 
 Case Il: data type of function being
-called is net dip-compiled-function
+called is net dtp-compiled-function
 
 
 
@@ -573,7 +573,7 @@ Figure 23. The stack at the end of a start-call instruction
 After starting. a- function call, the caller computes the arguments and pushes
 them onto the stack, in order. Results of instructions normally are ¢`cdr-next`,.
 to facilitate the: linking of the arguments into a list-to bé passed t".an &rest
-argument. The resetting of the final cdr code is performed: by the entry
+argument. The resetting of the final `cdr` code is performed: by the entry
 instruction.
 
 ### Finishing the Call
@@ -711,7 +711,7 @@ Gase A: instruction was finish-call
 
 
 { Local Fointer | —=> _
-| Stack Pointer | —_> car | Last supplied argument = Top of stack
+| Stack Pointer | —_> `car` | Last supplied argument = Top of stack
 ‘ogram Counter
 
 fo contents of `Continuation` Reg. | . | - | erguments
@@ -828,11 +828,11 @@ argument in a~ function with &key arguments.) The element of the entry vector
 corresponding to an argument contains instructions that are executed if that
 argument is not
 
-supplied by the caller. These instructions compute the default. value (nil fora
+supplied by the caller. These instructions compute the default. value (`nil` fora
 &rest argument) and push it on the stack. If this computation will not fit in an
 entry-vector element, the compiler inserts a branch to the rest of the code,
 which ends-in a branch back. If the computation is smaller than the size of an
-entry- vector element, it ends with cdr-code sequencing that skips an
+entry- vector element, it ends with `cdr-code` sequencing that skips an
 instruction.
 
 The entry instruction contains the following information:
@@ -862,7 +862,7 @@ in the frame because it includes the two frame header words (this- iakes return.
 faster), To simplify these entry” comparisons, the arguments. min args and
 max-args in the entry instructions are correspondingly biased. by two.
 
-If".rest argument wante". “and *".rest argiiment supplie". are both false, this is the
+If".rest argument wante". “and *".rest arg1iment supplie". are both false, this is the
 simple case. If there are too few ortoo’ many arguments, take a Wrong-Number-
 
 of-Arguments (WNA) trap. Otherwise, enter the function at entry-vector element
@@ -925,10 +925,10 @@ then the apply argument ‘must be converted into spread arguments.
 argument supplied,” and retry the argument matchup process.
 
 - If the maximum number of arguments is supplied (N-Args = max-args)
-and the apply argument is nil, pop the apply argument, clear control-
+and the apply argument is `nil`, pop the apply argument, clear control-
 register.apply, and enter at vector (N-Args - min-args). Note: this is an
 optimization of the `pull-apply-args` operation pulling 0 arguments out of
-nil and retrying the argument matchup process.
+`nil` and retrying the argument matchup process.
 
 ° Otherwise there are too many arguments; take a Wrong Number of
 -rguments trap.
@@ -943,7 +943,7 @@ Number of Arguments trap.
 - If the number of spread args is in range (min-args <= N-Args <= max-args) then
 enter at entry-vector element (N-Args - min-args); this skips over the default
 initialization for those optional arguments that had values supplied and the
-last element of the entry vector will push | nil to default rest argument.
+last element of the entry vector will push | `nil` to default rest argument.
 
 - Otherwise (N-Args > max-args) some spread args must be made into
 the rest argument; do a `push-apply-args` operation of (N-Args
@@ -962,7 +962,7 @@ and retry the argument matchup process.
 
 If exactly the maximum number of spread arguments was supplied
 (N-Args = max-args) then use the apply argument as the rest argument.
-Set the cdr-code of the top word of stack to `cdr-nil` and enter the
+Set the `cdr-code` of the top word of stack to `cdr-nil` and enter the
 function at entry-vector element (mex-args - min-ergs + L). This skips
 over the default initialization for the optional arguments and for the
 rest argument.
@@ -993,9 +993,9 @@ references nor ‘any possibility of trapping.
 
 In detail, `push-apply-args` does ‘the following:
 
-- Set the cdr code of the last word in the stack to cdr-nil.
+- Set the `cdr` code of the last word in the stack to `cdr`-nil.
 
-- If an apply argument was supplied, set the cdr code of the second to last
+- If an apply argument was supplied, set the `cdr` code of the second to last
 word in the stack (the last spread argument) to `cdr-normal`.
 
 Since arguments are pushed with `cdr-next`, the stack now contains a list of
@@ -1013,7 +1013,7 @@ argument supplied by the caller,
 - If apply=1, increment LP: ‘and control-register. arg- pize, and leave control-
 register.apply alone. LP mow points at the, revised rest argument that was
 just pushed, instead of the original rest argument, which has been turned
-into the cdr word of a two-word cons.
+into the `cdr` word of a two-word cons.
 
 q
 
@@ -1035,7 +1035,7 @@ i: NARGS <MAX - if: NARGS < MAX
 True
 do a `pull-apply-args` do a pull -apply-args
 if NARGS = MAX and apply-arg = NIL if: NARGS = MAX -
-pop stack . set TOS cdr code to cdr-nil
+pop stack . set TOS `cdr` code to `cdr`-nil
 clear control-register.apply | enter at vector (MAX - MIN + 1)
 anter at vector (MAX - MIN) ,
 If NARGS > MAX
@@ -1161,9 +1161,9 @@ Example: (defun foo (x y z &rest z} ...) a 7 Oo aS : ao.
 " fede - - Last argument = Top of stack
 cdr- Number of | nen arg
 arguments FP 4+ maxargs +2 —>> ie4r
-supplied = 6 . cdr:
+supplied = 6 . `cdr`:
 1
-Control Register argo J ; cdr. j
+Control Register argo J ; `cdr`. j
 [Aropize Apply | - `Control` Register oo, r- .
 =§ =0 Caller’s `Control` register : ; Arg-Size Apply arg
 oe ; Ty nen 4 =8 =0 | .. Caller’s `Control` register .
@@ -1192,12 +1192,12 @@ Example: (defun foo (x y z &rest z) ...)
 (apply #foo abcde f) 7
 i Local Pointer lI—s. = |] | Local Pointer — —
 : a net __ Apply argument-Top of stack | Stack Pointer nf
-Stack Pointer car. — aos oo <a". '- Apply argumeni
+Stack Pointer car. — aos oo <a". '- Apply Argument
 neyt 5 = ;
 cdr. arg’ (oF ; ; . arg4
 art — - FP + max-args + 2° —>>.
 next arg2 - - ‘ ae
-cdr agt oo Fe oO Br . 4, ang
+`cdr` agt oo Fe oO Br . 4, ang
 Control Register _ ; _ car, argo co - . | . - 7 . Se, 1:
 Arg-syze Apaly m {G4 Caller's `Control` register a | farggze Apaly ] argo as
 Frame pointer _| 7 [ES] Caters `Continuation` register = eld Caller's `Control` register
@@ -1222,7 +1222,7 @@ Local Pointer | —.
 fe Stack Pointer | | <9
 . / s
 i mS Frame pointer } > Caller's `Continuation` register
-i . SO car argument!
+i . SO `car` argument!
 
 - [Increasing addresses
 
@@ -1264,7 +1264,7 @@ following:
 - Push (control-register.arg-size - 2) onto the stack, as a fixnum. This is the
 number of spread arguments that were supplied, which is less than the number of
 spread arguments now in the stack if some &optional arguments were defaulted. If
-the rest arg is not nil, this fixnum can be larger than the maximum number of
+the rest arg is not `nil`, this fixnum can be larger than the maximum number of
 spread arguments accepted.
 
 - Set LP to (new-SP.- 1). Thus LPO is the &rest argument and LPfl is the
@@ -1298,7 +1298,7 @@ default value for an optional argument depends on a supplied-p variable of a
 previous optional argument or can be affected by a previous argument that is
 declared SPECIAL. The 3600 handles this with an alternate function entry
 sequence that the compiler generates if necessary. The I Machine will handle it
-by using nil as the default value in the entry vector and then generating code
+by using `nil` as the default value in the entry vector and then generating code
 after the entry vector that tests whether the argument was supplied Gust as. if
 initializing a supplied-p variable) and if not computes the default value and pops
 
@@ -1306,7 +1306,7 @@ Effect of locate-locals Instruction
 
 Before locate-locals
 
-Case 1: the apply (&rest) argument is nil .
+Case 1: the apply (&rest) argument is `nil` .
 Example: (defun foo (w Soptional xy &rest z) ...}
 
 (foo ab)
@@ -1315,10 +1315,10 @@ Control Register
 
 Arg-Size Apply
 [Aas |
-Stack Pointer —>| &rest = nil (defautted} |
+Stack Pointer —>| &rest = `nil` (defautted} |
 Local Pointer__ | —> text argument2 (defaulted)
 . fede) - argumentt (optional)
-car argumentd (required)
+`car` argumentd (required)
 
 
 
@@ -1347,7 +1347,7 @@ Caller’s `Continuation` register
 
 
 
-‘Case 2: &rest argument not nil, `push-apply-args` has been performed
+‘Case 2: &rest argument not `nil`, `push-apply-args` has been performed
 
 Example: (defun foo (w &optional xy &rest 2) ...)
 
@@ -1380,7 +1380,7 @@ J oy |
 | Stack Pointer > eo
 [ Local Pointer . |- > [ — rest = ni (defaulted)
 an ‘argument? (defaulted) -
-car | argument {optional
+`car` | argument {optional
 next _ -argumentd (required)
 
 
@@ -1508,10 +1508,10 @@ The `pull-apply-args` operation references memory, so it is possible for it. to 
 
 DU ma
 
-Usually, however, the Wrest Ar giment will be a cdr-coded list in the stack and no
+Usually, however, the Wrest Ar giment will be a `cdr-code`d list in the stack and no
 trap will occur; these cases are handled quickly by microcode. It is
 implementation-dependent whether the `pull-apply-args` microcode handles the full
-generality of car and cdr, including non-cdr-coded lists and invisible pointers.
+generality of `car` and `cdr`, including non-cdr-coded lists and invisible pointers.
 Cases it does not handle make the stack frame self-consistent and then call a
 special trap handler that performs the rest of the `pull-apply-args` operation and
 then returns to the entry instruction, which will not need a `pull-apply-args` this
@@ -1550,7 +1550,7 @@ The return instructions are:
 - `return-kludge` Return multiple values in a non-standard form.
 
 `return-single` has an immediate operand that addresses an internal register that
-supplies the value. to be returned. The values that can be returned include nil, t,
+supplies the value. to be returned. The values that can be returned include `nil`, t,
 and the top-of-stack. `return-single` does not do anything that cannot be done with
 `return-multiple` (accompanied by.a push in some cases), but it is likely that
 `return-single` can be implemented. to be much faster than the corresponding
@@ -1622,7 +1622,7 @@ The specific handling of the value disposition is as follows:
 Effect Leave the stack alone. This leaves the TOS register invalid.
 
 Value Push the first value being returned onto the stack. If no values
-were being returned, use nil as the first value.
+were being returned, use `nil` as the first value.
 
 Multiple Copy the values down from the old top of the stack to the new
 top of the stack, and form them into a multiple group by
@@ -1711,12 +1711,12 @@ the cleanup handier.
 - Set the cleanup-in-progress bit in the `Control` register.
 
 - Set control-register.cleanup-catch in accordance with the
-cdr code of catch-biock-previous and at the same time
+`cdr` code of catch-biock-previous and at the same time
 restore the control-register.extra-argument bit.
 
 - Set the `catch-block-pointer` register to the catch-block-
 previous, which is the address of the previous catch block
-or nil if there is none.
+or `nil` if there is none.
 
 - Transfer control to the first instruction of the cleanup
 handler. When the cleanup handler exits the return -
@@ -1728,13 +1728,13 @@ block need ‘be removed (bindings will be undone by cleanup
 because the bindings cleanup bit. will be set for the frame). The
 following actions are taken:
 
-Set control-register.cleanup-catch in accordance with the cdr code of
+Set control-register.cleanup-catch in accordance with the `cdr` code of
 `catch-block-previous`. The hardware is permitted, but not required, to restore
 control-register extra-argument.
 
 - Set the `catch-block-pointer` register to the catch-block-
 previous, which is the address of the previous catch block
-or nil if there is none.
+or `nil` if there is none.
 
 - Check the cleanup bits again.
 
@@ -1754,7 +1754,7 @@ returns, the return instruction can proceed.
 When Value-disposition is Multiple, the instruction after a finish-call instruction
 will-usually be a take-values instruction. As on the 3600, this converts the
 multiple group left on the stack by return into the desired number of values,
-popping extra values or pushing nil as a default for missing values.
+popping extra values or pushing `nil` as a default for missing values.
 
 ## Catch, Throw and Unwind-Protect
 
@@ -1763,7 +1763,7 @@ catch or unwind-protect operation. All catch blocks in any given stack are linke
 together, each block containing the address of the next outer block. They are
 linked in decreasing order of addresses. An internal register named catch-block-
 pointer contains the address of the innermost catch block, as a `dtp-locative`, or
-contains nil if there are no active catch blocks. The address of'a catch block is
+contains `nil` if there are no active catch blocks. The address of'a catch block is
 the address of its `catch-block-pc` word.
 
 The format of a catch block for a catch operation is-as follows:
@@ -1797,23 +1797,23 @@ throw function, not by hardware.
 The `catch-block-pc` word has data type `dtp-even-pc` ur `dtp-odd-pc`. For a catch
 operation, it contains the address to which throw should transfer control. For an
 unwind-protect operation, it contains the address of the first instruction of the
-cleanup handler. The cdr code of this word is set to zero (`cdr-next`) and not used.
+cleanup handler. The `cdr` code of this word is set to zero (`cdr-next`) and not used.
 For a catch operation with a value disposition of Return, the `catch-block-pc` word
-contains nil.
+contains `nil`.
 
 The `catch-block-binding-stack-pointer` word-contains the value of the binding-stack-
 pointer hardware register at the time the catch or unwind-protect was established.
 When undoing the catch or-unwind-protect, special-variable bindings are undone
-until the `binding-stack-pointer` again has this value. The cdr-code field of this
+until the `binding-stack-pointer` again has this value. The `cdr-code` field of this
 word uses bit 38 to distinguish between catch and unwind-protect; bit 39 is set to
 zero and not used.
 
 The `catch-block-previous` word contains a `dtp-locative` pointer to the `catch-block-pc`
-word of the previous catch block, or else contains nil. The cdr-code. field of this
+word of the previous catch block, or else contains `nil`. The `cdr-code`. field of this
 word saves two bits of the control register that need to be restored.
 
 The `catch-block-continuation` word saves the `Continuation` hardware register so that
-throw can restore it. The cdr-code field of this word saves the value disposition
+throw can restore it. The `cdr-code` field of this word saves the value disposition
 of a catch; this tells the throw function where to put the values thrown. This
 word is not used by unwind-protect.
 
@@ -1998,10 +1998,10 @@ flavor.
 initiate a block read of sequential locations starting at that address.
 
 - For each block of three words, if the first word does not match the generic
-function or message name, and is not nil, skip the next two words and go. on
+function or message name, and is not `nil`, skip the next two words and go. on
 to the next block.
 
-- When a block is found whose key matches or is nil, accept the method and
+- When a block is found whose key matches or is `nil`, accept the method and
 the parameter and terminate the search.
 
 Note that when a mismatch occurs, the’ hash search proceeds through consecutive
@@ -2009,7 +2009,7 @@ addresses; it does not rehash. It also does not wrap. around when it gets to the
 
 end of the table.. Consequently the software must allocate sufficient room at the
 end of the table, after the highest address defined by the hash mask, to
-accomodate overflow from the end of the table and a final entry with a key of nil
+accomodate overflow from the end of the table and a final entry with a key of `nil`
 that is guaranteed to terminate the search.
 
 ‘The hash mask. is normally a power of 2 minus 1.
@@ -2050,13 +2050,13 @@ argument". error.
 - Get the address of the interesting part of the flavor, which specifies the size
 and address of the handler hash. table. This is done by checking whether
 the data type of FP|8 is one of the instance data types. If it is, fetch its
-header following forwarding pointers (header-read). If it is not, use the data
+header following forwarding pointers (`header-read` ). If it is not, use the data
 type to index a 64-element table in the trap vector that Points to the hash-
 mask fields of the flavor descriptions.
 
 - Fetch two words from the flavor, the hash mask and hash-table address, and
 perform the handler hash table search described above. If the parameter is
-not nil, store it into FP|2, otherwise leave the generic function in FP{2 (the
+not `nil`, store it into FP|2, otherwise leave the generic function in FP{2 (the
 default handier needs it). If the method is `dtp-even-pc` or `dtp-odd-pc`, jump
 to its entry instruction. If the method is anything else, trap (this is an
 error).
@@ -2109,7 +2109,7 @@ Instructions exist to read, write, and locate instance variables.
 value on. the stack.
 
 - Write: pop a value off the. stack. and store it into the instance variable,
-preserving the cdr code of the location and. checking for invisible pointers
+preserving the `cdr` code of the location and. checking for invisible pointers
 and `dtp-monitor-forward` (the same as when writing a special variable).
 
 - Locate: compute the address of the instance variable’s value cell and ‘push it
@@ -2208,7 +2208,7 @@ new <— bind_reéad_no_moniteor (loc) ;Get new contents of
 ;followed, update loc
 
 mem(loc) <- merge_cdr(old,new) ;Store back old contents
-spreserve cdr
+spreserve `cdr`
 mem(P+1) <- new ;Store new contents into
 
 jbinding stack
@@ -2230,9 +2230,9 @@ block-1-read last_word, old & bind_read_no_monitor (P+1)
 bind_read_no_monitor ,no_increment
 
 block-2-read last_word, new < bind_read_no_monitor (loc)
-bind_read_no_monitor ,preserve_cdr ,no_increment
+bind_read_no_monitor ,preserve_`cdr` ,no_increment
 
-merge-cdr-nopop sp|-1 cdr(old) < cdr(new)
+merge-cdr-nopop sp|-1 `cdr`(old) < `cdr`(new)
 
 block-1-write sp-pop mem(P+1) <— new
 

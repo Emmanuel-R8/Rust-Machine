@@ -1,0 +1,287 @@
+### Predicate Instructions
+
+Binary predicates: `eq`, `eq-no-pop`, `eql`, `eql-no-pop`, `equal-number`, `equal-number-no-pop`, `greaterp`, `greaterp-no-pop`, `lessp`, `lessp-no-pop`, `logtest`, `logtest-no-pop`, `type-member-n` (four instructions), `type-member-n-no-pop` (four instructions).
+
+Unary predicates: `endp`, `plusp`, `minusp`, `zerop`.
+
+Refer also. to the subprimitive instructions `%unsigned-lessp` and `%ephemeralp`.
+
+
+--------------------------------------
+
+`eq` Instruction `eg-no-pop` Format Operand from stack Value(s)
+Returned 1 (2 for no-pop)
+Argument(s) 2:
+Opcode 270 (274 for no-pop)
+
+argl any data type arg2 any data type
+
+Immediate Argument Type Signed
+
+Description
+
+Pushes`t`on the stack if the operands reference the same Lisp object; otherwise, pushes `nil` on the stack. The no-pop version of this instruction leaves the first argument arg1 on the stack. (Note that, in the presence of forwarding pointers, two references may refer to the same object but not be`eq`or egl.)
+
+Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`eql` Instruction
+
+`eql-no-pop` oF
+
+Format. Operand from stack Value(s) Returned 1 (2 for no-pop)
+
+Argument(s) 2: Opcode 263 (267 for no-pop)
+
+argl any data type arg2 any data type
+
+Immediate Argument Type Signed
+
+Description
+
+Returns ¢ if the two arguments are`eq`or if they are numbers of the same type with the same value; otherwise returns `nil`. Note. that for `dtp-single-float`, +0 and -0 are not eqi. Also, (eql 0 0.0) is false. The no- pop version of this instruction leaves the first argument on the stack. egl returns `nil` without trapping any time the data types of the arguments are different. (Note that, in the presence of forwarding pointers, two references may 'refer to the same object. but not be`eq`or eql.)
+
+Exception
+
+Type: Arithmetic dispatch .
+
+Conditions: Types of arg\] and arg2 are equal and one of `dtp-double-float`, `dtp-bignum`, `dtp-big-ratio`, `dtp-complex`, or `dtp-spare-number`. (but arg1 and arg2 are not eq).
+
+Arguments: arg1, arg2
+
+Values: 1 for normal version
+
+2 for no-pop version (returns arg1 to become the non-popped argument).
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`equal-number` Instruction `equal-number-no-pop`
+Format Operand from stack Value(s) Returned 1 (2 for no-pop) Argument(s) 2:
+Opcode 260 (264 for no-pop)
+
+arg1 any numeric data type arg2 any numeric data type
+
+Immediate Argument Type Signed
+
+Description
+
+Tests the two arguments for numerical equality and pushes`t`or `nil` on the stack according to the result. Note that `(equal-number 0 0.0)`, which is also written `(= 0 0.0)`, is true, in contrast to `(eql 0.0.0)`, which is false. The no-pop version of this instruction leaves the first argument on the stack.
+
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum` or `dtp-single-float`. Floating point exceptions. Arguments: argl, arg2 Values: 1 for. normal version 2 for no-pop version (returns argl to become the non-popped argument). :
+
+Note that `equal-number` or `equal-number-no-pop` will take an exception even if the arguments are`eq` but are not `dtp-fixnum` or `dtp-single-float`.
+
+Memory Reference 'None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`greaterp` . Instruction
+
+`greaterp-no-pop`
+
+Format Operand from stack Value(s) Returned 1 (2. for. no-pop)
+
+Argument(s) 2: Opcode 262 (266 for no-pop) argl any numeric data type , arg2 any numeric data type
+
+Immediate Argument Type Signed
+
+Description
+
+Tests if arg \> arg2, and pushes`t`or `nil` on the stack according to the result, The no-pop version of this instruction leaves the first. argument.on the stack.
+
+Exception Type: Arithmetic. dispatch Conditions: Types of ergi and arg2 are numeric, but not. both `dtp-fixnum` or `dtp-single-float`. Floating point exceptions. Arguments: argl, arg2 . Values: 1 for normal version 2 for no-pop version (returns arg1 to become the non-popped argument).
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`lessp`
+
+`lessp-no-pop`
+
+Format Operand from stack
+
+Argument(s) 2 argl any numeric data type arg2 any numeric data type
+
+Immediate Argument Type Signed
+
+Description
+
+Instruction
+
+Gebers
+
+Value(s) Returned 1 (2 for no-pop)
+
+Opcode 261 (265 for no-pop)
+
+Tests if arg! \<.arg2, and pushes`t`or `nil` on the stack according to the result. The no-pop version of this instruction leaves the first argument on
+
+the stack.
+
+Exception Type: Arithmetic dispatch
+
+Conditions: Types of arg\] and arg2 are numeric, but not both `dtp-fixnum` or. `dtp-single-float`.
+
+Floating point exceptions.
+
+Arguments: argl, arg2
+
+Values: 1 for normal version
+
+2 for no-pop version (returns argl to become the
+
+non-popped argument).
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`logtest` : Instruction
+
+`logtest-no-pop` Fae Format Operand from stack Value(s) Returned 1 (2 for no-pop) Argument(s) 2:
+Opcode 273 (277 for no-pop)
+
+argl any numeric data type arg2 any numeric data type
+
+Immediate Argument Type Signed
+
+Description
+
+Pushes`t`on the stack if any of the bits designated by 1s in the first argument.are 1s in the second argument; otherwise, pushes `nil`. The no-pop version of this instruction leaves the first argument on the stack. The effect. of this instruction is
+
+(not (zerop (logand arg1 arg2))).
+
+Exception Type: Arithmetic dispatch Conditions: Types of arg1 and arg2 are numeric, but not both `dtp-fixnum`.
+
+Arguments: argl, arg2
+
+Values: 1 for normal version 2 for no-pop version (returns argl to become the non-popped argument).
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+
+--------------------------------------
+
+`type-member-n` Instruction
+
+`type-member-n-no-pop` JI 2st Format 10-bit. immediate Value(s) Returned 1 \@ for. no-pop) Argument(s) 2: Opcode 40-43 (44-47 for no-pop)
+
+argl any data type I `dtp-fixnum` (the immediate)
+
+Immediate Argument Type 10-bit mask
+
+Description
+
+n is a number between 0 and 15 inclusive. Two bits of n are part of the opcode and two bits are taken from the immediate argument. 7 specifies which 8-bit field, aligned on a 4-bit boundary, of a 64-bit vector the immediate is specifying. The 8 least-significant bits of the immediate field J are then inserted into a background of 64 zero bits. The data type of arg!, the argument on top of the stack, is then used to create a bit vector of zeros, except with a one in the slot for the data type. The two vectors are then ANDed together. If the result is nonzero, then`t`is returned, otherwise `nil` is returned. The no-pop version of this instruction leaves the argument on the stack.
+
+The fields specified by type-member-n are shown below.
+
+63 55 47 39 31 23 15 7 8 /nee, \[N=-\~ 1 \[, /= \[/ n=14 n=12 n=16 n=8 n=6 n=4 n=2 n=8 Exception None'
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+
+--------------------------------------
+
+`endp` Instruction
+Format Operand from. stack Value(s) Returned 1 Argument(s) 1:
+Opcode 2
+
+arg `dtp-list`, `dtp-list-instance`, or `dtp-nil`
+
+Immediate Argument Type Signed
+
+Description Pushes`t`on the stack if arg is `nil`; otherwise pushes `nil`.
+
+Exception. None Memory Reference 'None
+
+Register Effects TOS: Valid after
+
+--------------------------------------
+
+`plusp`
+
+Instruction
+
+Format Operand from stack Value(s) Returned 1
+
+Argument(s) 1:
+Opcode 36 arg any numeric data type
+
+Immediate Argument Type Signed
+
+Description
+
+Pushes`t`on the stack if the argument is a positive number strictly greater than zero; otherwise pushes `nil` on the stack. This is an optimization of © arg 0).
+
+Exception Type: Arithmetic dispatch Conditions: Type of arg is numeric, but not `dtp-fixnum` or `dtp-single-float`. Floating-point. exceptions. Arguments: arg Values: 1
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+
+--------------------------------------
+
+`minusp` Instruction
+Format Operand from stack Value(s). Returned 1 Argument(s) 1:
+Opcode 35
+
+arg any numeric data type
+
+Immediate Argument Type Signed
+
+Deseription
+
+Pushes`t`on the stack if the argument is a negative number strictly less than. zero; otherwise pushes `nil` on the stack. This is an optimization of (\< arg 0). ,
+
+Exception Type: Arithmetic dispatch Conditions: Type of arg is numeric, but not `dtp-fixnum` or `dtp-single-float`. Floating-point exceptions. Arguments: arg Values: 1
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+--------------------------------------
+
+`zerop`
+
+Instruction
+
+Format Operand from stack Value(s) Returned 1
+
+Argument(s) 1: Opcode 34 arg any numeric data type
+
+Immediate Argument Type Signed
+
+Description Pushes ¢ on the stack if the argument is zero; otherwise pushes `nil` on the stack, This is an optimization of \@ arg 0).
+
+Exception Type: Arithmetic dispatch Conditions: Type of arg is numeric, but not `dtp-fixnum` or `dtp-single-float`. Floating-point exceptions. Arguments: arg Values: 1
+
+Memory Reference None
+
+Register Effects TOS: Valid after

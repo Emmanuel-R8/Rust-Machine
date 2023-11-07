@@ -21,7 +21,6 @@ mod world {
 }
 mod hardware {
     pub mod cpu;
-    pub mod instructions;
     pub mod machine;
     pub mod memory;
     pub mod network;
@@ -35,14 +34,36 @@ mod emulator {
     pub mod config;
     pub mod disassembly;
     pub mod emulator;
+    pub mod instructions {
+        pub mod common;
+
+        pub mod list;
+        pub mod interruptible;
+        pub mod predicate;
+        pub mod numeric;
+        pub mod datamovement;
+        pub mod field_extraction;
+        pub mod array;
+        pub mod branch_loop;
+        pub mod block;
+        pub mod function_calling;
+        pub mod binding;
+        pub mod catch;
+        pub mod lexical_variable;
+        pub mod instance_variable;
+        pub mod subprimitive;
+
+        pub mod build_set;
+    }
 }
 
 mod utils;
 
+use emulator::instructions::build_set::build_instruction_set;
 //
 // EXTERNAL IMPORTS
 //
-use simplelog::{Config, LevelFilter, WriteLogger};
+use simplelog::{ Config, LevelFilter, WriteLogger };
 use std::fs::File;
 
 //
@@ -51,9 +72,13 @@ use std::fs::File;
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 
+//
+//
 pub fn main() {
     // Global state
     let mut ctx: GlobalContext = GlobalContext::new();
+    let instruction_set = build_instruction_set();
+
     ctx.cpu.initialise();
 
     let mut args: Vec<String> = Vec::new();
@@ -65,12 +90,12 @@ pub fn main() {
     let ivory_page_log = WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("ivoryPageLog.log").unwrap(),
+        File::create("ivoryPageLog.log").unwrap()
     );
     let run_log = WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("run.log").unwrap(),
+        File::create("run.log").unwrap()
     );
 
     // let world_image_size: usize = 0;
@@ -80,7 +105,7 @@ pub fn main() {
 
     let mut config = VLMConfig::default();
     let mut enable_ids_p = config.enableIDS;
-    let mut trace_p = config.tracing.tracePOST;
+    let mut trace_p = config.tracing.trace_post;
 
     // let TestFunction = config.testFunction;
 

@@ -1,10 +1,9 @@
 use std::cmp::min;
 use std::collections::HashMap;
-use std::fs::{ read_dir, DirEntry, File };
-use std::io::Read;
+use std::fs::{ read_dir, DirEntry };
 use std::mem::size_of;
 use std::ops::Div;
-use std::path::{ Path, PathBuf };
+use std::path::{Path, PathBuf};
 
 use memmap::Mmap;
 use num::Integer;
@@ -12,64 +11,44 @@ use sets::Set;
 use uuid::Uuid;
 
 use crate::common::constants::{
-    LoadFileFormat,
     QTag,
     VMAttribute,
     CDR,
     IVORY_PAGE_SIZE_BYTES,
     IVORY_PAGE_SIZE_QS,
-    IVORY_WORLD_FILE_COOKIE,
     MEMORYWAD_SIZE,
     MEMORY_ADDRESS_PAGE_SHIFT,
     MEMORY_PAGE_SIZE,
     VLMMAXIMUM_HEADER_BLOCKS,
     VLMPAGE_SIZE_QS,
-    VLMVERSION1_AND_ARCHITECTURE,
-    VLMVERSION2_AND_ARCHITECTURE,
-    VLMWORLD_FILE_COOKIE,
-    VLMWORLD_FILE_COOKIE_SWAPPED,
     VLMWORLD_FILE_V2_FIRST_MAP_Q,
     VLMWORLD_SUFFIX,
     VMATTRIBUTE_CREATED_DEFAULT,
     VMATTRIBUTE_EMPTY,
     VMATTRIBUTE_EXISTS,
 };
-use crate::common::types::QWord;
+use crate::common::types::MemoryCell;
 use crate::hardware::cpu::{
-    read_control_argument_size,
-    read_control_caller_frame_size,
-    write_control_argument_size,
-    write_control_caller_frame_size,
-    CPU,
+    read_control_argument_size, read_control_caller_frame_size, write_control_argument_size,
+    write_control_caller_frame_size, CPU,
 };
 use crate::hardware::memory::{
-    compute_protection,
-    default_attributes,
-    lisp_obj_data,
-    make_lisp_obj_u,
-    memory_page_offset,
-    memory_wad_offset,
+    compute_protection, default_attributes, memory_page_offset, memory_wad_offset,
 };
-use crate::utils::{ byte_swap_32, pack_8_to_32 };
+use crate::utils::byte_swap_32;
 use crate::world::world::{
     merge_a_map,
     panic_exit,
-    read_ivory_world_file_q,
-    // read_ivory_world_file_next_q,
-    // read_load_map,
     virtual_memory_read,
-    virtual_memory_write,
-    virtual_memory_write_block_constant,
     LoadMapEntry,
     LoadMapEntryOpcode,
-    MapEntrySelector,
     World,
 };
 
 #[derive()]
 pub struct GlobalContext<'a> {
     pub cpu: CPU,
-    pub mem: [QWord; 1 << 31] /* 2^32 bytes of tags + data */,
+    pub mem: [MemoryCell; 1 << 31], /* 2^32 bytes of tags + data */
     pub attribute_table: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
     pub world: Uuid,
@@ -87,7 +66,7 @@ impl<'a> Default for GlobalContext<'a> {
     fn default() -> Self {
         return GlobalContext {
             cpu: CPU::default(),
-            mem: [QWord::default(); 1 << 31],
+            mem: [MemoryCell::default(); 1 << 31],
             attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
             world: Uuid::nil(),
@@ -107,7 +86,7 @@ impl<'a> GlobalContext<'a> {
     pub fn new() -> Self {
         return GlobalContext {
             cpu: CPU::default(),
-            mem: [QWord::default(); 1 << 31],
+            mem: [MemoryCell::default(); 1 << 31],
             attribute_table: [VMATTRIBUTE_EMPTY; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
             world: Uuid::nil(),
@@ -122,32 +101,32 @@ impl<'a> GlobalContext<'a> {
         };
     }
 
-    pub fn write_at(&mut self, addr: QWord, val: QWord) {
-        self.mem[(unsafe { addr.a().unwrap() }) as usize] = val;
+    pub fn write_at(&mut self, addr: MemoryCell, val: MemoryCell) {
+        self.mem[addr.as_address() as usize] = val;
     }
 
-    pub fn inc_and_write_at(&mut self, addr: QWord, val: QWord) -> QWord {
+    pub fn inc_and_write_at(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
         let a = addr.inc();
         self.write_at(a, val);
 
         return a;
     }
 
-    pub fn write_at_and_inc(&mut self, addr: QWord, val: QWord) -> QWord {
+    pub fn write_at_and_inc(&mut self, addr: MemoryCell, val: MemoryCell) -> MemoryCell {
         self.write_at(addr, val);
         return addr.inc();
     }
 
-    pub fn read_at(self, addr: QWord) -> QWord {
-        return self.mem[addr.a().unwrap() as usize];
+    pub fn read_at(&self, addr: MemoryCell) -> MemoryCell {
+        return self.mem[addr.as_address()];
     }
 
-    pub fn inc_and_read_at(&mut self, addr: QWord) -> (QWord, QWord) {
+    pub fn inc_and_read_at(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
         let a = addr.inc();
         return (self.read_at(a), a);
     }
 
-    pub fn read_at_and_inc(&mut self, addr: QWord) -> (QWord, QWord) {
+    pub fn read_at_and_inc(&mut self, addr: MemoryCell) -> (MemoryCell, MemoryCell) {
         let a = addr.inc();
         return (self.read_at(addr), a);
     }
@@ -165,15 +144,15 @@ impl<'a> GlobalContext<'a> {
         self.cpu.fp = self.cpu.sp;
 
         // Push the control register
-        let mut q = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, self.cpu.control.u().unwrap());
+        let mut q = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, self.cpu.control.as_raw());
         self.cpu.sp = self.inc_and_write_at(self.cpu.sp, q);
 
         // Create a new control register
-        self.cpu.control = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, 0);
+        self.cpu.control = MemoryCell::new_cdr_tag_i(CDR::Jump, QTag::Fixnum, 0);
         write_control_argument_size(&mut self.cpu.control, 2);
         write_control_caller_frame_size(
             &mut self.cpu.control,
-            (self.cpu.sp - self.cpu.fp).u().unwrap()
+            self.cpu.sp.as_address() - self.cpu.fp.as_address(),
         );
 
         self.cpu.continuation = self.cpu.pc;
@@ -185,17 +164,19 @@ impl<'a> GlobalContext<'a> {
         self.cpu.sp = self.cpu.fp;
 
         // Determine the next frame pointer by decreasing by the frame size
-        self.cpu.fp_inc(read_control_caller_frame_size(self.cpu.control).unwrap());
+        self.cpu
+            .fp_inc(read_control_caller_frame_size(self.cpu.control));
 
         // Restore the PC using the stored continuation
         self.cpu.pc = self.cpu.continuation;
 
         // Temporary copy of FP
         (self.cpu.continuation, self.cpu.fp) = self.read_at_and_inc(self.cpu.fp);
-        self.cpu.set_control(self.read_at(self.cpu.fp).u().unwrap());
+        self.cpu.set_control(self.read_at(self.cpu.fp).as_raw());
 
         self.cpu.lp = self.cpu.fp.clone();
-        self.cpu.lp_inc(read_control_argument_size(self.cpu.control).unwrap());
+        self.cpu
+            .lp_inc(read_control_argument_size(self.cpu.control));
     }
 
     #[inline]
@@ -258,23 +239,17 @@ impl<'a> GlobalContext<'a> {
         // let new_unmerged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
         let (mut new_merged_wired_entries, mut new_unmerged_wired_entries) =
             self.merge_parent_load_map(w.parent_world);
-        new_merged_wired_entries = merge_a_map(
-            w,
-            &new_merged_wired_entries,
-            &w.merged_wired_map_entries
-        );
-        new_unmerged_wired_entries = merge_a_map(
-            &w,
-            &new_unmerged_wired_entries,
-            &w.unwired_map_entries
-        );
+        new_merged_wired_entries =
+            merge_a_map(w, &new_merged_wired_entries, &w.merged_wired_map_entries);
+        new_unmerged_wired_entries =
+            merge_a_map(&w, &new_unmerged_wired_entries, &w.unwired_map_entries);
 
         return (new_merged_wired_entries, new_unmerged_wired_entries);
     }
 
     pub fn merge_load_maps(
         &mut self,
-        world_search_path: String
+        world_search_path: String,
     ) -> (Set<LoadMapEntry>, Set<LoadMapEntry>) {
         let w = self.worlds.get(&self.world).unwrap();
         if w.generation == 0 {
@@ -327,10 +302,9 @@ impl<'a> GlobalContext<'a> {
         let mut top_uuid = Uuid::nil();
         while w.generation > 0 {
             for (w_uuid, w_world) in self.worlds.iter_mut() {
-                if
-                    w_world.generation == w_world.generation - 1 &&
-                    w_world.timestamp_1 == w_world.parent_timestamp_1 &&
-                    w_world.timestamp_2 == w_world.parent_timestamp_2
+                if w_world.generation == w_world.generation - 1
+                    && w_world.timestamp_1 == w_world.parent_timestamp_1
+                    && w_world.timestamp_2 == w_world.parent_timestamp_2
                 {
                     top_uuid = *w_uuid;
                     // w_world.parent_world = tmp_uuid;
@@ -339,7 +313,10 @@ impl<'a> GlobalContext<'a> {
             }
 
             if w.parent_world.is_nil() {
-                panic_exit(format!("Unable to find parent of world file {}", w.pathname.display()));
+                panic_exit(format!(
+                    "Unable to find parent of world file {}",
+                    w.pathname.display()
+                ));
             } else {
                 self.world = w.parent_world.clone();
             }
@@ -378,124 +355,6 @@ impl<'a> GlobalContext<'a> {
 
         // EnsureVirtualAddressRange(0xf8000100, 0xf00, false);
         // EnsureVirtualAddressRange(0xf8062000, 0x9e000, false);
-    }
-
-    fn open_world_file(&mut self, punt_on_errors: bool) -> bool {
-        let mut page_bases: QWord = QWord::default();
-        let mut wired_count_q: u32 = 0;
-        let mut unwired_count_q: u32 = 0;
-        let mut pages_base_q: u32 = 0;
-        let mut first_sysout_q: u32 = 0;
-        let mut first_map_q: u32 = 0;
-
-        let mut w = World::new();
-
-        let path = &w.pathname;
-        w.fd = Some(File::open(path).expect("Could not open file"));
-
-        let mut cookie: [u8; 4] = [0 as u8; 4];
-        if w.fd.unwrap().read_exact(&mut cookie).is_err() && punt_on_errors {
-            panic_exit(format!("Reading world file {} cookie.", path.display()));
-        } else {
-            return false;
-        }
-
-        match pack_8_to_32(cookie) {
-            VLMWORLD_FILE_COOKIE => {
-                w.format = LoadFileFormat::VLMWorldFormat;
-                w.byte_swapped = false;
-            }
-
-            VLMWORLD_FILE_COOKIE_SWAPPED => {
-                w.format = LoadFileFormat::VLMWorldFormat;
-                w.byte_swapped = true;
-            }
-
-            IVORY_WORLD_FILE_COOKIE => {
-                w.format = LoadFileFormat::IvoryWorldFormat;
-                wired_count_q = 1;
-                unwired_count_q = 2;
-                first_sysout_q = 0;
-                first_map_q = 8;
-            }
-
-            _ => {
-                if punt_on_errors {
-                    panic_exit(format!("Format of world file {} is unrecognized", path.display()));
-                }
-            }
-        }
-
-        w.ivory_data_page = vec![QWord::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
-        // w.current_page_number = 0;
-
-        // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
-        if w.format == LoadFileFormat::VLMWorldFormat {
-            match lisp_obj_data(read_ivory_world_file_q(&w, 0)).unwrap().u().unwrap() {
-                VLMVERSION1_AND_ARCHITECTURE => {
-                    wired_count_q = 1;
-                    unwired_count_q = 0;
-                    pages_base_q = 3;
-                    first_sysout_q = 0;
-                    first_map_q = 8;
-                }
-                VLMVERSION2_AND_ARCHITECTURE => {
-                    wired_count_q = 1;
-                    unwired_count_q = 0;
-                    pages_base_q = 2;
-                    first_sysout_q = 3;
-                    first_map_q = 8;
-                }
-                _ => {
-                    panic_exit(
-                        format!(
-                            "Format magic code of world file {} is unrecognized",
-                            path.display()
-                        )
-                    );
-                }
-            }
-        }
-
-        if w.format == LoadFileFormat::VLMWorldFormat {
-            page_bases = read_ivory_world_file_q(&w, pages_base_q);
-            w.data_page_base = page_bases.u().unwrap();
-            w.tags_page_base = unsafe { page_bases.tag().unwrap() as u32 };
-        }
-
-        if first_sysout_q != 0 {
-            // w.current_q_number = first_sysout_q;
-
-            // w.generation = unsafe {
-            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            // };
-            // w.timestamp_1 = unsafe {
-            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            // };
-            // w.timestamp_2 = unsafe {
-            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            // };
-            // w.parent_timestamp_1 = unsafe {
-            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            // };
-            // w.parent_timestamp_2 = unsafe {
-            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
-            // };
-        } else {
-            w.generation = 0;
-            w.timestamp_2 = 0;
-            w.timestamp_1 = 0;
-            w.parent_timestamp_2 = 0;
-            w.parent_timestamp_1 = 0;
-        }
-        // w.current_q_number = first_map_q;
-        // w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
-        // w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
-
-        let key = self.world;
-        self.worlds.insert(key, &w);
-
-        return true;
     }
 
     ///
@@ -732,7 +591,7 @@ impl<'a> GlobalContext<'a> {
     //     return entry.count;
     // }
 
-    fn read_swapped_vlm_world_file_page(&self, mut page_number: u32) {
+    fn read_swapped_vlm_world_file_page(&self, page_number: u32) {
         unimplemented!()
 
         // // If the page current loaded in the world is the page we are looking for, then nothing to do
@@ -774,28 +633,27 @@ impl<'a> GlobalContext<'a> {
         // world.current_page_number = page_number;
     }
 
-    fn read_swapped_vlm_world_file_q(&self, mut q_number: u32) -> QWord {
-        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
-        let mut datum: u32 = 0;
+    fn read_swapped_vlm_world_file_q(&self, q_address: u32) -> MemoryCell {
+        let w =  self.worlds.get(&self.world).unwrap() ;
 
-        if q_number < 0 || q_number >= VLMPAGE_SIZE_QS {
+        if q_address < 0 || q_address >= VLMPAGE_SIZE_QS {
             // self.close(true);
             panic_exit(
                 format!(
                     "Invalid word number {} for world file {}",
-                    q_number,
+                    q_address,
                     w.pathname.display().to_string()
                 )
             );
         }
 
-        datum = byte_swap_32(w.data_page[q_number as usize]);
-        let tag: QTag = unsafe { ::std::mem::transmute(w.tags_page[q_number as usize]) };
-        return make_lisp_obj_u(CDR::Jump, tag, datum);
+        let datum: u32 = byte_swap_32(w.data_page[q_address as usize]);
+        let tag: QTag = unsafe { ::std::mem::transmute(w.tags_page[q_address as usize]) };
+        return MemoryCell::new_cdr_tag_u(CDR::Jump, tag, datum);
     }
 
-    fn read_swapped_vlm_world_file_next_q(&self) -> QWord {
-        let mut w = unsafe { self.worlds.get(&self.world).unwrap() };
+    fn read_swapped_vlm_world_file_next_q(&self) -> MemoryCell {
+        let w =  self.worlds.get(&self.world).unwrap() ;
 
         // while w.current_q_number >= VLMPAGE_SIZE_QS {
         //     self.read_swapped_vlm_world_file_page(w.current_page_number + 1);
@@ -805,24 +663,22 @@ impl<'a> GlobalContext<'a> {
         // w.current_q_number += 1;
 
         // return q;
-        return QWord::Whole(0);
+        return MemoryCell::default();
     }
 
+    //  align map entries to page boundaries.
     //  Canonicalize the load map entries for a VLM world:  Look for load map entries
     //  that don't start on a page boundary and convert them into a series of
     //  LoadMapConstant entries to load the data.  Thus, all data in the world file
     //  will be page-aligned to allow for direct mapping of the world load file into
     //  memory.  (Eventually, we may also merge adjacent load map rentries.)
     fn canonicalize_vlm_load_map_entries(&mut self) -> Set<LoadMapEntry> {
-        let mut new_wired_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(
-            &[],
-            true
-        );
+        let new_wired_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
 
         let world_id = self.world;
 
-        let world: &World = match self.worlds.get_mut(&world_id) {
-            Some(&mut w) => w,
+        let &mut world: &mut &World = match self.worlds.get_mut(&world_id) {
+            Some( w) => w,
 
             None => {
                 return new_wired_map_entries;
@@ -833,6 +689,8 @@ impl<'a> GlobalContext<'a> {
 
         let mut page_number: u32 = 0;
         let mut i: u32 = 0;
+
+        // Iterate through every single map entries
         while i < n_wired_entries {
             let current_map_entry = &world.wired_map_entries.data[i as usize];
 
@@ -842,7 +700,8 @@ impl<'a> GlobalContext<'a> {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
                 // assign the page number within the file
                 let mut new_wired_map_entry = world.wired_map_entries.data[i as usize];
-                new_wired_map_entry.data = make_lisp_obj_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+                new_wired_map_entry.data =
+                    MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
                 new_wired_map_entries.insert(new_wired_map_entry);
                 page_number = page_number + page_count;
                 i += 1;
@@ -851,8 +710,7 @@ impl<'a> GlobalContext<'a> {
                 for j in 0..current_map_entry.count {
                     let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
 
-                    new_wired_map_entry.addr =
-                        world.wired_map_entries.data[i as usize].addr + j;
+                    new_wired_map_entry.addr = world.wired_map_entries.data[i as usize].addr + j;
                     new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
                     new_wired_map_entry.count = 1;
                     new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.addr);
@@ -870,16 +728,14 @@ impl<'a> GlobalContext<'a> {
 
         if block_count > VLMMAXIMUM_HEADER_BLOCKS {
             // FIXME: world.close(true);
-            panic_exit(
-                format!(
-                    "Unable to store data map in space reserved for same in world file {}",
-                    world.pathname.display().to_string()
-                )
-            );
+            panic_exit(format!(
+                "Unable to store data map in space reserved for same in world file {}",
+                world.pathname.display().to_string()
+            ));
         }
 
-        world.tags_page_base = block_count;
-        world.data_page_base = (world.tags_page_base + 1) * page_number;
+        // world.tags_page_base = block_count;
+        // world.data_page_base = (world.tags_page_base + 1) * page_number;
 
         return new_wired_map_entries;
     }

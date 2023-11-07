@@ -4,6 +4,7 @@ use log::warn;
 use sets::Set;
 use std::cmp::Ordering;
 use std::fs::{DirEntry, File};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::{fmt, process};
 use uuid::Uuid;
@@ -11,18 +12,19 @@ use uuid::Uuid;
 use crate::common::constants::{
     LoadFileFormat, QTag, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, VLMPAGE_SIZE_QS,
 };
-use crate::common::types::{QImmediate, QWord};
+use crate::common::types::MemoryCell;
 
 use crate::emulator::emulator::GlobalContext;
+use crate::utils::pack_8_to_32;
 
-/// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
+// A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct LoadMapEntry {
     pub addr: u32, // VMA to be filled in by this load map entry
     // NOTE: opcount and opcode are field of a struct op{} in the C code
     pub count: u32,                   // Number of words to be filled in by this entry
     pub map_code: LoadMapEntryOpcode, // An LoadMapEntryOpcode specifying how to do so
-    pub data: QWord,                  // Interpretation is based on the opcode
+    pub data: MemoryCell,             // Interpretation is based on the opcode
                                       // pub world: Rc<RefCell<World<'a>>>, // Ref to World from which this entry was obtained
                                       // !!!!!!!!! Should not be needed to link back
 }
@@ -49,7 +51,7 @@ impl Default for LoadMapEntry {
             addr: 0,
             count: 0,
             map_code: LoadMapEntryOpcode::Constant,
-            data: QWord::default(),
+            data: MemoryCell::default(),
         }
     }
 }
@@ -108,16 +110,17 @@ pub struct World {
     pub byte_swapped: bool,     // World is byte swapped on this machine (VLM only)
 
     pub page_base: u32,
-    pub page: Vec<QWord>,            // -> The current VLM format pagemut
-    pub data_page_base: u32,         // Block number of first page of data (VLM only)
-    pub data_page: Vec<u32>,         // -> The data of the current VLM format page
-    pub tags_page_base: u32,         // Block number of first page of tags (VLM only)
-    pub tags_page: Vec<QTag>,        // -> The tags of the current VLM format page
-    pub ivory_data_page: Vec<QWord>, // [QWord; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page. TODO: rename to current_data-page
+    pub page: Vec<MemoryCell>, // -> The current VLM format pagemut
+    pub data_page_base: u32,   // Block number of first page of data (VLM only)
+    pub data_page: Vec<u32>,   // -> The data of the current VLM format page
+    pub tags_page_base: u32,   // Block number of first page of tags (VLM only)
+    pub tags_page: Vec<QTag>,  // -> The tags of the current VLM format page
+    // [MemoryCell; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page.
+    // TODO: rename to current_data-page
+    pub ivory_data_page: Vec<MemoryCell>,
     // Size is 0x500 = 0x100 for tags + 0x400 for data
     // pub current_page_number: u32, // Page number of the page in the buffer, if any. -1 means not pointing yet
     // pub current_q_number: u32,    // Q number within the page to be read
-
     pub timestamp_1: u32, // Unique ID of this world, part 1 ...
     pub timestamp_2: u32, // ... part 2
 
@@ -148,11 +151,10 @@ impl World {
             data_page: vec![],
             tags_page_base: 0,
             tags_page: vec![],
-            ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
+            ivory_data_page: vec![MemoryCell::default(); IVORY_PAGE_SIZE_BYTES as usize],
 
             // current_page_number: 0,
             // current_q_number: 0,
-
             timestamp_1: 0,
             timestamp_2: 0,
 
@@ -167,6 +169,113 @@ impl World {
             merged_unwired_map_entries: Set::<LoadMapEntry>::new_ordered(&[], true),
         };
         return w;
+    }
+
+    pub fn load_image(&mut self, pathname: &str, punt_on_errors: bool) {
+        let mut page_bases: MemoryCell = MemoryCell::default();
+        let mut wired_count_q: u32 = 0;
+        let mut unwired_count_q: u32 = 0;
+        let mut pages_base_q: u32 = 0;
+        let mut first_sysout_q: u32 = 0;
+        let mut first_map_q: u32 = 0;
+
+        let mut f = File::open(pathname).unwrap();
+
+        // Read 4 bytes for the file magic cookie
+        let mut cookie = [0 as u8; 4];
+        f.read(&mut cookie);
+
+        match pack_8_to_32(cookie) {
+            VLMWORLD_FILE_COOKIE => {
+                self.format = LoadFileFormat::VLMWorldFormat;
+                self.byte_swapped = false;
+            }
+
+            VLMWORLD_FILE_COOKIE_SWAPPED => {
+                self.format = LoadFileFormat::VLMWorldFormat;
+                self.byte_swapped = true;
+            }
+
+            IVORY_WORLD_FILE_COOKIE => {
+                self.format = LoadFileFormat::IvoryWorldFormat;
+                wired_count_q = 1;
+                unwired_count_q = 2;
+                first_sysout_q = 0;
+                first_map_q = 8;
+            }
+
+            _ => {
+                if punt_on_errors {
+                    panic_exit(format!("Format of world file {} is unrecognized", pathname));
+                }
+            }
+        }
+
+        self.ivory_data_page = vec![MemoryCell::default(); (IVORY_PAGE_SIZE_BYTES / 4) as usize];
+        // w.current_page_number = 0;
+
+        // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
+        if self.format == LoadFileFormat::VLMWorldFormat {
+            match read_ivory_world_file_q(self, 0).as_raw() {
+                VLMVERSION1_AND_ARCHITECTURE => {
+                    wired_count_q = 1;
+                    unwired_count_q = 0;
+                    pages_base_q = 3;
+                    first_sysout_q = 0;
+                    first_map_q = 8;
+                }
+                VLMVERSION2_AND_ARCHITECTURE => {
+                    wired_count_q = 1;
+                    unwired_count_q = 0;
+                    pages_base_q = 2;
+                    first_sysout_q = 3;
+                    first_map_q = 8;
+                }
+                _ => {
+                    panic_exit(format!(
+                        "Format magic code of world file {} is unrecognized",
+                        pathname
+                    ));
+                }
+            }
+        }
+
+        if self.format == LoadFileFormat::VLMWorldFormat {
+            page_bases = read_ivory_world_file_q(self, pages_base_q);
+            self.data_page_base = page_bases.as_raw();
+            self.tags_page_base = page_bases.tag() as u32;
+        }
+
+        if first_sysout_q != 0 {
+            // w.current_q_number = first_sysout_q;
+
+            // w.generation = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.timestamp_1 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.timestamp_2 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.parent_timestamp_1 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+            // w.parent_timestamp_2 = unsafe {
+            //     lisp_obj_data(read_ivory_world_file_next_q(&mut w)).unwrap().u().unwrap()
+            // };
+        } else {
+            self.generation = 0;
+            self.timestamp_2 = 0;
+            self.timestamp_1 = 0;
+            self.parent_timestamp_2 = 0;
+            self.parent_timestamp_1 = 0;
+        }
+        // w.current_q_number = first_map_q;
+        // w.wired_map_entries = read_load_map(&mut w, MapEntrySelector::Wired);
+        // w.unwired_map_entries = read_load_map(&mut w, MapEntrySelector::Unwired);
+
+        self.fd = Some(f);
     }
 
     // Select the specified Set<LoadMapEntry>
@@ -206,7 +315,7 @@ impl Default for World {
             data_page: vec![],
             tags_page: vec![],
             page: vec![],
-            ivory_data_page: vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize],
+            ivory_data_page: vec![MemoryCell::default(); IVORY_PAGE_SIZE_BYTES as usize],
             // current_page_number: 0,
             // current_q_number: 0,
             parent_world: Uuid::nil(),
@@ -522,7 +631,7 @@ pub fn merge_a_map<'a>(
 // }
 
 // fn read_load_map(mut world: *mut World, mut nSet<LoadMapEntry>: u32, mut Set<LoadMapEntry>: *mut LoadMapEntry) {
-//     let mut q: QWord = LispObj {
+//     let mut q: MemoryCell = LispObj {
 //         parts: _LispObj {
 //             tag: 0,
 //             data: QData { u: 0 },
@@ -541,7 +650,7 @@ pub fn merge_a_map<'a>(
 //     }
 // }
 
-pub fn read_ivory_world_file_q(w: &World, address: u32) -> QWord {
+pub fn read_ivory_world_file_q(w: &World, address: u32) -> MemoryCell {
     if address >= IVORY_PAGE_SIZE_BYTES {
         panic_exit(format!(
             "Invalid word number {} for world file {}",
@@ -553,7 +662,7 @@ pub fn read_ivory_world_file_q(w: &World, address: u32) -> QWord {
     return w.ivory_data_page[address as usize];
 }
 
-// pub fn read_ivory_world_file_next_q(w: &mut World) -> QWord {
+// pub fn read_ivory_world_file_next_q(w: &mut World) -> MemoryCell {
 //     let current_q_number:u32 = 0;
 
 //     // If the the current address is too high, load the next page (several time if needed)
@@ -583,15 +692,8 @@ pub fn world_p(candidate_world: DirEntry) -> bool {
     unimplemented!()
 }
 
-pub fn write_lisp_obj_data_u(q: &mut QWord, data: u32) {
-    match q {
-        QWord::CdrTagData(mut p) => p.data = QImmediate::Unsigned(data),
-        _ => {}
-    };
-}
-
-pub fn write_ivory_world_file_next_q(w: &mut World, q: QWord) {}
-// fn write_ivory_world_file_next_Q(mut world: *mut World, mut q: QWord) {
+pub fn write_ivory_world_file_next_q(w: &mut World, q: MemoryCell) {}
+// fn write_ivory_world_file_next_Q(mut world: *mut World, mut q: MemoryCell) {
 //     let mut pointerOffset: u32 = 0;
 //     let mut tagOffset: u32 = 0;
 //     let mut datum: isize = 0;
@@ -610,7 +712,7 @@ pub fn write_ivory_world_file_next_q(w: &mut World, q: QWord) {}
 //     *fresh57 += 1;
 // }
 
-pub fn virtual_memory_read(addr: u32) -> QWord {
+pub fn virtual_memory_read(addr: u32) -> MemoryCell {
     todo!();
 }
 pub fn copy_ivory_world_file_next_q(world: &mut World, from: u32) {
@@ -620,9 +722,9 @@ pub fn copy_ivory_world_file_next_q(world: &mut World, from: u32) {
 
 fn write_vlmworld_file_header(world: &mut World) {
     todo!()
-    // let mut generation_Q: QWord = make_lisp_obj_u(QTag::Null, 0);
+    // let mut generation_Q: MemoryCell = make_lisp_obj_u(QTag::Null, 0);
 
-    // let mut q = QWord::new();
+    // let mut q = MemoryCell::new();
     // let mut page_bases: isize = 0;
     // let mut n_blocks: u32 = 0;
     // let mut i: usize = 0;
@@ -684,7 +786,7 @@ impl World {
         let mut increment: u32 = 0;
         let mut i: usize = 0;
 
-        // QWord = 1 byte tag / 4 bytes data
+        // MemoryCell = 1 byte tag / 4 bytes data
         // pages are stored as 1 block with all the tags / 3 blocks with all the data
 
         // for  m in world.wired_map_entries {
@@ -719,7 +821,7 @@ impl World {
 // fn prepare_to_write_ivory_world_file_page(w: &mut World, page_number: u32) {
 //     w.current_page_number = page_number;
 //     w.current_q_number = 0;
-//     w.ivory_data_page = vec![QWord::default(); IVORY_PAGE_SIZE_BYTES as usize];
+//     w.ivory_data_page = vec![MemoryCell::default(); IVORY_PAGE_SIZE_BYTES as usize];
 // }
 
 // fn write_ivory_world_file_page(world: &mut World) {
@@ -727,49 +829,49 @@ impl World {
 //         return;
 //     }
 
-    // todo!()
-    // let mut offset: u32 = world.current_page_number * IVORY_PAGE_SIZE_BYTES ;
-    // if offset != lseek(world.fd, offset, 0) {
-    //     world.close(true);
-    //     vpunt(format!("Unable to seek to offset {} in world file {}",
-    //         offset,
-    //         world.pathname.display())
-    //     );
-    // }
-    // if IVORY_PAGE_SIZE_BYTES
-    //     != write(
-    //         world.fd,
-    //         world.ivory_data_page ,
-    //         IVORY_PAGE_SIZE_BYTES,
-    //     )
-    // {
-    //     world.close(true);
-    //     vpunt(format!("Unable to write page {} into world file {}" ,
-    //         world.current_page_number,
-    //         world.pathname.display())
-    //     );
-    // }
-    // let ref mut fresh56 = world.current_page_number;
-    // *fresh56 += 1;
-    // prepare_to_write_ivory_world_file_page(world, world.current_page_number);
+// todo!()
+// let mut offset: u32 = world.current_page_number * IVORY_PAGE_SIZE_BYTES ;
+// if offset != lseek(world.fd, offset, 0) {
+//     world.close(true);
+//     vpunt(format!("Unable to seek to offset {} in world file {}",
+//         offset,
+//         world.pathname.display())
+//     );
+// }
+// if IVORY_PAGE_SIZE_BYTES
+//     != write(
+//         world.fd,
+//         world.ivory_data_page ,
+//         IVORY_PAGE_SIZE_BYTES,
+//     )
+// {
+//     world.close(true);
+//     vpunt(format!("Unable to write page {} into world file {}" ,
+//         world.current_page_number,
+//         world.pathname.display())
+//     );
+// }
+// let ref mut fresh56 = world.current_page_number;
+// *fresh56 += 1;
+// prepare_to_write_ivory_world_file_page(world, world.current_page_number);
 // }
 
 // pub fn byte_swap_world(mut world_pathname: &str, mut search_path: &str) {
-    // let mut world = World::new();
-    // let mut a_world= World::new();
+// let mut world = World::new();
+// let mut a_world= World::new();
 
-    // world.pathname = world_pathname;
-    // open_world_file(&mut world, true);
-    // let originalWorld = &mut world;
-    // find_parent_worlds(&mut world, search_path);
-    // a_world = &mut world;
+// world.pathname = world_pathname;
+// open_world_file(&mut world, true);
+// let originalWorld = &mut world;
+// find_parent_worlds(&mut world, search_path);
+// a_world = &mut world;
 
-    // while !a_world.is_none() {
-    //     if a_world.format == LoadFileFormat::VLMWorldFormat && a_world.byte_swapped ==true {
-    //         ByteSwapOneWorld(a_world);
-    //     }
-    //     a_world = a_world.parent_world;
-    // }
+// while !a_world.is_none() {
+//     if a_world.format == LoadFileFormat::VLMWorldFormat && a_world.byte_swapped ==true {
+//         ByteSwapOneWorld(a_world);
+//     }
+//     a_world = a_world.parent_world;
+// }
 // }
 
 fn byte_swap_one_world(world: &mut World) {
@@ -858,7 +960,7 @@ fn byte_swap_one_world(world: &mut World) {
 
 pub fn virtual_memory_write_block_constant(
     mut vma: u32,
-    mut object: *mut QWord,
+    mut object: *mut MemoryCell,
     mut count: u32,
     increment: bool,
 ) -> u32 {
@@ -911,7 +1013,7 @@ pub fn virtual_memory_write_block_constant(
     return 0;
 }
 
-pub fn virtual_memory_write(mut vma: u32, object: QWord) -> u32 {
+pub fn virtual_memory_write(mut vma: u32, object: MemoryCell) -> u32 {
     // memory_vma = vma;
     // *DataSpace.offset(vma ) = (*object).parts.data.u ;
     // *TagSpace.offset(vma ) = (*object).parts.tag as Tag;

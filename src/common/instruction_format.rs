@@ -55,7 +55,8 @@ pub struct Branch {
 #[derive(Default, Debug, Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct FieldExtraction {
-    #[bitfield(name = "bottom", ty = "u8", bits = "0..=4")] //location of the bottom bit, i.e.rotate count (>> N)
+    //location of the bottom bit, i.e.rotate count (>> N)
+    #[bitfield(name = "bottom", ty = "u8", bits = "0..=4")]
     #[bitfield(name = "size", ty = "u8", bits = "5..=9")] // field size - 1
     #[bitfield(name = "tbd", ty = "u32", bits = "10..=17")]
     pub extraction: [u8; 4],

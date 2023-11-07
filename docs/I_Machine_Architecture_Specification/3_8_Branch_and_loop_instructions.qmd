@@ -1,0 +1,111 @@
+#### Branch and Loop Instructions
+
+branch, -branch-true{-else}{-and }{-no-pop}{-extra-pop}, Branch-false{-else}{-and}{-no-pop}{-extra-pop}, loop-decrement-tos, loop-increment-tos-less-than
+
+The branch and loop instructions contain a 10-bit signed offset, This offset is in halfwords from the address of the branch or loop instruction, When a conditional branch instruction with an offset of zero.is executed and the branch would be taken, the instruction takes an error trap instead. See the section".Revision 0 Branch and Loop Instructions". page 299. This does not apply to the unconditional branch or loop instructions with an offset of zero: If the branch distance is too large to be expressed as a 10-bit signed number, then the compiler must generate the code to compute the target pc and follow this with a %jump instruction.
+
+branch J Instruction
+
+Format 10-bit immediate Value(s) Returned 0 Argument(s) 1: Opcode 174
+
+I is `dtp-fixnum` Immediate Argument Type Not applicable Description Continues execution at the location offset IT halfwords from the current program counter (PC). Note that instruction tracing may ignore this instruction. Exception None Memory Reference None Register Effects TOS: Unchanged branch-true{-else}{-and}{-no-pop }{-extra-pop} I Instruction
+
+branch-falset{-else}{-and }{-no-pop }-extra-pop} i
+
+Format 10-bit immediate Value(s) Returned 0 Argument(s) 2: Opcodes 60-77 (see below) argl any data type
+
+Lis dtp-fixmum
+
+Immediate Argument Type Not applicable
+
+Description : branch-false branches if the top of stack is `nil`. branch-true branches if the top of stack is not `nil`, A branch instruction always pops the argument off the top of. stack whether or not the branch is taken unless otherwise specified by one of the no-pop conditions.
+
+If the branch is taken, and -and-no-pop is specified, the stack is not popped. If -else-no-pop is specified, and the branch is not taken, the stack is not popped.
+
+If extra-pop is specified then the stack is popped one time in addition to any pop performed.as specified by the rest of the instruction. For clarification, see the list below.
+
+if the branch is taken, execution continues at the location offset I halfwords from the current program counter (PC). The instruction: takes an error trap if the branch condition is met but the offset is zero.
+
+The sixteen combinations of options for the conditional branch instructions are listed here..Note that there are some combinations that the compiler never generates. .
+
+Instruction Opcode Description
+
+branch-true 60 Always pop once, whether or not branch taken. .
+
+branch-false . 70 Always pop once, 'whether or not branch taken.
+
+branch-true-no-pop 64 Do not: pop, whether or not branch taken.
+
+branch-false-no-pop 74 Do not pop, whether or not branch taken.
+
+branch-true-else-no-pop 66 No pop if no branch, pop once if branch.
+
+branch-false-else-no-pop 76 No pop if no branch, pop once if branch.
+
+branch-true-and-no-pop 65 No pop if branch taken, pop if no branch.
+
+branch-false-and-no-pop 75 No.pop if branch taken, pop if no branch.
+
+branch-true-and-extra-pop . 62 Pop twice if branch, pop once if no branch.
+
+branch-faise-and-extra-pop 72. Pop twice if branch, pop once if no branch.
+
+pbranch-true-else-extra-pop 61 Pop once if branch, pop twice if no branch.
+
+branch-false-else-extra-pop 71 Pop once if branch, pop twice if no branch.
+
+branch-true-extra-pop 63 Always pop twice, whether or not branch taken.
+
+branch-faise-extra-pop 73 Always pop twice, whether or not branch taken. Not: generated: branch-true-and-no-pop-else-no-pop-extra-pop 67 Same as branch-true branch-false-and-no-pop-else-no-pop-extra-pop 77 Same as branch-false Exception None
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+loop-decrement-tos. I . Instruction Format 10-bit immediate : Value(s) Returned 1 Argument(s) 2: Opcode.175 argl-any numeric data type I `dtp-fixnum`
+
+Immediate Argument Type Not applicable
+
+Description
+
+Decrements argl, the top of stack. If the result is greater than zero, then branches to the location offset from the current program counter (PC) by I halfwords. Changes the `cdr` code of TOS to `cdr-next`. Does not pop the stack, whether or not the branch is taken.
+
+Exception
+
+Conditions: Type of arg1 is not `dtp-fixnum`.
+
+Decrementing arg1 overflows (should. turn into an
+
+error).
+
+See the section".Revision 0 Loop-decrement-tos". page 299. Arguments: argl , Values: 1 (decremented value;.may return to a different PC) Note: when an instruction exception is taken, the continuation is the PC of the top of the loop, not the successor to the loop instruction. The exception handler may have to alter the contents of the Continuation register. The net effect of taking and returning from an exception is such that the stack is not popped.
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+loop-increment-tos-less-than I Instruction Format 10-bit immediate Value(s) Returned. 2 Argument(s) 3: Opcode 375
+
+argl any numeric data type arg2 any numeric data type I `dtp-fixnum`
+
+Immediate Argument Type Not applicable
+
+Description
+
+If arg2, the top of stack, is less than arg1, the next on-stack, then branches by the number of halfwords from the current program counter (PC)
+
+\_ Specified by J. In any case, increments the top of stack. Changes the `cdr` code of TOS to `cdr-next`. Does not pop the stack, whether or not the branch is taken.
+
+Exception
+
+Conditions: Type of erg or arg2 is other than dtp-fimum or `dtp-single-float`. argl and arg2 are both `dtp-fixnum`, but. result overflows. See the section".Revision 0 Loop-increment-tos-less-than". page 299. Floating point exceptions.
+
+Arguments: argl, arg2
+
+Values: 2 (bound, incremented value) and may return to different pc.
+
+Note: when an instruction exception is taken, the continuation is the PC of the top of the loop, not the successor to the loop instruction. The exception handler may have to alter the contents of the Continuation register. The net effect of taking and returning from an exception is such that the stack is not popped.
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after

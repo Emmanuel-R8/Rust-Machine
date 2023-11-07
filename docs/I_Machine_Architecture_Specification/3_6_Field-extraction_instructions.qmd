@@ -1,0 +1,121 @@
+### Field-Extraction Instructions
+
+ldb, dpb, char-ldb, char-dpb, %p-ldb, %p-dpb, .%p-tag-ldh, `%p-tag-dpb`
+
+The following instructions are used to-extract.and deposit fields from different data types. The extraction instructions take one argument from the stack. The deposit instructions take two arguments from the. stack, the first is the new value of the field to deposit into. the second argument. Both kinds of instructions take an immediate argument as well. It is illegal, though not checked, to specify a field with bits outside the bottom 32 bits. See the section".Format for Field Extraction". page 82. .
+
+Ildb. BB FS Instruction Format Field-Extraction Value(s) Returned 1 Argument(s) 2: Opcode 170
+
+argl any numeric data type BB and FS 10-bit immediate
+
+Description Extracts the field specified by BB and FS from arg1, then pushes the result on the stack. See the section".Format for Field Extraction". page 82.
+
+Exception Conditions: Type of arg1 is numeric, but not `dtp-fixnum` Arguments; arg Values: 1 Note: The trap handler is responsible for manually extracting the byte specifier from the trapped instruction.
+
+Memory Reference None
+
+Register Effects TOS: Valid after
+
+dpb BB FS Instruction Format Field-Extraction Value(s) Returned 1 Argument(s) 3: Opcode 370
+
+argl any numeric data type arg2 any numeric data type BB and FS 10-bit immediate
+
+\~ . Description Deposits the value arg1 into the field in arg2 specified by BB and FS, then pushes the result on the stack.
+
+See the section".Format for Field Extraction". page 82.
+
+Exception Conditions: Types of arg1 and arg2 are numeric, but not beth `dtp-fixnum`. Arguments: argl, arg2 Values: 1 . Note: The trap handler is responsible for manually extracting the byte specifier from the trapped instruction.
+
+Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+char-Idb BB FS , Instruction Format Field-Extraction . Value(s) Returned 1 Argument(s) 2: Opcode 171
+
+argl `dtp-character` BB and FS'10-bit. immediate
+
+Description
+
+Extracts the field specified by BB and FS from arg1; then pushes the result, a `dtp-fixnum` object, on the stack. See the section".Format for Field Extraction". page 82.
+
+Exceptions None Memory Reference None
+
+Register Effects TOS: Valid after
+
+char-dpb BB FS : Instruction Format Field-Extraction Value(s) Returned 1 Argument(s) 3: Opcode 371
+
+argl `dtp-fixnum`
+
+arg2 `dtp-character`
+
+BB. and FS 10-bit immediate
+
+Description
+
+Deposits the value argl into field in arg2 specified by BB and FS, then pushes the result, a `dtp-character` object, on the stack. See the section \`\`Format for Field Extraction". page 82.
+
+-   Exceptions None Memory Reference None
+
+Register Effects TOS: Valid before, valid after
+
+%p-idb BB FS Instruction Format Field-Extraction Value(s) Returned 1 Argument(s) 2: Opcode 172
+
+arg\] any data type BB. and FS 10-bit immediate
+
+Description
+
+Extracts the field specified by. BB and FS from the bottom 32 bits of the word at the address contained in arg1, then pushes the extracted field on the stack.. The data type of the result is dtp-fixmum. See the section".Format for Field Extraction". page 82.
+
+Exceptions None
+
+Memory Reference Raw-read
+
+Register Effects TOS: Valid after
+
+Jop-dpb BB FS Instruction Format Field-Extraction Value(s) Returned 0 Argument(s) 3: Opcode 372
+
+arg\] `dtp-fixnum`
+
+arg2 any Lisp data type
+
+BB and FS 10-bit immediate
+
+Description
+
+Deposits the value arg into the field in the contents of the location addressed by arg2 specified by BB and FS. See the section".Format for Field Extraction". page 82.
+
+Exceptions None
+
+Memory Reference Raw-read followed by raw-write
+
+Register Effects TOS: Valid before, invalid after
+
+%p-tag-ldb BB FS Instruction Format Field-Extraction Value(s} Returned 1 Argument(s) 2: \_ Opcode 173
+
+arg1 any Lisp data type
+
+BB and FS 10-bit immediate
+
+Description
+
+Extracts the field specified by BB and FS from the top 8 bits of the word at the address contained in arg1 and pushes it on the stack. The data. type
+
+of the result is dtp-fixnmum. See the.section".Format for Field Extraction". page 82,
+
+Exceptions None Memory Reference Raw-read
+
+Register Effects TOS: Valid after
+
+`%p-tag-dpb` BB FS Instruction Format Field-Extraction Value(s) Returned 0 Argument(s) 3: Opcade 373
+
+argl dtp-fmum arg2 any Lisp data type BB and FS 10-bit immediate
+
+Description
+
+Deposits the value arg1 into the field specified by BB and FS in the top 8 bits of the word at the address contained in arg2. It is illegal, though not checked, to specify a field with bits outside the top 8 bits. See the section".Format for Field Extraction". page 82.
+
+Exceptions None
+
+Memory Reference Raw-read followed. by raw-write
+
+Register Effects TOS: Valid before, invalid after

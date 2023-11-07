@@ -84,10 +84,10 @@ referenced by its own assigned data type is explained in detail in the object, o
 representation of an object. This is s explained in. the. sections covering the individual
 data types.
 
-The cdr-code field is used for various purposes. For header data types; the cdr-code field
+The `cdr-code` field is used for various purposes. For header data types; the `cdr-code` field
 is used as an extension of the data-type field: For stored representations of lists, the
 contents of this field indicate how the 'data that constitute the list are stored. Other
-uses of the cdr-code field are for. instruction sequencing. Use of the cdr code is explained
+uses of the `cdr-code` field are for. instruction sequencing. Use of the `cdr` code is explained
 in the sections. on 1 lists, headers, and compiled functions.
 
 ### Classes of Stored Object Representations
@@ -164,7 +164,7 @@ object can be stored
 
 A list object is an object built out of one or more conses. Refer to the Reference Guide to
 Symbolics-Lisp for the definition of a cons. The representation consists of a block of
-memory words strung together by means of the cdr codes. Often the block consists of only one
+memory words strung together by means of the `cdr` codes. Often the block consists of only one
 or two words, so it is important to avoid the overhead of having an extra header word: this
 is why list representation and structure representation are different. The following types
 of objects have list representations:
@@ -188,7 +188,7 @@ of objects have list representations:
 
 Note that there is a difference between the concept of a list as a type of structure and the
 concept of the data type `dtp-list`. All the above data types use list structure, including.
-cdr coding (described later). Only the object references to lists and conses use the data
+`cdr` coding (described later). Only the object references to lists and conses use the data
 type `dtp-list`. (There is no `dtp-cons`.)
 
 Figure 1. Classes of stored object representations.
@@ -205,12 +205,6 @@ type. The following types of objects have immediate representations:
 -   characters,
 -   packed instructions, and
 -   physical addresses
--   small integers (fixnums),
--   single-precision floating-point numbers,
--   small ratios,
--   characters,
--   packed instructions, and
--   physical addresses
 
 A structure object is represented as a block of memory words. The first word contains a
 header with a special data type code. Usually all words after the first contain object
@@ -221,11 +215,6 @@ Structure representation is designed to work for large objects. Some attention i
 to minimizing overhead for small objects, but there. is always at least one word of
 overhead. The. objects represented as structures are:
 
--   symbols,
--   instances,
--   bignums,
--   arrays, and
--   compiled functions.
 -   symbols,
 -   instances,
 -   bignums,
@@ -257,9 +246,6 @@ representation.
 
 There are three types of object references:
 
--   object references by address
--   immediate object references, and
--   pointers.
 -   object references by address
 -   immediate object references, and
 -   pointers.
@@ -336,7 +322,7 @@ address of the object. (The only exceptions are the object reference to. a compi
 and the object reference to an array with a leader, in which case the reference points to a
 specified location inside the. structure.
 
-The cdr-code field of a header word is used as.the header-type field: it distinguishes what
+The `cdr-code` field of a header word is used as.the header-type field: it distinguishes what
 kind of object the structure represents. The four header types for each type of header
 format are shown in Table 1.
 
@@ -383,17 +369,13 @@ The data types of the forwarding pointers are:
 -   `dtp-one-q-forward`
 -   `dtp-header-forward`
 -   `dtp-element-forward`
--   `dtp-external-value-cell-pointer`
--   `dtp-one-q-forward`
--   `dtp-header-forward`
--   `dtp-element-forward`
 
 An external-value-cell: pointer is used to link a 'symbol's value cell to a closure or instance value cell. It is not
 invisible to binding and unbinding. See the section \<<binding_stack>\>.
 
 A one-q-forward pointer forwards only the cell that contains it, that is, it indicates that
 -the cell is contained at the address specified in the address field of the
-`dtp-one-q-forward` word and that the cdr code of the required data is the cdr code of the
+`dtp-one-q-forward` word and that the `cdr` code of the required data is the `cdr` code of the
 `dtp-one-q-forward` word. This pointer is used to link a symbol value or function cell to a
 wired cell or a compiled-function's function cell, as well as for many other applications.
 
@@ -402,22 +384,22 @@ the header used to be, and contains the address of where the header is now. When
 with a leader is forwarded, `dtp-header-forward`. pointers replace both the prefix header
 and the leader header. The other words of the structure are forwarded with
 `dtp-element-forward` pointers. The address field of an element-forward pointer contains the
-new address of the word that used to be there, The cdr code of the required data is stored
-with the relocated data -- the cdr code of the header-forward pointer is ignored. Every word
+new address of the word that used to be there, The `cdr` code of the required data is stored
+with the relocated data -- the `cdr` code of the header-forward pointer is ignored. Every word
 of the structure except the headers contains an element-forward pointer.
 
 A header-forward pointer is also used in connection with list representation. List
 representation is explained fully in another section. See the section
 <<\_representations_of_lists>>. When a one-word cons must be expanded to a two-word cons
 by `rplacd`, a new two-word cons is allocated and the old one-word cons is replaced by a
-header-forward pointer containing the address of the new cons. (The cdr code of the
+header-forward pointer containing the address of the new cons. (The `cdr` code of the
 header-forward pointer is required to be `cdr-nil` for garbage- collection purposes. It is
-ignored by cdr and `rplacd` operations.) The cdr code in the location containing the
+ignored by `cdr` and `rplacd` operations.) The `cdr` code in the location containing the
 forwarding pointer is ignored. This is one difference between.a header-forward pointer and a
-one-q-forward pointer: the cdr code in the location containing a one-q-forward pointer is
+one-q-forward pointer: the `cdr` code in the location containing a one-q-forward pointer is
 used rather than ignored. See Figure 4. This figure illustrates how a cons whose car
-contains a reference to a fixnum and whose cdr is nil is changed when an rplaed instruction
-changes its cdr to another fixnum.
+contains a reference to a fixnum and whose `cdr` is `nil` is changed when an `rplacd` instruction
+changes its `cdr` to another fixnum.
 
 #### Special Markers
 
@@ -506,9 +488,9 @@ symbol's name, a string: The five words that constitute a symbol object, in orde
 
 See Figure 5.
 
-The special symbols nil and t reside in fixed memory locations: (VMA=PMA 1611000) and
+The special symbols `nil` and`t`reside in fixed memory locations: (VMA=PMA 1611000) and
 (VMA=PMA 1011005), respectively. See the section <<\_wired_addresses>>. The fixed
-address and separate data type for nil speed up operations such as predicate functions.
+address and separate data type for `nil` speed up operations such as predicate functions.
 
 ### Representations of Instances and Related Data Types
 
@@ -531,7 +513,7 @@ variables, and messages.
 The object. reference to an instance is a word of data type `dtp-instance` whose address field points to the instance
 structure. The stored representation of an instance consist of a header with type `dtp-header-p`, whose header-type
 field equals %header-type-instance. The words following the header of. the instance are the value cells of the instance
-variables. They contain either object references or an unbound marker. The cdr codes are not used. The address field of
+variables. They contain either object references or an unbound marker. The `cdr` codes are not used. The address field of
 the header contains the address of the hash-mask field of a flavor-description structure. This description structure is
 called a flavor.
 
@@ -560,7 +542,7 @@ arrays, but this is software dependent, not hardware or architecture dependent.
 A handler table consists of a sequence of three-word elements. The address of the first word
 of the first element is in the flavor. Each element consists of:
 
--   the key: This is a generic function (`dtp-generic-function`), a message name (`dtp-symbol`), or nil, which is a
+-   the key: This is a generic function (`dtp-generic-function`), a message name (`dtp-symbol`), or `nil`, which is a
     default that matches everything (`dtp-nil`).
 
 -   the method: This is a program-counter value (`dtp-even-pc` or `dtp-odd-pc`) addressing the instruction at which the
@@ -573,8 +555,8 @@ Method entries are normally of type `dtp-even-pc` or `dtp-odd-pc`. An interprete
 to the Lisp interpreter; this is implemented by storing the interpreter (a `dtp-even-pc` or `dtp-odd-pc`) as the method
 function and storing the actual method as the parameter. .
 
-Each unused three-word slot in the handler hash table, plus a fence slot at the end of the table, is filled with nil, a
-default method function, and nil. The default method function takes care.of rehashing after a garbage collection,
+Each unused three-word slot in the handler hash table, plus a fence slot at the end of the table, is filled with `nil`, a
+default method function, and `nil`. The default method function takes care.of rehashing after a garbage collection,
 default handling, and. error signalling.
 
 Figure 6 illustrates the structure of an instance object, a flavor, and a handler table. Refer to the chapter.on
@@ -698,7 +680,7 @@ Figure 7. Structure of an object of type `dtp-bignum`
 #### Big-Ratio Representation
 
 The object reference to a big ratio' is a word of data type `dtp-big-ratio`, whose address field points to a cons pair.
-The car of the cons contains the numerator of the ratio, and the cdr contains the denominator. As with small ratios, a
+The `car` of the cons contains the numerator of the ratio, and the `cdr` contains the denominator. As with small ratios, a
 numerator of 0, or a denominator of 0, 1 or a negative number, is illegal. The ratio is reduced to lowest terms. See
 Figure 8.
 
@@ -752,7 +734,7 @@ Figure 9. Representation of a double-precision floating-point number,
 #### Complex-Number Representation
 
 The object reference to a complex number is a word of data type `dtp-complex`, whose address points to a cons pair. The
-car of the cons contains the real part of the number, and the cdr contains the imaginary part. See Figure 10.
+`car` of the cons contains the real part of the number, and the `cdr` contains the imaginary part. See Figure 10.
 
 Figure 10. Representation of a complex number.
 
@@ -765,54 +747,54 @@ handlers) with `dtp-spare-number` operands.
 ### Representations of Lists
 
 The object reference to a list is a word of data type `dtp-list`, whose address field contains the address of a word
-that contains the car of a cons. The storage representation of a list is usually a linked collection of conses. Refer to
+that contains the `car` of a cons. The storage representation of a list is usually a linked collection of conses. Refer to
 the Reference Guide to Symbolics Lisp for a complete description of conses and lists,. In compact form, however, -a list
 can be stored in a sequence. of adjacent. memory words. See. Figure 11. :
 
-The cdr-code tag of a memory word that constitutes an element of a list. specifies how to get the cdr of its associated
-cons according to whether the list is stored in normal linked-list form or in compact form. The cdr-code tag works.as
+The `cdr-code` tag of a memory word that constitutes an element of a list. specifies how to get the `cdr` of its associated
+cons according to whether the list is stored in normal linked-list form or in compact form. The `cdr-code` tag works.as
 follows:
 
 | Code | Symbolic Name | Description                                                                                          |
 |------------------|------------------|-------------------------------------------------------------------------------------|
-| `0`  | `cdr-next`    | Increment the address to get a reference to the cdr, itself a cons. This is used for compact lists.  |
-| `1`  | `cr-nil`      | The cdr is nil. This is used for both kinds of list.                                                 |
-| `2`  | `cdr-normal`  | Fetch the next memory word; it contains a reference to the cdr, This is used for normal lists lists. |
+| `0`  | `cdr-next`    | Increment the address to get a reference to the `cdr`, itself a cons. This is used for compact lists.  |
+| `1`  | `cr-nil`      | The `cdr` is `nil`. This is used for both kinds of list.                                                 |
+| `2`  | `cdr-normal`  | Fetch the next memory word; it contains a reference to the `cdr`, This is used for normal lists lists. |
 | `3`  |               | (illegal)                                                                                            |
 
-A typical, that is, not compact, two-word cons has `cdr-normal` in the cdr-code tag of its first word and `cdr-nil` in
-that of its second. The car and cdr operations ignore the cdr-code in the second word, but it is helpful to the garbage
+A typical, that is, not compact, two-word cons has `cdr-normal` in the `cdr-code` tag of its first word and `cdr-nil` in
+that of its second. The `car` and `cdr` operations ignore the `cdr-code` in the second word, but it is helpful to the garbage
 collector.
 
-In general, a compact list representation consists of a contiguous block of one or more memory words. The cdr code of
-the last word is always `cdr-nil`. The cdr code of the second-to-last word may be `cdr-normal` or `cdr-next`. The cdr
+In general, a compact list representation consists of a contiguous block of one or more memory words. The `cdr` code of
+the last word is always `cdr-nil`. The `cdr` code of the second-to-last word may be `cdr-normal` or `cdr-next`. The `cdr`
 code of each of the remaining words is `cdr-next`. Note that when a cons consists of exactly two words, the `cdr-normal`
-form is used in its representation, and the cdr code of the second word is always `cdr-nil`. In a two-element, list
-consisting of two words, the cdr code of the first word is `cdr-next`.
+form is used in its representation, and the `cdr` code of the second word is always `cdr-nil`. In a two-element, list
+consisting of two words, the `cdr` code of the first word is `cdr-next`.
 
 Note that a `dtp-list` pointer can point into the middle of a list representation. This happens any time `cdr-next` is
-used; for instance, if a list of four elements is fully cdr-coded -- that is, it is stored in compact form -- its
-representation consists of four words. The contents of each word is an element of the list. The cdr codes of the first
-three words are `cdr-next`; the cdr code of the last word is `cdr-nil`. An object reference to the cddr of this list has
+used; for instance, if a list of four elements is fully `cdr-code`d -- that is, it is stored in compact form -- its
+representation consists of four words. The contents of each word is an element of the list. The `cdr` codes of the first
+three words are `cdr-next`; the `cdr` code of the last word is `cdr-nil`. An object reference to the cddr of this list has
 data type `dtp-list` and the address of the third word. The garbage collector protects the entire block of storage if
 any word in it is referenced. See Figure 12.
 
-The `rplacd` operation interacts with cdr coding. An illustration of this was presented in an earlier section. See the
+The `rplacd` operation interacts with `cdr` coding. An illustration of this was presented in an earlier section. See the
 section @sec-forward-invisible-pointers. `rplacd` of a cons represented with `cdr-normal` simply stores into the second
-word. But rplaed of a cons represented with `cdr-next` or `cdr-nil` must change the representation so that the cdr is
+word. But `rplacd` of a cons represented with `cdr-next` or `cdr-nil` must change the representation so that the `cdr` is
 represented explicitly before it can be changed.
 
 Figure 11. Ordinary and compact list structures.
 
 Figure 12. An object reference to the cddr of a list
 
-There is one exception, if the cdr'is being changed to nil, the `cdr-nil` cdr code is used to represent it. Use of
+There is one exception, if the `cdr`'is being changed to `nil`, the `cdr-nil` `cdr` code is used to represent it. Use of
 `rplacd` can split an object representation into two independent object. representations, one of which might. then be.
 garbage-collected.
 
 `dtp-header-forward` is used to implement list forwarding. If the data-type tag (of the car) is `dtp-header-forward`,
-the cdr code is ignored (except by the garbage collector, which expects it to be `cdr-nil`). The address in the
-forwarding pointer points to a pair of words that contain the car and cdr.
+the `cdr` code is ignored (except by the garbage collector, which expects it to be `cdr-nil`). The address in the
+forwarding pointer points to a pair of words that contain the `car` and `cdr`.
 
 ### Representations of Arrays and Strings
 
@@ -1057,15 +1039,15 @@ entry instruction, checks the number of arguments. This is discussed in detail-i
 the section @sec-function-entry.
 
 The first word in the suffix contains an object reference to a list containing information not needed while executing
-the function. This information is used mainly by the debugger (also by the compiler and the interpreter). The car of
-this list is the name of the function and the cdr of the list is an a-list containing information such as names and
-stack locations of local variables. The cdr code of the first. word in the suffix is `cdr-nil` (encoded as 1), which is
-the illegal instruction sequencing code. This word, with this cdr code, serves as a "fence" that prevents instruction
+the function. This information is used mainly by the debugger (also by the compiler and the interpreter). The `car` of
+this list is the name of the function and the `cdr` of the list is an a-list containing information such as names and
+stack locations of local variables. The `cdr` code of the first. word in the suffix is `cdr-nil` (encoded as 1), which is
+the illegal instruction sequencing code. This word, with this `cdr` code, serves as a "fence" that prevents instruction
 fetchahead from running past the end of the body of a function.
 
 If the body contains any full-word function-calling instructions, the suffix contains linkage information beginning at
 its second word. The linkage information is a sequence of fixnums joined together by `cdr-next` codes and terminated by
-a cdr-nil code. There is:a.4-bit byte for each full-word function-calling instruction in the body, which contains the
+a `cdr`-nil code. There is:a.4-bit byte for each full-word function-calling instruction in the body, which contains the
 number of arguments. to that call (0 to. 13), or 14 if the number of arguments:is larger than 13, in which case the next
 two 4-bit bytes contain the number of arguments, cr 15 if the compiler does not know the number of arguments or does not
 want the linker to bypass the entry instruction of the called fumction. If the linkage information terminates with
@@ -1094,10 +1076,10 @@ structure whose content is not architecturally defined; it is used internally by
 #### Representation of Lexical Closures
 
 The object reference to a lexical closure is a word of data type `dtp-lexical-closure`, which points to a cons pair. The
-car of the cons is the lexical environment, and the cdr is the function.
+`car` of the cons is the lexical environment, and the `cdr` is the function.
 
-The lexical environment, in a typical software implementation, is a cdr-coded list of value cells associated with the
-closure. In such an implementation, this list must be compact, that is, cdr-coded using `cdr-next`, since instructions
+The lexical environment, in a typical software implementation, is a `cdr-code`d list of value cells associated with the
+closure. In such an implementation, this list must be compact, that is, `cdr-code`d using `cdr-next`, since instructions
 that access the lexical variables compute-addresses of the variables simply as an offset past the address of the
 environment.
 
@@ -1116,7 +1098,7 @@ traps to Lisp to funcall dynamic closures.)
 The list representation allows closures to be stored in the stack (a la `with-stack-list`); certain special forms such
 as `error-restart` exploit this.
 
-The list is always cdr-coded, but nothing actually depends on this. The first element of the list is the function.
+The list is always `cdr-code`d, but nothing actually depends on this. The first element of the list is the function.
 Succeeding elements are taken in pairs. The first element of each pair is a locative pointer to the value cell to be
 bound when the closure is called. The second element of each pair is a locative pointer to. the closure value cell to
 which that cell is to be linked. See Figure 19.
@@ -1139,7 +1121,7 @@ words:
     decoded by their opcode field, not by the data-type field.
 
 -   *Constants* --- all other data types encountered among the instructions in a compiled function are constants. The
-    word from the instruction stream is pushed on the stack with the cdr code set to cdr-mext. The hardware will signal
+    word from the instruction stream is pushed on the stack with the `cdr` code set to `cdr`-mext. The hardware will signal
     an error if the word is a header or an invisible pointer.
 
 The fields within the various types of instructions are described in the chapter on the instruction set. See the section
@@ -1172,7 +1154,7 @@ registers.
 
 The data type `dtp-physical-address` allows unmapped access to the full (up to 32 bits wide) physical address space.
 Since it is a separate data type it has restricted usage. It cannot, for example, be used-as a program counter, nor can
-it be used as the argument to car (as `dtp-locative` can) to get a datum from an arbitrary memory location
+it be used as the argument to `car` (as `dtp-locative` can) to get a datum from an arbitrary memory location
 
 `dtp-physical-address` is used:
 
@@ -1360,7 +1342,7 @@ Sixteen types as shown in Table 10:
 : Half-Word Instruction Data Types
 
 Each word of this type contains two 18-bit instructions, which is why sixteen data types are used up. Bits \<37-36\>
-contain 3 to select the instruction data type. Bits \<89-38\>, the cdr code, contain sequencing information described in
+contain 3 to select the instruction data type. Bits \<89-38\>, the `cdr` code, contain sequencing information described in
 the chapter on the instruction set. The instruction in bits \<17-0\> is executed before the instruction in bits
 \<35-18\>. See the section "Instruction Sequencing".
 
@@ -1368,7 +1350,7 @@ the chapter on the instruction set. The instruction in bits \<17-0\> is executed
 
 The I machine and 3600-family machine data representations are similar in the following ways:
 
-1.  They both use a two-bit cdr-code field.
+1.  They both use a two-bit `cdr-code` field.
 
 2.  They both have sixty-four data types and use a six-bit data-type field, except as noted below.
 
@@ -1451,7 +1433,7 @@ compiled functions:
 -   3600-family machines have an *external reference table*, which is stored between the
 compiled function prefix and the body of instructions. I machines, which omit this
 table, store the contents of this table -- constants and locatives -- *in line* with the
-instructions, using the cdr-code field of the packed instruction to indicate sequencing.
+instructions, using the `cdr-code` field of the packed instruction to indicate sequencing.
 
 -   3600-family machines explicitly store information about the number and type of arguments
 supplied or required in a field of the compiled function prefix, I-machines do not store
@@ -1465,8 +1447,7 @@ machines have no such suffix.
 
 -   Format differences: 3600-family machines have a four-word compiled function prefix; I
 machines have a two-word prefix and an at-least-one-word suffix. 3600-family machines
-have seventeen-bit instructions and use the cdr-code field for the high-order bit of
+have seventeen-bit instructions and use the `cdr-code` field for the high-order bit of
 each of the two instructions packed in a `dtp-fixnum` word. I machines have eighteen-bit
 instructions and use the low-order four bits of the data-type field for the high-order I
 bits of the odd instruction.
-

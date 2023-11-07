@@ -1,0 +1,109 @@
+### Catch Instructions
+
+`catch-open`, `catch-close`
+
+Catch Blocks::
+
+A catch block is a sequence of words in the control stack that describes an active catch or unwind-protect operation. All catch blocks in any given stack are linked together, each biock containing the address of the next. outer block. They are linked in decreasing order of addresses. An internal register-(scratchpad location) named `catch-block-pointer` contains the address of the innermost catch block, as a `dtp-locative` word, or contains `nil` if there are no active catch blocks. The address of a catch block is the address of its `catch-block-pc` word.
+
+The: format of a-catch block for the catch operation is:
+
+Word Name Bit 39 Bit 38 Contents `catch-block-tag` invalid flag any object reference `catch-block-pc` 8 Gg catch exit address `catch-block-binding-stack-pointer`
+
+8 8 binding stack level `catch-block-previous` extra-arg cleanup-catch previous catch block catch\~block-continuation value-disposition continuation
+
+The format of a catch block for the unwind-protect operation is:
+
+Word Name Bit 39 Bit 38 Contents catch-bl ock\~pc 6 8 cleanup handler catch-bl ock-binding-stack-pointer
+
+8 4 binding stack level catch-b1 ock-previous extra-arg cleanup-catch previous catch block
+
+The `catch-block-tag` word refers to an object that identifies the particular catch operation, that is, the first argument of cateh-open or `catch-close`. The catch- block-invalid-flag bit in this word is initialized to 0, and is set tol by the throw function when it is no longer valid to throw to this catch block; this addresses a problem with aborting out of the middle of a throw and throwing again. This word is not used by the unwind-protect operation and is only known about by the throw function, not by hardware.
+
+The `catch-block-pc` word has data type `dtp-even-pc` or `dtp-odd-pc`. For a catch operation, it contains the address to which throw function should transfer control. For an unwind-protect operation, it contains the address of the first instruction of
+
+the cleanup handler. The `cdr` code of this word is set to zero (`cdr-next`).and not used. For a catch operation with a value disposition of Return, the `catch-block-pc` word contains `nil`.
+
+The `catch-block-binding-stack-pointer` word contains the value of the binding-stack- pointer: hardware register at the time the catch or unwind-protect operation started. An operation that. undoes the catch or. unwind-protect will undo special- variable bindings until the `binding-stack-pointer` again has this-value.. The `cdr`- code field of this word uses bit 38 to distinguish between catch and unwind- protect; bit 39 is set to zero and not used.
+
+The caich-block-previous word contains.a `dtp-locative` pointer to the `catch-block-pc` word of the previous catch block, or else contains `nil`. The `cdr-code`. field of this word saves two bits of the Control. register that need to be restored.
+
+'The `catch-block-continuation` word saves the `Continuation` hardware 'register so that a throw function can restore it. The `cdr-code` field of this word saves the value disposition of a catch; this tells the throw function where to put. the values © thrown, This word is not used by the unwind-protect operation.
+
+The compilation of the catch special form is approximately as follows:
+
+Code to push the catch tag on the stack.
+
+Push.a constant PC, the address of the first instruction
+
+after the catch.
+
+A `catch-open` instruction.
+
+The body of the catch.
+
+A `catch-close` instruction.
+
+Code to move the values of the body to where they are wanted; this usually includes removing the 5 words of the catch block from the stack.
+
+The compilation of the unwind-protect special form is approximately as follows:
+
+Push a constant PC, the address of the cleanup handler.
+
+A `catch-open` instruction.
+
+The body of the unwind-protect.
+
+A `catch-close` instruction.
+
+Code to move the values of the body to where they are wanted; this usually includes rémoving the 3 words of the catch block from the stack.
+
+Somewhere later in the. compiled function:
+
+The body of the cleanup handler. A %jump instruction.
+
+Catch blocks are created in the stack by executing the `catch-open`/unwind-protect instruction, and they are removed from the stack by executing the `catch-close` instruction.
+
+An unwind-protect cleanup handler terminates with a.%jump instruction. This instruction checks that the data type of the top word on the stack is `dtp-even-pc` or `dtp-odd-pc`, jumps to that address, and pops the stack. In addition, if bit 39 of the top word on the stack is 1, it stores bit 38 of that word into control- register.cleanup-in-progress. If bit 39 is 0, it leaves the control register alone.
+
+`catch-open` NV / Instruction Format 10-bit immediate : Value(s) Returned 2 or 3 Argument(s) 1: Opcode 376 N\_. `dtp-fixnum` \* Description
+
+This instruction has two versions, catch and unwind-protect, which are specified by bit 0 of the immediate argument, n. Bit 0 is for catch, bit 1 for unwind-protect. Bits 6 and 7 of.n contain the value disposition. Bits 1-5 and 8-9 must be 0. This instruction, when bit 0 is 1 (unwind-protect), must be preceded by instructions that push the `catch-block-pc` on the stack. When bit 0 is 0 (catch), preceding instructions must push the `catch-block-tag` and the `catch-block-pc` as well. See the section".Catch Blocks". page 192. The catch version operates as. follows:
+
+1.  Push the `binding-stack-pointer`, with 0 in the `cdr` code.
+
+-   2, Push the `catch-block-pointer`, with control-register.extra-arg and control-register.cleanup-catch bits in the `cdr`. code.
+
+3..Push the `Continuation` register, with bits 6 and.7 of the `catch-open` instruction in the `cdr` code.
+
+1.  Set `catch-block-pointer` to the value stack-pointer had at the beginning of the instruction, and set control-register.cleanup-catch to
+2.
+
+The unwind-protect version operates as. follows: 1. Push the `binding-stack-pointer`, with 1 in the `cdr` code.
+
+2, Push the `catch-block-pointer`, with control-register.extra-arg and control-register.cleanup-catch bits in the `cdr` code.
+
+1.  Set `catch-block-pointer` to the value stack-pointer had at the beginning of the instruction, and set control-register.cleanup-catch to
+2.
+
+Exception None Memory Reference None
+
+Register Effects TOS: Valid after
+
+`catch-close` . Instruction Format Operand from stack Value(s) Returned 0. Argument(s) 0 Opcode 51 Description
+
+The compiler emits this instruction at the end of a catch or unwind-protect operation. It is used internally to the throw function and is called as a subroutine by the return instructions when they find the control-register.cleanup-catch bit set. Instruction operation is:
+
+1.  Set the virtual memory address to the contents of the catch-block- pointer register and fetch three words: `catch-block-pc`, `catch-block-binding-stack-pointer`, and `catch-block-previous`. 'These words will always come from the stack cache, but the instruction may not need to rely on that.
+
+2.  If `catch-block-binding-stack-pointer` does not equal binding-stack- pointer, unde some bindings. This can be done by calling the %restore-binding-stack-level instruction. as a subroutine. The instruction can be aborted (for example, by a page fault) and retried.
+
+3.  Restore the `catch-block-pointer` register, control-register.cleanup-catch bit, and control-register.extra-argument bit that were saved in the `catch-block-previous` word.
+
+4.  Check the unwind-protect flag which is bit 38 of the `catch-block-binding-stack-pointer` word. If this bit is 0, the instruction is done. Note that stack-pointer is not changed. If this bit is 1, push the next PC (or the current PC if eatch-close was called as a subroutine by return) onto the stack, with the current value of control- register.cleanup-in-progress in bit 38 and 1 in bit 39; then jump to the address that was saved in the `catch-block-pc` word and turn on the controi-register.cleanup-in-progress bit.
+
+When the next instruction after `catch-close` is-reached, the value of SP is the same as it was before `catch-close`. The catch block is still. in the stack, but is no ionger linked into the catch-block. pointer. list. See the section".Catch Blocks". page 192. :
+
+Exception None Memory Reference None
+
+Register Effects TOS: Unchanged

@@ -8,12 +8,27 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
-    - 1_Data_Types.qmd
-    - 2_Memory_Layout.qmd
-    - 3_Macroinstruction_Set.qmd
-    - 4_Function_Calling.qmd
-    - 5_Exception_Handling.qmd
-    - 6_Appendices.qmd
+    - 1___Data_Types.qmd
+    - 2___Memory_Layout.qmd
+    - 3___Macroinstruction_Set.qmd
+    - 3_1_List_function_opetions.qmd
+    - 3_2_Interruptible_instructions.qmd
+    - 3_3_Predicate_instructions.qmd
+    - 3_4_Numeric_operations.qmd
+    - 3_5_Data_movement_instructions.qmd
+    - 3_6_Field-extraction_instructions.qmd
+    - 3_7_Array_operations.qmd
+    - 3_8_Branch_and_loop_instructions.qmd
+    - 3_9_Block_instructions.qmd
+    - 3_10_Function-calling_instructions.qmd
+    - 3_11_Binding_instructions.qmd
+    - 3_12_Catch_instructions.qmd
+    - 3_13_Lexical_variable_accessors.qmd
+    - 3_14_Instance_variable_accessors.qmd
+    - 3_15_Subprimitive_instructions.qmd
+    - 4___Function_Calling.qmd
+    - 5___Exception_Handling.qmd
+    - 6___Appendices.qmd
     - references.qmd
 
 bibliography: references.bib

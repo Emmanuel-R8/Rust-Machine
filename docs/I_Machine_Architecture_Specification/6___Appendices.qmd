@@ -65,9 +65,9 @@ The actual pht lookup algorithm for Revision 0 of the Ivory chip is:
 The following text describes characteristics of the Revision 0 implementation of
 the I-machine architecture.
 
-Revision 0 `%Allocate-list-block` Takes an instruction exception if `arg1` is nil.
+Revision 0 `%Allocate-list-block` Takes an instruction exception if `arg1` is `nil`.
 
-Revision 0 `%Allocate-structure-block` Takes an instruction exception if `arg1` is nil.
+Revision 0 `%Allocate-structure-block` Takes an instruction exception if `arg1` is `nil`.
 
 Revision 0 `Aset-1` does not check for the high-order 24 (16) bits of `dtp-character` arguments being
 0 when storing such arguments into 8(16)-bit arrays.
@@ -83,7 +83,7 @@ shift mask specification from the DP OP register.
 
 Revision 0 `%Block-n-read-shift` will not work with ECC errors.
 
-Revision 0 `%Block-n-read-test` only implements the eq condition.and the true sense. The alu-op field of the
+Revision 0 `%Block-n-read-test` only implements the`eq`condition.and the true sense. The alu-op field of the
 DP Op register must be loaded with ".subtrac". in order to-use the instruction.
 Needs to have the oldspace condition added.
 
@@ -93,7 +93,7 @@ Revision: 0 conditional branch instructions take an exception if the bottom eigh
 bits of the offset are all 0. (as opposed to all 10 bits being 0). This effectively
 limits the branch distance to plus or minus 128, but the compiler could be smart
 about this. branch to the next instruction is the fastest no-op, except for skipping
-an instruction entirely via. cdr-code sequencing.
+an instruction entirely via. `cdr-code` sequencing.
 
 Revision 0 `Entry-rest-accepted` and `entry-rest-not-accepted` do not perform correctly when doing a
 `pull-apply-args` operation when. the rest argument (or tail) is an item of type
@@ -110,15 +110,15 @@ Revision 0 Opcode 57 jumps to a totally random address after pushing D.PC.on the
 
 Revision 0 Numeric Operations There will be no floating-point support in the Revision 0 chip.
 
-Revision 0 `return-single` When the value disposition is “for value". the cdr code is the cdr code of the top
-of stack or it is `cdr-next` for t or nil.
+Revision 0 `return-single` When the value disposition is “for value". the `cdr` code is the `cdr` code of the top
+of stack or it is `cdr-next` for`t`or `nil`.
 
 
-Revision 0 Return-kludge Sets the cdr codes.of all values to `cdr-next`.
+Revision 0 Return-kludge Sets the `cdr` codes.of all values to `cdr-next`.
 
-Revision 0 Stack-bit ' », sets the cdr code of the operand to `cdr-next`.
+Revision 0 Stack-bit ' », sets the `cdr` code of the operand to `cdr-next`.
 
-Revision 0 `Stack-bit-address` sets the cdr code of the operand to `cdr-next`.
+Revision 0 `Stack-bit-address` sets the `cdr` code of the operand to `cdr-next`.
 
 Revision 0 Unbind-n
 
@@ -201,12 +201,12 @@ FLOAT-OPERATING-MODE , FLOAT-DPERATION-STATUS, SET~FLOAT-OPERATING-MODE, SET-FLO
 
 Will not be implemented:
 
-FOLLOW-CELL-FORWARDING %memory-read-address data-read or bind-read
+FOLLOW-CELL-FORWARDING %memory-read-address `data-read`  or bind-read
 FOLLOW-STRUCTURE-FORWARDING %memory-read-address struct-offset
 LOCATION-BOUNDP (/= (%data-type (%memory-read bind-read) `dtp-null`)
 ZP-STRUCTURE-OFFSET. %memory-read-address followed by %pointer-plus
 ZP-CONTENTS-~AS-LOCATIVE -Yomemory-read-address followed by `%set-tag`
-ZP-CONTENTS-OFFSET (cdr (%p-structure-offset ...)
+ZP-CONTENTS-OFFSET (`cdr` (%p-structure-offset ...)
 
 Unclassified:
 
@@ -373,7 +373,7 @@ Oar wr ss
 
 Data-Types Chapter -- Representations of Compiled Functions
 
-Not only does this (using the cdr code 1 as-a fence) avoid loading the
+Not only does this (using the `cdr` code 1 as-a fence) avoid loading the
 instruction cache with extraneous words from functions other than the one being
 ‘executed, but more importantly it avoids a subtle bug involving fetchahead past
 the free- pointer for allocation of compiled code, after a sequence of timing
@@ -532,7 +532,7 @@ Instruction Chapter -- rgetf
 Additional instructions can be used. together with rgetf to implement the -zl:get,
 zi:putprop, ckget, and cl:getf functions and to implement &key arguments. rgetf
 is often followed by either an instruction to pop the second value or a branch
-instruction that tests the second value and if it is nil pops both values and goes to
+instruction that tests the second value and if it is `nil` pops both values and goes to
 code to substitute a default value.
 
 (get loc arg2)
@@ -545,7 +545,7 @@ push symbol
 type~-member-n—-no-pop ;symbolp -
 branch-false .
 Zpointér-plus 4
-Zmemory-read data-read
+Zmemory-read `data-read`
 rgetf sp-pop
 set-sp-to-address SPi-1
 
@@ -587,7 +587,7 @@ Instruction Chapter -- rgetf
 Additional instructions can be used together with rgetf to implement the zl:get,
 zi:putprop, cl:get, and cl:getf functions and to implement &key arguments. rgetf
 is often followed by either an instruction to pop the second value or a branch
-instruction that tests the second value and if it is nil pops both values and
+instruction that tests the second value and if it is `nil` pops both values and
 goes to code to substitute a default value. ,
 
 (get loc arg2)
@@ -602,7 +602,7 @@ push symbol | |
 type-member-n-no-pop | -3symbolp
 ' branch-false . . . .
 Zpointer-plus 4
-amemory-read data-read
+amemory-read `data-read`
 rgetf sp-pop
 set-sp-to-address SP|-1
 
@@ -665,7 +665,7 @@ Function-Calling Chapter -- Stack-Group Switching
 
 Existing instructions have the following capabilities:
 * ability to do appropriate special memory references, using block-read/write
-* ability to do necessary cdr-code hacking
+* ability to do necessary `cdr-code` hacking
 o ability to dump the entire stack cache into memory
 « ability to load a new stack into an empty stack cache
 @ ability to read and write all internal processor and coprocessor registers
@@ -681,17 +681,17 @@ Other instruction assumptions:
 ® bind_read_no_monitor bit in block-read instruction
 ¢ no_increment bit in block-read instruction prevents incrementing BAR
 
-® preserve_cdr bit in block-read instruction inhibits setting cdr of result to 0
+® preserve_`cdr` bit in block-read instruction inhibits setting `cdr` of result to 0
 (this is already in the rev -2 spec)
 
 « when block-read follows an invisible pointer, it updates the BAR
 
-@ merge-cdr-nopop instruction: cdr(operand) < cdr(top-of-stack), no change to
+@ merge-cdr-nopop instruction: `cdr`(operand) < `cdr`(top-of-stack), no change to
 
 SP this could be done with %p-tag-Idb and `%p-tag-dpb` but it would be
 much slower.
 
-Note that it is possible for the cdr code of the bound location to change while
+Note that it is possible for the `cdr` code of the bound location to change while
 it is bound, which is why.the merge-cdr-nopop instruction is required instead of
 simply rewriting all 40 bits with the value saved in the binding stack.
 
@@ -782,7 +782,7 @@ Function-Calling Chapter
 This is not done in Revision 0 of the chip, but might ought to be:
 
 "The first thing finish-call does is to check for Apply =1 but the top word. on
-the stack is nil (an empty list). In this case it pops the stack and clears its
+the stack is `nil` (an empty list). In this case it pops the stack and clears its
 copy of the Apply bit, turning into a normal cali. This canonicalization
 simplifies the argument match-up procedure described later".
 
@@ -822,7 +822,7 @@ indicated by a-”"..
 * Signed Immediate (otherwise unsigned)
 
 _ unary/signed (14 opcodes) .
-_ car, cdr, endp, plusp?, minusp', zerop' , setup-id-array, setup- -
+_ car, `cdr`, endp, plusp?, minusp', zerop' , setup-id-array, setup- -
 '. foree-id-array, start-call; bind-locative, ‘restore-binding-stack,
 Zephemeralp, Jotag, 7ejamp
 
@@ -860,7 +860,7 @@ not-unary/unsigned (24 opcodes)
 
 add’, sub’, %32-bit-plus, %32-bit-difference, %add-bignum-step,
 %sub-bignum-step, %multiply-bignum-step, %divide-bignum-step,
-aref-1, aset-1, aloc-1, array-leader, store-array-leader, aloc-leader,
+aref-1, aset-1, `aloc-1`, array-leader, store-array-leader, aloc-leader,
 pop-instance-variable®, movem-instance-variable®,
 pop-instance-variable-ordered®, movem-instance-variable-ordered’,
 %instance-ref, %instance-set, %instance-loc, %allocate-list-block,
@@ -937,7 +937,7 @@ false-extra-pop
 Loop Subformat
 - branch offset <9:0>
 
-(8 opeodes) branch, loop-decrement-tos, Joop-increment-tos-less-than
+(8 opcodes) branch, loop-decrement-tos, Joop-increment-tos-less-than
 
 Byte-field Subformat
 + field width <9:5>
@@ -986,7 +986,7 @@ Return Subformat
 + value disposition <7:6>
 > catch/unwind-protect. <0>
 
-(1 opeode) `catch-open`
+(1 opcode) `catch-open`
 Memory-read Subformat
 » memory cycle type <9:6>
 - fixnum only <5>
@@ -1161,9 +1161,9 @@ et Zblock+1-read , 31 Zblock-1-read-test
 25 Zblock-i-read-shift | 35 finish-call-n-apply
 26 Zblock=2-read-shift 36 finish-cal}-tos
 27 Zblock-3-read-shift 37 finish-call-tos-apply
-unary 61 1. 88 set-to-car . - 10 push-address
-address. 81 set~to-cdr . 41 set-sp-to-address.
-82 set-to-cdr=push-car 12 set-sp-to-address-save-tos
+unary 61 1. 88 `set-to-car` . - 10 push-address
+address. 81 set~to-`cdr` . 41 set-sp-to-address.
+82 set-to-cdr=push-`car` 12 set-sp-to-address-save-tos
 @3 increment 13
 04 decrement — 14 Zread-internal-register
 85 Zpointer~increment 15 Zwrite-internal-register
