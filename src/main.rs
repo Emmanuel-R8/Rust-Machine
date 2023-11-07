@@ -41,6 +41,8 @@ mod emulator {
         pub mod predicate;
         pub mod numeric;
         pub mod datamovement;
+        pub mod field_extraction;
+        pub mod build_set;
     }
 }
 

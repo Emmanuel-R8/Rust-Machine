@@ -113,8 +113,8 @@ impl Instruction<'static> {
     }
 }
 
-const EMPTY_INSTRUCTION: Option<Box<Instruction>> = None;
-pub static INSTRUCTIONS_SET: [Option<Box<Instruction<'static>>>; 0o777] = [
+const EMPTY_INSTRUCTION: Instruction = Instruction::default();
+pub static mut INSTRUCTIONS_SET: [Instruction<'static>; 0o777] = [
     EMPTY_INSTRUCTION;
     0o777
 ];
