@@ -2,21 +2,25 @@ use super::common::{ Instruction, InstructionFamily };
 
 pub fn make_instructions_field_extraction() -> Vec<Instruction<'static>> {
     return vec![
-        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o000).set_name("car"),
-        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o001).set_name("cdr"),
+        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o170).set_name("ldb"),
+        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o370).set_name("dpb"),
         Instruction::new()
             .set_family(InstructionFamily::LIST)
-            .set_opcode(0o140)
-            .set_name("set-to-car"),
+            .set_opcode(0o171)
+            .set_name("char-ldb"),
         Instruction::new()
             .set_family(InstructionFamily::LIST)
-            .set_opcode(0o141)
-            .set_name("set-to-cdr"),
+            .set_opcode(0o371)
+            .set_name("char-dpb"),
+        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o172).set_name("%p-ldb"),
+        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o372).set_name("%p-dpb"),
         Instruction::new()
             .set_family(InstructionFamily::LIST)
-            .set_opcode(0o142)
-            .set_name("set-to-cdr-push-car"),
-        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o200).set_name("rplaca"),
-        Instruction::new().set_family(InstructionFamily::LIST).set_opcode(0o201).set_name("rplacd")
+            .set_opcode(0o173)
+            .set_name("%p-tag-ldb"),
+        Instruction::new()
+            .set_family(InstructionFamily::LIST)
+            .set_opcode(0o373)
+            .set_name("%p-tag-dpb")
     ];
 }

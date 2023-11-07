@@ -34,14 +34,25 @@ mod emulator {
     pub mod config;
     pub mod disassembly;
     pub mod emulator;
-    pub mod instructions{
+    pub mod instructions {
         pub mod common;
+
         pub mod list;
         pub mod interruptible;
         pub mod predicate;
         pub mod numeric;
         pub mod datamovement;
         pub mod field_extraction;
+        pub mod array;
+        pub mod branch_loop;
+        pub mod block;
+        pub mod function_calling;
+        pub mod binding;
+        pub mod catch;
+        pub mod lexical_variable;
+        pub mod instance_variable;
+        pub mod subprimitive;
+
         pub mod build_set;
     }
 }
@@ -51,7 +62,7 @@ mod utils;
 //
 // EXTERNAL IMPORTS
 //
-use simplelog::{Config, LevelFilter, WriteLogger};
+use simplelog::{ Config, LevelFilter, WriteLogger };
 use std::fs::File;
 
 //
@@ -76,12 +87,12 @@ pub fn main() {
     let ivory_page_log = WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("ivoryPageLog.log").unwrap(),
+        File::create("ivoryPageLog.log").unwrap()
     );
     let run_log = WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("run.log").unwrap(),
+        File::create("run.log").unwrap()
     );
 
     // let world_image_size: usize = 0;
