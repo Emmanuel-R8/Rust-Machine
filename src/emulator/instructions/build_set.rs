@@ -15,7 +15,7 @@ use super::numeric::make_instructions_numeric;
 use super::predicate::make_instructions_predicate;
 use super::subprimitive::make_instructions_subprimitive;
 
-pub fn build_instruction_set() {
+pub fn build_instruction_set() -> Vec<Option<Box<Instruction<'static>>>> {
     let instructions_list = make_instructions_list();
     let instructions_interruptible = make_instructions_interruptible();
     let instructions_predicate = make_instructions_predicate();
@@ -56,4 +56,6 @@ pub fn build_instruction_set() {
         let opcode = instruction.opcode as usize;
         instruction_set[opcode] = Some(Box::new(instruction.clone()));
     }
+
+    return instruction_set;
 }

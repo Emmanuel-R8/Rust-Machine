@@ -59,6 +59,7 @@ mod emulator {
 
 mod utils;
 
+use emulator::instructions::build_set::build_instruction_set;
 //
 // EXTERNAL IMPORTS
 //
@@ -76,6 +77,8 @@ use emulator::emulator::GlobalContext;
 pub fn main() {
     // Global state
     let mut ctx: GlobalContext = GlobalContext::new();
+    let instruction_set = build_instruction_set();
+
     ctx.cpu.initialise();
 
     let mut args: Vec<String> = Vec::new();
