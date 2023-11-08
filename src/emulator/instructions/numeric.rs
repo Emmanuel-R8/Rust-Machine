@@ -1,107 +1,157 @@
-use super::common::{ Instruction, InstructionFamily };
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_numeric() -> Vec<Instruction<'static>> {
     return vec![
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o300).set_name("add"),
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o301).set_name("sub"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o300)
+            .set_name("add"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o301)
+            .set_name("sub"),
         //
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o114)
             .set_name("unary-minus"),
         //
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o143)
             .set_name("increment"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o144)
             .set_name("decrement"),
         //
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o202)
             .set_name("multiply"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o202)
             .set_name("multiply"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o203)
             .set_name("quotient"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o204)
             .set_name("ceiling"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o205)
             .set_name("floor"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o206)
             .set_name("truncate"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o207)
             .set_name("round"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o210)
             .set_name("remainder"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o211)
             .set_name("rational-quotient"),
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o212).set_name("min"),
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o213).set_name("max"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o212)
+            .set_name("min"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o213)
+            .set_name("max"),
         //
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o215)
             .set_name("logand"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o216)
             .set_name("logxor"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o217)
             .set_name("logior"),
         //
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o220).set_name("rot"),
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o221).set_name("lsh"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o220)
+            .set_name("rot"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o221)
+            .set_name("lsh"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o222)
             .set_name("multiply-divide"),
         //
-        Instruction::new().set_family(InstructionFamily::NUMERIC).set_opcode(0o232).set_name("ash"),
+        Instruction::new()
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o232)
+            .set_name("ash"),
         //
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o302)
             .set_name("%32-bit-plus"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o303)
             .set_name("%32-bit-difference"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o304)
             .set_name("%add-bignum-step"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o305)
             .set_name("%sub-bignum-step"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o306)
             .set_name("%multiply-bignum-step"),
         Instruction::new()
-            .set_family(InstructionFamily::NUMERIC)
+            .set_family(InstructionFamily::Numeric)
+            .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o307)
             .set_name("%divide-bignum-step")
     ];

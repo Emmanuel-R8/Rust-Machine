@@ -41,7 +41,7 @@ mod emulator {
         pub mod interruptible;
         pub mod predicate;
         pub mod numeric;
-        pub mod datamovement;
+        pub mod data_movement;
         pub mod field_extraction;
         pub mod array;
         pub mod branch_loop;

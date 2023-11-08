@@ -1,0 +1,56 @@
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+
+pub fn make_instructions_data_movement() -> Vec<Instruction<'static>> {
+    return vec![
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o100)
+            .set_name("push"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o340)
+            .set_name("pop"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o341)
+            .set_name("movem"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o101)
+            .set_name("push-n-nils"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o150)
+            .set_name("push-address"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o151)
+            .set_name("set-sp-to-address"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o152)
+            .set_name("set-sp-to-address-save-tos"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o102)
+            .set_name("push-address-sp-relative"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o224)
+            .set_name("stack-blt"),
+        Instruction::new()
+            .set_family(InstructionFamily::Interruptible)
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(0o352)
+            .set_name("stack-blt-address")
+    ];
+}

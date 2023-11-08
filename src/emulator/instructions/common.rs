@@ -27,34 +27,44 @@
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
     UNDEFINED,
-    NOT_APPLICABLE,
-    SIGNED,
-    UNSIGNED,
+    NotApplicable,
+    Signed,
+    Unsigned,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InstructionFamily {
     UNDEFINED,
-    LIST,
-    INTERRUPTIBLE,
-    PREDICATE,
-    NUMERIC,
-    DATA_MOVEMENT,
-    FIELD_EXTRACTION,
-    ARRAY,
-    BRANCH_LOOP,
-    BLOCK,
-    FUNCTION_CALLING,
-    BINDING,
-    CATCH,
-    LEXICAL_VARIABLE_ACCESS,
-    INSTANCE_VARIABLE_ACCESS,
-    SUBPRIMITIVE,
+    List,
+    Interruptible,
+    Predicate,
+    Numeric,
+    DataMovement,
+    FieldExtraction,
+    Array,
+    BranchLoop,
+    Block,
+    FunctionCalling,
+    Binding,
+    Catch,
+    LexicalVariableAccess,
+    InstanceVariableAccess,
+    Subprimitive,
 }
+
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum InstructionFormat {
+    UNDEFINED,
+    OperandFromStack, Immediate10Bits, FieldExtraction
+}
+
+
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Instruction<'a> {
     pub family: InstructionFamily,
+    pub format:InstructionFormat,
     pub arg_count: u32,
     pub ret_count: u32,
     pub immediate_arg_type: ImmediateArgumentType,
@@ -67,6 +77,7 @@ impl Default for Instruction<'static> {
     fn default() -> Self {
         return Self {
             family: InstructionFamily::UNDEFINED,
+            format: InstructionFormat::UNDEFINED,
             arg_count: 0,
             ret_count: 0,
             immediate_arg_type: ImmediateArgumentType::UNDEFINED,
@@ -87,6 +98,12 @@ impl Instruction<'static> {
         self.family = family;
         return self;
     }
+
+    pub fn set_format(mut self, format: InstructionFormat) -> Self {
+        self.format = format;
+        return self;
+    }
+
     pub fn set_arg_count(mut self, arg_count: u32) -> Self {
         self.arg_count = arg_count;
         return self;

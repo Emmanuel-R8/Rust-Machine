@@ -4,7 +4,7 @@ use super::block::make_instructions_block;
 use super::branch_loop::make_instructions_branch_loop;
 use super::catch::make_instructions_catch;
 use super::common::Instruction;
-use super::datamovement::make_instructions_datamovement;
+use super::data_movement::make_instructions_data_movement;
 use super::field_extraction::make_instructions_field_extraction;
 use super::function_calling::make_instructions_function_calling;
 use super::instance_variable::make_instructions_instance_variable;
@@ -20,7 +20,7 @@ pub fn build_instruction_set() -> Vec<Option<Box<Instruction<'static>>>> {
     let instructions_interruptible = make_instructions_interruptible();
     let instructions_predicate = make_instructions_predicate();
     let instructions_numeric = make_instructions_numeric();
-    let instructions_datamovement = make_instructions_datamovement();
+    let instructions_datamovement = make_instructions_data_movement();
     let instructions_field_extraction = make_instructions_field_extraction();
     let instructions_array = make_instructions_array();
     let instructions_branch_loop = make_instructions_branch_loop();
