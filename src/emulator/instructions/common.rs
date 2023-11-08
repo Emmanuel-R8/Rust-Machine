@@ -52,19 +52,20 @@ pub enum InstructionFamily {
     Subprimitive,
 }
 
-
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InstructionFormat {
     UNDEFINED,
-    OperandFromStack, Immediate10Bits, FieldExtraction
+    OperandFromStack,
+    OperandFromStackImmediate,
+    Immediate10Bits,
+    FieldExtraction,
+    EntryInstruction,
 }
-
-
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Instruction<'a> {
     pub family: InstructionFamily,
-    pub format:InstructionFormat,
+    pub format: InstructionFormat,
     pub arg_count: u32,
     pub ret_count: u32,
     pub immediate_arg_type: ImmediateArgumentType,
