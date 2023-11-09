@@ -3,159 +3,144 @@ use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 pub fn make_instructions_subprimitive() -> Vec<Instruction<'static>> {
     return vec![
         Instruction::new()
+            .set_name("%ephemeralp")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o007)
-            .set_name("%ephemeralp"),
-
+            .set_opcode(0o007),
         Instruction::new()
+            .set_name("%unsigned-lessp")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o331)
-            .set_name("%unsigned-lessp"),
+            .set_opcode(0o331),
         Instruction::new()
+            .set_name("%unsigned-lessp-no-pop")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o335)
-            .set_name("%unsigned-lessp-no-pop"),
-
+            .set_opcode(0o335),
         Instruction::new()
+            .set_name("%allocate-list-block")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o311)
-            .set_name("%allocate-list-block"),
+            .set_opcode(0o311),
         Instruction::new()
+            .set_name("%allocate-structure-block")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o315)
-            .set_name("%allocate-structure-block"),
-
+            .set_opcode(0o315),
         Instruction::new()
+            .set_name("%pointer-plus")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o230)
-            .set_name("%pointer-plus"),
+            .set_opcode(0o230),
         Instruction::new()
+            .set_name("%pointer-difference")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o231)
-            .set_name("%pointer-difference"),
+            .set_opcode(0o231),
         Instruction::new()
+            .set_name("%pointer-increment")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o145)
-            .set_name("%pointer-increment"),
-
+            .set_opcode(0o145),
         Instruction::new()
+            .set_name("%read-internal-register")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o154)
-            .set_name("%read-internal-register"),
+            .set_opcode(0o154),
         Instruction::new()
+            .set_name("%write-internal-register")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o155)
-            .set_name("%write-internal-register"),
-
+            .set_opcode(0o155),
         Instruction::new()
+            .set_name("no-op")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o056)
-            .set_name("no-op"),
-
+            .set_opcode(0o056),
         Instruction::new()
+            .set_name("%coprocessor-read")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o156)
-            .set_name("%coprocessor-read"),
+            .set_opcode(0o156),
         Instruction::new()
+            .set_name("%coprocessor-write")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o157)
-            .set_name("%coprocessor-write"),
-
+            .set_opcode(0o157),
         Instruction::new()
+            .set_name("%memory-read")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o116)
-            .set_name("%memory-read"),
+            .set_opcode(0o116),
         Instruction::new()
+            .set_name("%memory-read-address")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o117)
-            .set_name("%memory-read-address"),
-
+            .set_opcode(0o117),
         Instruction::new()
+            .set_name("%tag")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o012)
-            .set_name("%tag"),
+            .set_opcode(0o012),
         Instruction::new()
+            .set_name("%set-tag")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o327)
-            .set_name("%set-tag"),
-
+            .set_opcode(0o327),
         Instruction::new()
+            .set_name("store-conditional")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o233)
-            .set_name("store-conditional"),
+            .set_opcode(0o233),
         Instruction::new()
+            .set_name("%p-store-contents")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o235)
-            .set_name("%p-store-contents"),
-
+            .set_opcode(0o235),
         Instruction::new()
+            .set_name("%memory-write")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o234)
-            .set_name("%memory-write"),
-
+            .set_opcode(0o234),
         Instruction::new()
+            .set_name("%set-cdr-code-1")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o146)
-            .set_name("%set-cdr-code-1"),
+            .set_opcode(0o146),
         Instruction::new()
+            .set_name("%set-cdr-code-2")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o147)
-            .set_name("%set-cdr-code-2"),
-
+            .set_opcode(0o147),
         Instruction::new()
+            .set_name("%merge-cdr-no-pop")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o342)
-            .set_name("%merge-cdr-no-pop"),
-
+            .set_opcode(0o342),
         Instruction::new()
+            .set_name("%generic-dispatch")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o052)
-            .set_name("%generic-dispatch"),
+            .set_opcode(0o052),
         Instruction::new()
+            .set_name("%message-dispatch")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o053)
-            .set_name("%message-dispatch"),
-
+            .set_opcode(0o053),
         Instruction::new()
+            .set_name("%jump")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o011)
-            .set_name("%jump"),
-
+            .set_opcode(0o011),
         Instruction::new()
+            .set_name("%check-preempt-request")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o054)
-            .set_name("%check-preempt-request"),
+            .set_opcode(0o054),
         Instruction::new()
+            .set_name("%halt")
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o377)
-            .set_name("%halt")
     ];
 }

@@ -3,108 +3,104 @@ use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 pub fn make_instructions_block() -> Vec<Instruction<'static>> {
     return vec![
         Instruction::new()
+            .set_name("%block-1-read")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o120)
-            .set_name("%block-1-read"),
+            .set_opcode(0o120),
         Instruction::new()
+            .set_name("%block-2-read")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o121)
-            .set_name("%block-2-read"),
+            .set_opcode(0o121),
         Instruction::new()
+            .set_name("%block-3-read")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o122)
-            .set_name("%block-3-read"),
+            .set_opcode(0o122),
         Instruction::new()
+            .set_name("%block-4-read")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o123)
-            .set_name("%block-4-read"),
-
+            .set_opcode(0o123),
         Instruction::new()
+            .set_name("%block-1-read-shift")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o124)
-            .set_name("%block-1-read-shift"),
+            .set_opcode(0o124),
         Instruction::new()
+            .set_name("%block-2-read-shift")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o125)
-            .set_name("%block-2-read-shift"),
+            .set_opcode(0o125),
         Instruction::new()
+            .set_name("%block-3-read-shift")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o126)
-            .set_name("%block-3-read-shift"),
+            .set_opcode(0o126),
         Instruction::new()
+            .set_name("%block-4-read-shift")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o127)
-            .set_name("%block-4-read-shift"),
-
+            .set_opcode(0o127),
         Instruction::new()
+            .set_name("%block-1-read-alu")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o160)
-            .set_name("%block-1-read-alu"),
+            .set_opcode(0o160),
         Instruction::new()
+            .set_name("%block-2-read-alu")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o161)
-            .set_name("%block-2-read-alu"),
+            .set_opcode(0o161),
         Instruction::new()
+            .set_name("%block-3-read-alu")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o162)
-            .set_name("%block-3-read-alu"),
+            .set_opcode(0o162),
         Instruction::new()
+            .set_name("%block-4-read-alu")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o163)
-            .set_name("%block-4-read-alu"),
-
+            .set_opcode(0o163),
         Instruction::new()
+            .set_name("%block-1-test")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o130)
-            .set_name("%block-1-test"),
+            .set_opcode(0o130),
         Instruction::new()
+            .set_name("%block-2-test")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o131)
-            .set_name("%block-2-test"),
+            .set_opcode(0o131),
         Instruction::new()
+            .set_name("%block-3-test")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o132)
-            .set_name("%block-3-test"),
+            .set_opcode(0o132),
         Instruction::new()
+            .set_name("%block-4-test")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o133)
-            .set_name("%block-4-test"),
-
+            .set_opcode(0o133),
         Instruction::new()
+            .set_name("%block-1-write")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o030)
-            .set_name("%block-1-write"),
+            .set_opcode(0o030),
         Instruction::new()
+            .set_name("%block-2-write")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o031)
-            .set_name("%block-2-write"),
+            .set_opcode(0o031),
         Instruction::new()
+            .set_name("%block-3-write")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o032)
-            .set_name("%block-3-write"),
+            .set_opcode(0o032),
         Instruction::new()
+            .set_name("%block-4-write")
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o033)
-            .set_name("%block-4-write")
     ];
 }

@@ -3,56 +3,54 @@ use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 pub fn make_instructions_array() -> Vec<Instruction<'static>> {
     return vec![
         Instruction::new()
+            .set_name("aref-1")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o312)
-            .set_name("aref-1"),
+            .set_opcode(0o312),
         Instruction::new()
+            .set_name("aset-1")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o310)
-            .set_name("aset-1"),
+            .set_opcode(0o310),
         Instruction::new()
+            .set_name("aloc-1")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o313)
-            .set_name("aloc-1"),
+            .set_opcode(0o313),
         Instruction::new()
+            .set_name("setup-1d-array")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o003)
-            .set_name("setup-1d-array"),
+            .set_opcode(0o003),
         Instruction::new()
+            .set_name("setup-force-1d-array")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o004)
-            .set_name("setup-force-1d-array"),
-
+            .set_opcode(0o004),
         Instruction::new()
+            .set_name("fast-aref-1")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o350)
-            .set_name("fast-aref-1"),
+            .set_opcode(0o350),
         Instruction::new()
+            .set_name("fast-aset-1")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o351)
-            .set_name("fast-aset-1"),
-
+            .set_opcode(0o351),
         Instruction::new()
+            .set_name("array-leader")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o316)
-            .set_name("array-leader"),
+            .set_opcode(0o316),
         Instruction::new()
+            .set_name("store-array-leader")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o314)
-            .set_name("store-array-leader"),
+            .set_opcode(0o314),
         Instruction::new()
+            .set_name("aloc-leader")
             .set_family(InstructionFamily::Array)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o317)
-            .set_name("aloc-leader")
     ];
 }
