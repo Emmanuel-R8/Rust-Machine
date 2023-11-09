@@ -1,3 +1,5 @@
+use crate::hardware::machine::VirtualMachine;
+
 use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_numeric() -> Vec<Instruction<'static>> {
@@ -6,7 +8,9 @@ pub fn make_instructions_numeric() -> Vec<Instruction<'static>> {
             .set_name("add")
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o300),
+            .set_opcode(0o300)
+            .set_arg_count(2)
+            .set_ret_count(1),
         Instruction::new()
             .set_name("sub")
             .set_family(InstructionFamily::Numeric)
@@ -143,4 +147,16 @@ pub fn make_instructions_numeric() -> Vec<Instruction<'static>> {
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o307)
     ];
+}
+
+// Instruction add
+impl VirtualMachine {
+    pub fn add(&mut self) -> &Self {
+        let operand = self.pop_stack().unwrap();
+        let operand2 = self.pop_stack().unwrap();
+        let result = operand + operand2;
+
+        self.push_stack(result.unwrap());
+        return self;
+    }
 }

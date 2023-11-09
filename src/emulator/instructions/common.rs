@@ -24,6 +24,8 @@
 // |   | +3 PC odd |  |
 // :CDR header {tbl-colwidths="[15, 15, 70]"}
 
+use crate::hardware::machine::VirtualMachine;
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
     UNDEFINED,
@@ -62,16 +64,18 @@ pub enum InstructionFormat {
     EntryInstruction,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+
+#[derive(Clone)]
 pub struct Instruction<'a> {
+    pub name: &'a str,
     pub family: InstructionFamily,
     pub format: InstructionFormat,
     pub arg_count: u32,
     pub ret_count: u32,
     pub immediate_arg_type: ImmediateArgumentType,
-    pub name: &'a str,
     pub opcode: u32,
     pub is_implemented: bool,
+    // pub exec: Option<Box<dyn Fn() -> VirtualMachine>>,
 }
 
 impl Default for Instruction<'static> {
@@ -85,6 +89,7 @@ impl Default for Instruction<'static> {
             name: "unknown",
             opcode: 0,
             is_implemented: false,
+            // exec: None,
         };
     }
 }
@@ -129,4 +134,9 @@ impl Instruction<'static> {
         self.is_implemented = is_implemented;
         return self;
     }
+
+//    pub fn set_exec(mut self, exec: Option<Box<dyn Fn() -> VirtualMachine>>) -> Self {
+//         self.exec = exec;
+//         return self;
+//     }
 }
