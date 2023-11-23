@@ -64,7 +64,6 @@ pub enum InstructionFormat {
     EntryInstruction,
 }
 
-
 #[derive(Clone)]
 pub struct Instruction<'a> {
     pub name: &'a str,
@@ -75,7 +74,7 @@ pub struct Instruction<'a> {
     pub immediate_arg_type: ImmediateArgumentType,
     pub opcode: u32,
     pub is_implemented: bool,
-    // pub exec: Option<Box<dyn Fn() -> VirtualMachine>>,
+    pub exec: Option<fn(VirtualMachine) -> VirtualMachine>,
 }
 
 impl Default for Instruction<'static> {
@@ -89,7 +88,7 @@ impl Default for Instruction<'static> {
             name: "unknown",
             opcode: 0,
             is_implemented: false,
-            // exec: None,
+            exec: None,
         };
     }
 }
@@ -135,8 +134,8 @@ impl Instruction<'static> {
         return self;
     }
 
-//    pub fn set_exec(mut self, exec: Option<Box<dyn Fn() -> VirtualMachine>>) -> Self {
-//         self.exec = exec;
-//         return self;
-//     }
+    pub fn set_exec(mut self, exec: Option<fn(&mut VirtualMachine)>) -> Self {
+        self.exec = exec;
+        return self;
+    }
 }

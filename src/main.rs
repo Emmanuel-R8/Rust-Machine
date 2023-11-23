@@ -37,29 +37,32 @@ mod emulator {
     pub mod instructions {
         pub mod common;
 
-        pub mod list;
-        pub mod interruptible;
-        pub mod predicate;
-        pub mod numeric;
-        pub mod data_movement;
-        pub mod field_extraction;
-        pub mod array;
-        pub mod branch_loop;
-        pub mod block;
-        pub mod function_calling;
-        pub mod binding;
-        pub mod catch;
-        pub mod lexical_variable;
-        pub mod instance_variable;
-        pub mod subprimitive;
+        pub mod exec_numeric;
 
-        pub mod build_set;
+        pub mod def_list;
+        pub mod def_interruptible;
+        pub mod def_predicate;
+        pub mod def_numeric;
+        pub mod def_data_movement;
+        pub mod def_field_extraction;
+        pub mod def_array;
+        pub mod def_branch_loop;
+        pub mod def_block;
+        pub mod def_function_calling;
+        pub mod def_binding;
+        pub mod def_catch;
+        pub mod def_lexical_variable;
+        pub mod def_instance_variable;
+        pub mod def_subprimitive;
+
+        pub mod def_build_set;
+
     }
 }
 
 mod utils;
 
-use emulator::instructions::build_set::build_instruction_set;
+use emulator::instructions::def_build_set::build_instruction_vec_map;
 //
 // EXTERNAL IMPORTS
 //
@@ -77,7 +80,7 @@ use emulator::emulator::GlobalContext;
 pub fn main() {
     // Global state
     let mut ctx: GlobalContext = GlobalContext::new();
-    let instruction_set = build_instruction_set();
+    let instruction_vec_map = build_instruction_vec_map();
 
     ctx.cpu.initialise();
 

@@ -1,21 +1,26 @@
-use super::array::make_instructions_array;
-use super::binding::make_instructions_binding;
-use super::block::make_instructions_block;
-use super::branch_loop::make_instructions_branch_loop;
-use super::catch::make_instructions_catch;
-use super::common::Instruction;
-use super::data_movement::make_instructions_data_movement;
-use super::field_extraction::make_instructions_field_extraction;
-use super::function_calling::make_instructions_function_calling;
-use super::instance_variable::make_instructions_instance_variable;
-use super::interruptible::make_instructions_interruptible;
-use super::lexical_variable::make_instructions_lexical_variable;
-use super::list::make_instructions_list;
-use super::numeric::make_instructions_numeric;
-use super::predicate::make_instructions_predicate;
-use super::subprimitive::make_instructions_subprimitive;
+use std::collections::HashMap;
 
-pub fn build_instruction_set() -> Vec<Option<Box<Instruction<'static>>>> {
+use super::def_array::make_instructions_array;
+use super::def_binding::make_instructions_binding;
+use super::def_block::make_instructions_block;
+use super::def_branch_loop::make_instructions_branch_loop;
+use super::def_catch::make_instructions_catch;
+use super::common::Instruction;
+use super::def_data_movement::make_instructions_data_movement;
+use super::def_field_extraction::make_instructions_field_extraction;
+use super::def_function_calling::make_instructions_function_calling;
+use super::def_instance_variable::make_instructions_instance_variable;
+use super::def_interruptible::make_instructions_interruptible;
+use super::def_lexical_variable::make_instructions_lexical_variable;
+use super::def_list::make_instructions_list;
+use super::def_numeric::make_instructions_numeric;
+use super::def_predicate::make_instructions_predicate;
+use super::def_subprimitive::make_instructions_subprimitive;
+
+pub fn build_instruction_vec_map() -> (
+    Vec<Option<Box<Instruction<'static>>>>,
+    HashMap<&'static str, u32>,
+) {
     let instructions_list = make_instructions_list();
     let instructions_interruptible = make_instructions_interruptible();
     let instructions_predicate = make_instructions_predicate();
@@ -50,12 +55,18 @@ pub fn build_instruction_set() -> Vec<Option<Box<Instruction<'static>>>> {
         instructions_subprimitive,
     ].concat();
 
+    // Create an array where instructions accessed by opcode
     let mut instruction_set: Vec<Option<Box<Instruction<'static>>>> = vec![None; 0o777];
+
+    // Create a hasmap were opcode are mapped from opcode - used for populating execution code
+    let mut instruction_map: HashMap<&str, u32> = HashMap::new();
 
     for instruction in instructions.iter_mut() {
         let opcode = instruction.opcode as usize;
         instruction_set[opcode] = Some(Box::new(instruction.clone()));
+
+        instruction_map.insert(instruction.name, instruction.opcode);
     }
 
-    return instruction_set;
+    return (instruction_set, instruction_map);
 }
