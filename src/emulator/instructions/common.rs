@@ -24,55 +24,71 @@
 // |   | +3 PC odd |  |
 // :CDR header {tbl-colwidths="[15, 15, 70]"}
 
+use crate::hardware::machine::VirtualMachine;
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
     UNDEFINED,
-    NOT_APPLICABLE,
-    SIGNED,
-    UNSIGNED,
+    NotApplicable,
+    Signed,
+    Unsigned,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InstructionFamily {
     UNDEFINED,
-    LIST,
-    INTERRUPTIBLE,
-    PREDICATE,
-    NUMERIC,
-    DATA_MOVEMENT,
-    FIELD_EXTRACTION,
-    ARRAY,
-    BRANCH_LOOP,
-    BLOCK,
-    FUNCTION_CALLING,
-    BINDING,
-    CATCH,
-    LEXICAL_VARIABLE_ACCESS,
-    INSTANCE_VARIABLE_ACCESS,
-    SUBPRIMITIVE,
+    List,
+    Interruptible,
+    Predicate,
+    Numeric,
+    DataMovement,
+    FieldExtraction,
+    Array,
+    BranchLoop,
+    Block,
+    FunctionCalling,
+    Binding,
+    Catch,
+    LexicalVariableAccess,
+    InstanceVariableAccess,
+    Subprimitive,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+pub enum InstructionFormat {
+    UNDEFINED,
+    OperandFromStack,
+    OperandFromStackImmediate,
+    Immediate10Bits,
+    FieldExtraction,
+    EntryInstruction,
+}
+
+#[derive(Clone)]
 pub struct Instruction<'a> {
+    pub name: &'a str,
     pub family: InstructionFamily,
+    pub format: InstructionFormat,
     pub arg_count: u32,
     pub ret_count: u32,
     pub immediate_arg_type: ImmediateArgumentType,
-    pub name: &'a str,
     pub opcode: u32,
     pub is_implemented: bool,
+    pub exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
 }
 
 impl Default for Instruction<'static> {
     fn default() -> Self {
         return Self {
             family: InstructionFamily::UNDEFINED,
+            format: InstructionFormat::UNDEFINED,
             arg_count: 0,
             ret_count: 0,
             immediate_arg_type: ImmediateArgumentType::UNDEFINED,
             name: "unknown",
             opcode: 0,
             is_implemented: false,
+            exec: None,
         };
     }
 }
@@ -87,6 +103,12 @@ impl Instruction<'static> {
         self.family = family;
         return self;
     }
+
+    pub fn set_format(mut self, format: InstructionFormat) -> Self {
+        self.format = format;
+        return self;
+    }
+
     pub fn set_arg_count(mut self, arg_count: u32) -> Self {
         self.arg_count = arg_count;
         return self;
@@ -109,6 +131,11 @@ impl Instruction<'static> {
     }
     pub fn set_is_implemented(mut self, is_implemented: bool) -> Self {
         self.is_implemented = is_implemented;
+        return self;
+    }
+
+    pub fn set_exec(mut self, exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>) -> Self {
+        self.exec = exec;
         return self;
     }
 }

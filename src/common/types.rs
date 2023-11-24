@@ -1,8 +1,8 @@
 use c2rust_bitfields::BitfieldStruct;
 
-use std::fmt::{Debug, Display, Formatter, Result};
-use std::ops::{Add, AddAssign, Sub, SubAssign};
-use std::{cell::RefCell, rc::Rc};
+use std::fmt::{ Debug, Display, Formatter, Result };
+use std::ops::{ Add, AddAssign, Sub, SubAssign };
+use std::{ cell::RefCell, rc::Rc };
 
 // Representation of lisp objects
 use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS, ADDRESS_T, ADDRESS_NIL };
@@ -11,13 +11,13 @@ use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS, ADDRESS_T, ADDRESS_NIL };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub enum QList {
-    Cons(u32),        // Conses TODO: decline
+    Cons(u32), // Conses TODO: decline
     CompactList(u32), // Compact list TODO: decline
-    Closure(u32),     // Closure
-    BigRatio(u32),    // Big ratio
+    Closure(u32), // Closure
+    BigRatio(u32), // Big ratio
     DoubleFloat(f32), // f64 - Double precision floating point
-    Complex(u32),     // Complex number
-    Generic(u32),     // Generic function
+    Complex(u32), // Complex number
+    Generic(u32), // Generic function
 }
 
 impl Default for QList {
@@ -31,9 +31,9 @@ impl Default for QList {
 #[derive(Copy, Clone)]
 pub enum QStructure {
     CompiledFunc(u32), // Compiled function
-    Instance(u32),     // Instances
-    Symbol(u32),       // Symbols
-    Bignum(u32),       // Bignums
+    Instance(u32), // Instances
+    Symbol(u32), // Symbols
+    Bignum(u32), // Bignums
 }
 
 impl Default for QStructure {
@@ -47,7 +47,7 @@ pub type Address = usize;
 
 #[derive(Debug)]
 pub struct MemoryCell {
-    cdr_tag: u8,     // 3 bits for cdr and 5 bits for tag
+    cdr_tag: u8, // 3 bits for cdr and 5 bits for tag
     half_word1: u16, // 16 bits
     half_word2: u16, // 16 bits
 }
@@ -57,11 +57,11 @@ impl MemoryCell {
         assert!(cdr <= 0b0000_0111); // make sure cdr is within 3 bits
         assert!(tag <= 0b0001_1111); // make sure tag is within 5 bits
         let cdr_tag = (cdr << 5) | tag; // pack cdr and tag into one byte
-        MemoryCell {
+        return MemoryCell {
             cdr_tag,
             half_word1,
             half_word2,
-        }
+        };
     }
 
     pub fn new_cdr_tag_u(cdr: CDR, tag: QTag, u: u32) -> Self {
@@ -69,12 +69,12 @@ impl MemoryCell {
         let tag = tag as u8;
         let half_word1 = ((u | 0xffff_0000) >> 16) as u16;
         let half_word2 = (u & 0x0000_ffff) as u16;
-        MemoryCell::new(cdr, tag, half_word1, half_word2)
+        return MemoryCell::new(cdr, tag, half_word1, half_word2);
     }
 
     pub fn new_cdr_tag_i(cdr: CDR, tag: QTag, i: i32) -> Self {
         let u = unsafe { std::mem::transmute::<i32, u32>(i) };
-        MemoryCell::new_cdr_tag_u(cdr, tag, u)
+        return MemoryCell::new_cdr_tag_u(cdr, tag, u);
     }
 
     pub fn new_cdr_tag_f(cdr: CDR, tag: QTag, f: f32) -> Self {
@@ -98,8 +98,9 @@ impl MemoryCell {
         self.cdr_tag & 0b0001_1111
     }
 
-    pub fn set_tag(&mut self, tag: QTag) {
+    pub fn set_tag(&mut self, tag: QTag) -> &Self {
         self.cdr_tag = (self.cdr() << 5) | ((tag as u8) & 0b0001_1111);
+        return self;
     }
 
     // Form a i32 from the 2 half-words
@@ -113,12 +114,14 @@ impl MemoryCell {
         }
     }
 
-    pub fn set_i32(&mut self, val: i32) {
+    pub fn set_i32(&mut self, val: i32) -> &Self {
         let u = unsafe { std::mem::transmute::<i32, u32>(val) };
         let h1 = ((u & 0xffff_0000) >> 16) as u16;
         let h2 = (u & 0x0000_ffff) as u16;
         self.half_word1 = h1;
         self.half_word2 = h2;
+
+        return self;
     }
 
     // Form a f32 from the 2 half-words
@@ -132,12 +135,14 @@ impl MemoryCell {
         }
     }
 
-    pub fn set_f32(&mut self, val: f32) {
+    pub fn set_f32(&mut self, val: f32) -> &Self {
         let u = f32::to_bits(val);
         let h1 = ((u & 0xffff_0000) >> 16) as u16;
         let h2 = (u & 0x0000_ffff) as u16;
         self.half_word1 = h1;
         self.half_word2 = h2;
+
+        return self;
     }
 
     pub fn as_raw(&self) -> u32 {
@@ -146,11 +151,13 @@ impl MemoryCell {
         return bits;
     }
 
-    pub fn set_raw(&mut self, val: u32) {
+    pub fn set_raw(&mut self, val: u32) -> &Self {
         let h1 = ((val & 0xffff_0000) >> 16) as u16;
         let h2 = (val & 0x0000_ffff) as u16;
         self.half_word1 = h1;
         self.half_word2 = h2;
+
+        return self;
     }
 
     pub fn as_address(&self) -> Address {
@@ -159,11 +166,13 @@ impl MemoryCell {
         return bits as Address;
     }
 
-    pub fn set_address(&mut self, val: Address) {
+    pub fn set_address(&mut self, val: Address) -> &Self {
         let h1 = ((val & 0xffff_0000) >> 16) as u16;
         let h2 = (val & 0x0000_ffff) as u16;
         self.half_word1 = h1;
         self.half_word2 = h2;
+
+        return self;
     }
 
     // Check constants
@@ -180,7 +189,7 @@ impl MemoryCell {
     //
 
     // Non mutating
-    pub fn inc(self) -> MemoryCell {
+    pub fn inc(self) -> Self {
         let tag_i = QTag::Fixnum as u8;
         let tag_f = QTag::SingleFloat as u8;
 
@@ -202,7 +211,7 @@ impl MemoryCell {
     }
 
     // Non mutating
-    pub fn dec(self) -> MemoryCell {
+    pub fn dec(self) -> Self {
         let tag_i = QTag::Fixnum as u8;
         let tag_f = QTag::SingleFloat as u8;
 
@@ -224,7 +233,7 @@ impl MemoryCell {
     }
 
     // Mutating
-    pub fn inc_mut(&mut self) {
+    pub fn inc_mut(&mut self) -> &Self {
         match self.tag() {
             tag_i => {
                 let i = self.as_i32().unwrap() + 1;
@@ -236,10 +245,12 @@ impl MemoryCell {
             }
             _ => todo!(),
         }
+
+        return self;
     }
 
     // Non mutating
-    pub fn dec_mut(&mut self) {
+    pub fn dec_mut(&mut self) -> &Self {
         match self.tag() {
             tag_i => {
                 let i = self.as_i32().unwrap() - 1;
@@ -251,6 +262,8 @@ impl MemoryCell {
             }
             _ => todo!(),
         }
+
+        return self;
     }
 }
 
@@ -275,13 +288,89 @@ impl Copy for MemoryCell {}
 // todo: tHIS PROBABLY ONLY WORKS FOR PRIMITIVE TYPES.
 impl PartialEq for MemoryCell {
     fn eq(&self, other: &Self) -> bool {
-        self.tag() == other.tag()
-            && self.half_word1 == other.half_word1
-            && self.half_word2 == other.half_word2
+        self.tag() == other.tag() &&
+            self.half_word1 == other.half_word1 &&
+            self.half_word2 == other.half_word2
     }
 }
 
 impl Eq for MemoryCell {}
+
+// Implements add for 2 MemoryCell where both contain the same type
+// The content is u32 if the TAG is equal to QTag::Fixnum
+// The content is u32 if the TAG is equal to QTag::Fixnum
+// The content is u32 if the TAG is equal to QTag::Fixnum
+impl Add for MemoryCell {
+    type Output = Option<Self>;
+    // TODO: Check big or low endian representation
+    fn add(self, rhs: Self) -> Option<Self> {
+        if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
+            let val_i32 = self.as_i32().unwrap() + rhs.as_i32().unwrap();
+            let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
+
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
+        }
+
+        if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
+            let val_f32 = self.as_f32().unwrap() + rhs.as_f32().unwrap();
+            let val_u32 = f32::to_bits(val_f32);
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
+        }
+
+        return None;
+    }
+}
+
+// Implements sub assign for 2 MemoryCell where both contain the same type
+// The content is i32 if the TAG is equal to QTag::Fixnum
+// The content is f32 if the TAG is equal to QTag::Singlefloat
+impl Sub for MemoryCell {
+    type Output = Option<Self>;
+    // TODO: Check big or low endian representation
+    fn sub(self, rhs: Self) -> Option<Self> {
+        if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
+            let val_i32 = self.as_i32().unwrap() - rhs.as_i32().unwrap();
+            let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
+        }
+
+        if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
+            let val = self.as_f32().unwrap() - rhs.as_f32().unwrap();
+            let val_u32 = f32::to_bits(val);
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
+        }
+
+        return None;
+    }
+}
 
 // Implements add assign for 2 MemoryCell where both contain the same type
 // The content is u32 if the TAG is equal to QTag::Fixnum
@@ -297,7 +386,7 @@ impl AddAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -309,7 +398,7 @@ impl AddAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -329,7 +418,7 @@ impl SubAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -341,7 +430,7 @@ impl SubAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -353,11 +442,11 @@ impl SubAssign for MemoryCell {
 #[derive(Copy, Clone)]
 pub enum QImmediate {
     Unsigned(u32), // Fixnum
-    Signed(i32),   // Signed fixed num
-    Float(f32),    // 32-bit floating point (single precision)
+    Signed(i32), // Signed fixed num
+    Float(f32), // 32-bit floating point (single precision)
     // pub c: f32, // Characters
     // pub r: f32, // small ratio
-    Addr(u32),       // Physical address
+    Addr(u32), // Physical address
     PackedInst(u32), // Packed instructions - TODO: bitfield
 }
 
@@ -440,22 +529,26 @@ impl Default for QImmediate {
 impl PartialEq for QImmediate {
     fn eq(&self, other: &Self) -> bool {
         match self {
-            QImmediate::Unsigned(val1) => match other {
-                QImmediate::Unsigned(val2) => val1 == val2,
-                _ => false,
-            },
-            QImmediate::Signed(val1) => match other {
-                QImmediate::Signed(val2) => val1 == val2,
-                _ => false,
-            },
-            QImmediate::Float(val1) => match other {
-                QImmediate::Float(val2) => val1 == val2,
-                _ => false,
-            },
-            QImmediate::Float(val1) => match other {
-                QImmediate::Float(val2) => val1 == val2,
-                _ => false,
-            },
+            QImmediate::Unsigned(val1) =>
+                match other {
+                    QImmediate::Unsigned(val2) => val1 == val2,
+                    _ => false,
+                }
+            QImmediate::Signed(val1) =>
+                match other {
+                    QImmediate::Signed(val2) => val1 == val2,
+                    _ => false,
+                }
+            QImmediate::Float(val1) =>
+                match other {
+                    QImmediate::Float(val2) => val1 == val2,
+                    _ => false,
+                }
+            QImmediate::Float(val1) =>
+                match other {
+                    QImmediate::Float(val2) => val1 == val2,
+                    _ => false,
+                }
             _ => false,
         }
     }
@@ -493,30 +586,34 @@ impl Add for QImmediate {
         let mut q = self;
 
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => {
-                    val1 += val2;
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => {
-                    val1 += val2;
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => {
-                    val1 += val2;
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => {
-                    val1 += val2;
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
             _ => {}
         }
 
@@ -531,30 +628,34 @@ impl Sub for QImmediate {
         let mut q = self;
 
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => {
-                    val1 -= val2;
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => {
-                    val1 -= val2;
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => {
-                    val1 -= val2;
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => {
-                    val1 -= val2;
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
             _ => {}
         }
 
@@ -565,30 +666,34 @@ impl Sub for QImmediate {
 impl AddAssign for QImmediate {
     fn add_assign(&mut self, rhs: Self) {
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => {
-                    val1 += val2;
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => {
-                    val1 += val2;
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => {
-                    val1 += val2;
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => {
-                    val1 += val2;
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 += val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
             _ => {}
         }
     }
@@ -597,30 +702,34 @@ impl AddAssign for QImmediate {
 impl SubAssign for QImmediate {
     fn sub_assign(&mut self, rhs: Self) {
         match self {
-            QImmediate::Unsigned(mut val1) => match rhs {
-                QImmediate::Unsigned(val2) => {
-                    val1 -= val2;
+            QImmediate::Unsigned(mut val1) =>
+                match rhs {
+                    QImmediate::Unsigned(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Signed(mut val1) => match rhs {
-                QImmediate::Signed(val2) => {
-                    val1 -= val2;
+            QImmediate::Signed(mut val1) =>
+                match rhs {
+                    QImmediate::Signed(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Float(mut val1) => match rhs {
-                QImmediate::Float(val2) => {
-                    val1 -= val2;
+            QImmediate::Float(mut val1) =>
+                match rhs {
+                    QImmediate::Float(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
-            QImmediate::Addr(mut val1) => match rhs {
-                QImmediate::Addr(val2) => {
-                    val1 -= val2;
+            QImmediate::Addr(mut val1) =>
+                match rhs {
+                    QImmediate::Addr(val2) => {
+                        val1 -= val2;
+                    }
+                    _ => {}
                 }
-                _ => {}
-            },
             _ => {}
         }
     }
@@ -629,8 +738,8 @@ impl SubAssign for QImmediate {
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
 pub struct QData {
     pub i: QImmediate, // Immediate data type
-                       // pub l: QList,      // List objects
-                       // pub s: QStructure, // Structures objects
+    // pub l: QList,      // List objects
+    // pub s: QStructure, // Structures objects
 }
 
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
