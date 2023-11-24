@@ -37,7 +37,21 @@ mod emulator {
     pub mod instructions {
         pub mod common;
 
+        pub mod exec_list;
+        pub mod exec_interruptible;
+        pub mod exec_predicate;
         pub mod exec_numeric;
+        pub mod exec_data_movement;
+        pub mod exec_field_extraction;
+        pub mod exec_array;
+        pub mod exec_branch_loop;
+        pub mod exec_block;
+        pub mod exec_function_calling;
+        pub mod exec_binding;
+        pub mod exec_catch;
+        pub mod exec_lexical_variable;
+        pub mod exec_instance_variable;
+        pub mod exec_subprimitive;
 
         pub mod def_list;
         pub mod def_interruptible;
