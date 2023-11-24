@@ -18,8 +18,8 @@ use super::def_predicate::make_instructions_predicate;
 use super::def_subprimitive::make_instructions_subprimitive;
 
 pub fn build_instruction_vec_map() -> (
-    Vec<Option<Box<Instruction<'static>>>>,
-    HashMap<&'static str, u32>,
+    Vec<Option<Box<Instruction>>>,
+    HashMap<String, u32>,
 ) {
     let instructions_list = make_instructions_list();
     let instructions_interruptible = make_instructions_interruptible();
@@ -56,16 +56,16 @@ pub fn build_instruction_vec_map() -> (
     ].concat();
 
     // Create an array where instructions accessed by opcode
-    let mut instruction_set: Vec<Option<Box<Instruction<'static>>>> = vec![None; 0o777];
+    let mut instruction_set: Vec<Option<Box<Instruction>>> = vec![None; 0o777];
 
     // Create a hasmap were opcode are mapped from opcode - used for populating execution code
-    let mut instruction_map: HashMap<&str, u32> = HashMap::new();
+    let mut instruction_map: HashMap<String, u32> = HashMap::new();
 
     for instruction in instructions.iter_mut() {
         let opcode = instruction.opcode as usize;
         instruction_set[opcode] = Some(Box::new(instruction.clone()));
 
-        instruction_map.insert(instruction.name, instruction.opcode);
+        instruction_map.insert(instruction.name.clone(), instruction.opcode);
     }
 
     return (instruction_set, instruction_map);

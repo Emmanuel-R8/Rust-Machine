@@ -65,8 +65,8 @@ pub enum InstructionFormat {
 }
 
 #[derive(Clone)]
-pub struct Instruction<'a> {
-    pub name: &'a str,
+pub struct Instruction {
+    pub name: String,
     pub family: InstructionFamily,
     pub format: InstructionFormat,
     pub arg_count: u32,
@@ -74,10 +74,11 @@ pub struct Instruction<'a> {
     pub immediate_arg_type: ImmediateArgumentType,
     pub opcode: u32,
     pub is_implemented: bool,
+    // Code to execute when this instruction is executed.
     pub exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
 }
 
-impl Default for Instruction<'static> {
+impl Default for Instruction {
     fn default() -> Self {
         return Self {
             family: InstructionFamily::UNDEFINED,
@@ -85,7 +86,7 @@ impl Default for Instruction<'static> {
             arg_count: 0,
             ret_count: 0,
             immediate_arg_type: ImmediateArgumentType::UNDEFINED,
-            name: "unknown",
+            name: "unknown".to_string(),
             opcode: 0,
             is_implemented: false,
             exec: None,
@@ -93,9 +94,9 @@ impl Default for Instruction<'static> {
     }
 }
 
-impl Instruction<'static> {
+impl Instruction {
     pub fn new() -> Self {
-        let i: Instruction<'static> = Instruction::default();
+        let i: Instruction = Instruction::default();
         return i;
     }
 
@@ -121,7 +122,7 @@ impl Instruction<'static> {
         self.immediate_arg_type = immediate_arg_type;
         return self;
     }
-    pub fn set_name(mut self, name: &'static str) -> Self {
+    pub fn set_name(mut self, name: String) -> Self {
         self.name = name;
         return self;
     }
