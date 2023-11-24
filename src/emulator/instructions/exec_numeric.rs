@@ -1,22 +1,24 @@
 use crate::hardware::machine::VirtualMachine;
 
 // Instruction add
-// Instruction add
-pub fn cpu_add(vm: &mut VirtualMachine) {
-    let operand1 = vm.pop_stack().unwrap();
-    let operand2 = vm.pop_stack().unwrap();
-    let result = operand1 + operand2;
+impl VirtualMachine {
+    pub fn cpu_add(&mut self) -> &mut Self {
+        let operand1 = self.pop_stack().unwrap();
+        let operand2 = self.pop_stack().unwrap();
+        let result = operand1 + operand2;
 
-    vm.push_stack(result.unwrap());
-    // return self;
-}
+        self.push_stack(result.unwrap());
 
-// Instruction sub
-pub fn cpu_sub(vm: &mut VirtualMachine) {
-    let operand1 = vm.pop_stack().unwrap();
-    let operand2 = vm.pop_stack().unwrap();
-    let result = operand1 - operand2;
+        return self;
+    }
 
-    vm.push_stack(result.unwrap());
-    // return self;
+    pub fn cpu_sub(&mut self) -> &mut Self {
+        let operand1 = self.pop_stack().unwrap();
+        let operand2 = self.pop_stack().unwrap();
+        let result = operand1 - operand2;
+
+        self.push_stack(result.unwrap());
+
+        return self;
+    }
 }

@@ -74,7 +74,7 @@ pub struct Instruction<'a> {
     pub immediate_arg_type: ImmediateArgumentType,
     pub opcode: u32,
     pub is_implemented: bool,
-    pub exec: Option<fn(VirtualMachine) -> VirtualMachine>,
+    pub exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
 }
 
 impl Default for Instruction<'static> {
@@ -134,7 +134,7 @@ impl Instruction<'static> {
         return self;
     }
 
-    pub fn set_exec(mut self, exec: Option<fn(&mut VirtualMachine)>) -> Self {
+    pub fn set_exec(mut self, exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>) -> Self {
         self.exec = exec;
         return self;
     }

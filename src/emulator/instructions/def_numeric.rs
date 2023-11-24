@@ -1,7 +1,5 @@
 use crate::hardware::machine::VirtualMachine;
-
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
-use super::exec_numeric::{cpu_add};
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_numeric() -> Vec<Instruction<'static>> {
     return vec![
@@ -12,12 +10,13 @@ pub fn make_instructions_numeric() -> Vec<Instruction<'static>> {
             .set_opcode(0o300)
             .set_arg_count(2)
             .set_ret_count(1)
-            .set_exec(Some(cpu_add)),
+            .set_exec(Some(VirtualMachine::cpu_add)),
         Instruction::new()
             .set_name("sub")
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o301), //
+            .set_opcode(0o301)
+            .set_exec(Some(VirtualMachine::cpu_sub)),
         Instruction::new()
             .set_name("unary-minus")
             .set_family(InstructionFamily::Numeric)
