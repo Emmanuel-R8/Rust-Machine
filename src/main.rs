@@ -123,7 +123,7 @@ pub fn main() {
     // let reason: u32 = 0;
 
     let mut config = VLMConfig::default();
-    let mut enable_ids_p = config.enableIDS;
+    let mut enable_ids_p = config.enable_ids;
     let mut trace_p = config.tracing.trace_post;
 
     // let TestFunction = config.testFunction;

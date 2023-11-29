@@ -33,7 +33,7 @@ pub fn make_instructions_instance_variable() -> Vec<Instruction> {
             .set_family(InstructionFamily::InstanceVariableAccess)
             .set_format(InstructionFormat::OperandFromStackImmediate)
             .set_opcode(0o112)
-            .set_exec(Some(VirtualMachine::cpu_push_address_instance_variable_ordered)),
+            .set_exec(Some(VirtualMachine::cpu_push_instance_variable_ordered)),
         Instruction::new()
             .set_name("pop-instance-variable-ordered".to_string())
             .set_family(InstructionFamily::InstanceVariableAccess)

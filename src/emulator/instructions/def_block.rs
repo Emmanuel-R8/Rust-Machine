@@ -117,7 +117,7 @@ pub fn make_instructions_block() -> Vec<Instruction> {
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o032)
-            .set_exec(Some(VirtualMachine::cpu_block_1_write)),
+            .set_exec(Some(VirtualMachine::cpu_block_3_write)),
         Instruction::new()
             .set_name("%block-4-write".to_string())
             .set_family(InstructionFamily::Block)
