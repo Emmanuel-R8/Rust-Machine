@@ -29,9 +29,9 @@ use crate::hardware::machine::VirtualMachine;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
     UNDEFINED,
-    NotApplicable,
-    Signed,
-    Unsigned,
+    NOT_APPLICABLE,
+    SIGNED,
+    UNSIGNED,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
