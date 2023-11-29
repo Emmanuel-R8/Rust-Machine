@@ -47,7 +47,7 @@ pub struct VLMConfig<'a> {
 
 impl Default for VLMConfig<'static> {
     fn default() -> Self {
-        let     trace_config = TraceConfig {
+        let trace_config = TraceConfig {
             trace_p: false,
             trace_post: false,
             buffer_size: 0,
@@ -60,7 +60,7 @@ impl Default for VLMConfig<'static> {
         let config = Self {
             enable_spy: false,
             tracing: trace_config,
-            comm_area_size: 0x1_FF80,
+            comm_area_size: 0x1_ff80,
             host_buffer_space: 15_000,
             guest_buffer_space: 100_000,
             vlm_debugger_path: PathBuf::from(""),

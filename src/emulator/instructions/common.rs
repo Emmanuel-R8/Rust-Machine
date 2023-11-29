@@ -73,7 +73,6 @@ pub struct Instruction {
     pub ret_count: u32,
     pub immediate_arg_type: ImmediateArgumentType,
     pub opcode: u32,
-    pub is_implemented: bool,
     // Code to execute when this instruction is executed.
     pub exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
 }
@@ -88,7 +87,6 @@ impl Default for Instruction {
             immediate_arg_type: ImmediateArgumentType::UNDEFINED,
             name: "unknown".to_string(),
             opcode: 0,
-            is_implemented: false,
             exec: None,
         };
     }
@@ -130,12 +128,10 @@ impl Instruction {
         self.opcode = opcode;
         return self;
     }
-    pub fn set_is_implemented(mut self, is_implemented: bool) -> Self {
-        self.is_implemented = is_implemented;
-        return self;
-    }
-
-    pub fn set_exec(mut self, exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>) -> Self {
+    pub fn set_exec(
+        mut self,
+        exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>
+    ) -> Self {
         self.exec = exec;
         return self;
     }

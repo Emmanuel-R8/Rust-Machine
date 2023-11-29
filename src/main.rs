@@ -14,12 +14,15 @@ mod common {
     pub mod constants;
     pub mod instruction_format;
     pub mod types;
+    pub mod memory_cell;
 }
 
 mod world {
     pub mod world;
 }
 mod hardware {
+    pub mod cache_line;
+    pub mod page_base;
     pub mod cpu;
     pub mod machine;
     pub mod memory;
@@ -70,7 +73,6 @@ mod emulator {
         pub mod def_subprimitive;
 
         pub mod def_build_set;
-
     }
 }
 

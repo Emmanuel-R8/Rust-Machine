@@ -1,5 +1,5 @@
 use crate::common::constants::VMAttribute;
-use crate::common::types::MemoryCell;
+use crate::common::memory_cell::MemoryCell;
 use crate::hardware::cpu::CPU;
 use crate::hardware::memory::VMMemory;
 
@@ -25,7 +25,7 @@ impl VirtualMachine {
         return cell;
     }
 
-    pub fn push_stack(&mut self, val:MemoryCell) -> &Self {
+    pub fn push_stack(&mut self, val: MemoryCell) -> &Self {
         self.cpu.sp.dec_mut();
 
         let sp = self.cpu.sp;

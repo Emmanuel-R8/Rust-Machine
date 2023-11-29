@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs::{ read_dir, DirEntry };
 use std::mem::size_of;
 use std::ops::Div;
-use std::path::{Path, PathBuf};
+use std::path::{ Path, PathBuf };
 
 use memmap::Mmap;
 use num::Integer;
@@ -27,13 +27,19 @@ use crate::common::constants::{
     VMATTRIBUTE_EMPTY,
     VMATTRIBUTE_EXISTS,
 };
-use crate::common::types::MemoryCell;
+use crate::common::memory_cell::MemoryCell;
 use crate::hardware::cpu::{
-    read_control_argument_size, read_control_caller_frame_size, write_control_argument_size,
-    write_control_caller_frame_size, CPU,
+    read_control_argument_size,
+    read_control_caller_frame_size,
+    write_control_argument_size,
+    write_control_caller_frame_size,
+    CPU,
 };
 use crate::hardware::memory::{
-    compute_protection, default_attributes, memory_page_offset, memory_wad_offset,
+    compute_protection,
+    default_attributes,
+    memory_page_offset,
+    memory_wad_offset,
 };
 use crate::utils::byte_swap_32;
 use crate::world::world::{
@@ -48,7 +54,7 @@ use crate::world::world::{
 #[derive()]
 pub struct GlobalContext<'a> {
     pub cpu: CPU,
-    pub mem: [MemoryCell; 1 << 31], /* 2^32 bytes of tags + data */
+    pub mem: [MemoryCell; 1 << 31] /* 2^32 bytes of tags + data */,
     pub attribute_table: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 
     pub world: Uuid,
@@ -152,7 +158,7 @@ impl<'a> GlobalContext<'a> {
         write_control_argument_size(&mut self.cpu.control, 2);
         write_control_caller_frame_size(
             &mut self.cpu.control,
-            self.cpu.sp.as_address() - self.cpu.fp.as_address(),
+            self.cpu.sp.as_address() - self.cpu.fp.as_address()
         );
 
         self.cpu.continuation = self.cpu.pc;
@@ -164,8 +170,7 @@ impl<'a> GlobalContext<'a> {
         self.cpu.sp = self.cpu.fp;
 
         // Determine the next frame pointer by decreasing by the frame size
-        self.cpu
-            .fp_inc(read_control_caller_frame_size(self.cpu.control));
+        self.cpu.fp_inc(read_control_caller_frame_size(self.cpu.control));
 
         // Restore the PC using the stored continuation
         self.cpu.pc = self.cpu.continuation;
@@ -175,8 +180,7 @@ impl<'a> GlobalContext<'a> {
         self.cpu.set_control(self.read_at(self.cpu.fp).as_raw());
 
         self.cpu.lp = self.cpu.fp.clone();
-        self.cpu
-            .lp_inc(read_control_argument_size(self.cpu.control));
+        self.cpu.lp_inc(read_control_argument_size(self.cpu.control));
     }
 
     #[inline]
@@ -239,17 +243,23 @@ impl<'a> GlobalContext<'a> {
         // let new_unmerged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
         let (mut new_merged_wired_entries, mut new_unmerged_wired_entries) =
             self.merge_parent_load_map(w.parent_world);
-        new_merged_wired_entries =
-            merge_a_map(w, &new_merged_wired_entries, &w.merged_wired_map_entries);
-        new_unmerged_wired_entries =
-            merge_a_map(&w, &new_unmerged_wired_entries, &w.unwired_map_entries);
+        new_merged_wired_entries = merge_a_map(
+            w,
+            &new_merged_wired_entries,
+            &w.merged_wired_map_entries
+        );
+        new_unmerged_wired_entries = merge_a_map(
+            &w,
+            &new_unmerged_wired_entries,
+            &w.unwired_map_entries
+        );
 
         return (new_merged_wired_entries, new_unmerged_wired_entries);
     }
 
     pub fn merge_load_maps(
         &mut self,
-        world_search_path: String,
+        world_search_path: String
     ) -> (Set<LoadMapEntry>, Set<LoadMapEntry>) {
         let w = self.worlds.get(&self.world).unwrap();
         if w.generation == 0 {
@@ -302,9 +312,10 @@ impl<'a> GlobalContext<'a> {
         let mut top_uuid = Uuid::nil();
         while w.generation > 0 {
             for (w_uuid, w_world) in self.worlds.iter_mut() {
-                if w_world.generation == w_world.generation - 1
-                    && w_world.timestamp_1 == w_world.parent_timestamp_1
-                    && w_world.timestamp_2 == w_world.parent_timestamp_2
+                if
+                    w_world.generation == w_world.generation - 1 &&
+                    w_world.timestamp_1 == w_world.parent_timestamp_1 &&
+                    w_world.timestamp_2 == w_world.parent_timestamp_2
                 {
                     top_uuid = *w_uuid;
                     // w_world.parent_world = tmp_uuid;
@@ -313,10 +324,7 @@ impl<'a> GlobalContext<'a> {
             }
 
             if w.parent_world.is_nil() {
-                panic_exit(format!(
-                    "Unable to find parent of world file {}",
-                    w.pathname.display()
-                ));
+                panic_exit(format!("Unable to find parent of world file {}", w.pathname.display()));
             } else {
                 self.world = w.parent_world.clone();
             }
@@ -634,7 +642,7 @@ impl<'a> GlobalContext<'a> {
     }
 
     fn read_swapped_vlm_world_file_q(&self, q_address: u32) -> MemoryCell {
-        let w =  self.worlds.get(&self.world).unwrap() ;
+        let w = self.worlds.get(&self.world).unwrap();
 
         if q_address < 0 || q_address >= VLMPAGE_SIZE_QS {
             // self.close(true);
@@ -653,7 +661,7 @@ impl<'a> GlobalContext<'a> {
     }
 
     fn read_swapped_vlm_world_file_next_q(&self) -> MemoryCell {
-        let w =  self.worlds.get(&self.world).unwrap() ;
+        let w = self.worlds.get(&self.world).unwrap();
 
         // while w.current_q_number >= VLMPAGE_SIZE_QS {
         //     self.read_swapped_vlm_world_file_page(w.current_page_number + 1);
@@ -678,7 +686,7 @@ impl<'a> GlobalContext<'a> {
         let world_id = self.world;
 
         let &mut world: &mut &World = match self.worlds.get_mut(&world_id) {
-            Some( w) => w,
+            Some(w) => w,
 
             None => {
                 return new_wired_map_entries;
@@ -700,8 +708,11 @@ impl<'a> GlobalContext<'a> {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
                 // assign the page number within the file
                 let mut new_wired_map_entry = world.wired_map_entries.data[i as usize];
-                new_wired_map_entry.data =
-                    MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, page_number); // Tag 8
+                new_wired_map_entry.data = MemoryCell::new_cdr_tag_u(
+                    CDR::Jump,
+                    QTag::Fixnum,
+                    page_number
+                ); // Tag 8
                 new_wired_map_entries.insert(new_wired_map_entry);
                 page_number = page_number + page_count;
                 i += 1;
@@ -728,10 +739,12 @@ impl<'a> GlobalContext<'a> {
 
         if block_count > VLMMAXIMUM_HEADER_BLOCKS {
             // FIXME: world.close(true);
-            panic_exit(format!(
-                "Unable to store data map in space reserved for same in world file {}",
-                world.pathname.display().to_string()
-            ));
+            panic_exit(
+                format!(
+                    "Unable to store data map in space reserved for same in world file {}",
+                    world.pathname.display().to_string()
+                )
+            );
         }
 
         // world.tags_page_base = block_count;
