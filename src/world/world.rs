@@ -146,7 +146,7 @@ impl World {
             id: Uuid::new_v4(),
             pathname: PathBuf::default(),
             fd: None,
-            format: LoadFileFormat::IvoryWorldFormat,
+            format: LoadFileFormat::Ivory,
             byte_swapped: false,
 
             page_base: 0,
@@ -191,17 +191,17 @@ impl World {
 
         match pack_8_to_32(cookie) {
             VLMWORLD_FILE_COOKIE => {
-                self.format = LoadFileFormat::VLMWorldFormat;
+                self.format = LoadFileFormat::VLM;
                 self.byte_swapped = false;
             }
 
             VLMWORLD_FILE_COOKIE_SWAPPED => {
-                self.format = LoadFileFormat::VLMWorldFormat;
+                self.format = LoadFileFormat::VLM;
                 self.byte_swapped = true;
             }
 
             IVORY_WORLD_FILE_COOKIE => {
-                self.format = LoadFileFormat::IvoryWorldFormat;
+                self.format = LoadFileFormat::Ivory;
                 wired_count_q = 1;
                 unwired_count_q = 2;
                 first_sysout_q = 0;
@@ -219,7 +219,7 @@ impl World {
         // w.current_page_number = 0;
 
         // The header and load maps for both VLM and Ivory world files are stored using Ivory file format settings (i.e., 256 Qs per 1280 byte page)
-        if self.format == LoadFileFormat::VLMWorldFormat {
+        if self.format == LoadFileFormat::VLM {
             match read_ivory_world_file_q(self, 0).as_raw() {
                 VLMVERSION1_AND_ARCHITECTURE => {
                     wired_count_q = 1;
@@ -243,7 +243,7 @@ impl World {
             }
         }
 
-        if self.format == LoadFileFormat::VLMWorldFormat {
+        if self.format == LoadFileFormat::VLM {
             page_bases = read_ivory_world_file_q(self, pages_base_q);
             self.data_page_base = page_bases.as_raw();
             self.tags_page_base = page_bases.tag() as u32;
@@ -310,7 +310,7 @@ impl Default for World {
             id: Uuid::new_v4(),
             pathname: PathBuf::default(),
             fd: None,
-            format: LoadFileFormat::IvoryWorldFormat,
+            format: LoadFileFormat::Ivory,
             byte_swapped: false,
             data_page_base: 0,
             tags_page_base: 0,
@@ -458,7 +458,7 @@ pub fn merge_a_map<'a>(
     }
 
     let page_size_qs = match world.format {
-        LoadFileFormat::VLMWorldFormat => VLMPAGE_SIZE_QS,
+        LoadFileFormat::VLM => VLMPAGE_SIZE_QS,
         _ => IVORY_PAGE_SIZE_QS,
     };
 

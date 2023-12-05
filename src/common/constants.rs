@@ -125,10 +125,10 @@ impl fmt::Display for CDR {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum SEQ {
     #[default]
-    NORMAL = 0, // PC +1 Normal half-word sequencing
-    FENCE = 1, // Marks end ofcompiled function
-    BACK = 2, // PC - 1 On some constants
-    NEXT_WORD = 3, // PC even + 2, PC odd + 3 Before or on some constants
+    Normal = 0, // PC +1 Normal half-word sequencing
+    Fence = 1, // Marks end ofcompiled function
+    Back = 2, // PC - 1 On some constants
+    NextWord = 3, // PC even + 2, PC odd + 3 Before or on some constants
 }
 
 impl fmt::Display for SEQ {
@@ -145,10 +145,10 @@ impl fmt::Display for SEQ {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum ArrayElement {
     #[default] // Default constructor
-    FIXNUM = 0,
-    CHARACTER = 1,
-    BOOLE = 2,
-    OBJECT = 3,
+    Fixnum = 0,
+    Character = 1,
+    Boole = 2,
+    Object = 3,
 }
 
 impl fmt::Display for ArrayElement {
@@ -166,10 +166,10 @@ impl fmt::Display for ArrayElement {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum ArrayElementType {
     #[default] // Default constructor
-    FIXNUM = 0,
-    CHARACTER = 1,
-    BOOLE = 2,
-    OBJECT = 3,
+    Fixnum = 0,
+    Character = 1,
+    Boole = 2,
+    Object = 3,
 }
 
 impl fmt::Display for ArrayElementType {
@@ -681,8 +681,8 @@ impl fmt::Display for ALUAdderOP2 {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum ALUByteFunction {
     #[default] // Default constructor
-    Dpb = 0,
-    Ldb = 1,
+    DPB = 0,
+    LDB = 1,
 }
 
 impl fmt::Display for ALUByteFunction {
@@ -783,7 +783,7 @@ impl fmt::Display for TrapMode {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum TrapVectors {
     #[default] // Default constructor
-    ArithmeticInstructionExceptionVector = 0o0,
+    ArithmeticInstructionExceptionVector = 0o0_000,
     InstructionExceptionVector = 0o4_000, // 2048
     InterpreterFunctionVector = 0o4_400, // 2304
     GenericDispatchVector = 0o5_000, // 2560
@@ -838,7 +838,7 @@ impl fmt::Display for ReturnValue {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum HaltReason {
     #[default] // Default constructor
-    IllInstn = 1,
+    IllegalInstruction = 1,
     Halted = 2,
     SpyCalled = 3,
     FatalStackOverflow = 4,
@@ -891,8 +891,8 @@ pub const PROT_GROWSUP: u32 = 0x02000000; // Extend change to start of growsup v
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum LoadFileFormat {
     #[default] // Default constructor
-    VLMWorldFormat, // VLM world file (.VLOD)
-    IvoryWorldFormat, // Ivory world file (.ILOD)
+    VLM, // VLM world file (.VLOD)
+    Ivory, // Ivory world file (.ILOD)
 }
 
 impl fmt::Display for LoadFileFormat {
