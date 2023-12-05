@@ -125,10 +125,10 @@ impl fmt::Display for CDR {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum SEQ {
     #[default]
-    Normal = 0, // PC +1 Normal half-word sequencing
-    Fence = 1, // Marks end ofcompiled function
-    Back = 2, // PC - 1 On some constants
-    NextWord = 3, // PC even + 2, PC odd + 3 Before or on some constants
+    NORMAL = 0, // PC +1 Normal half-word sequencing
+    FENCE = 1, // Marks end ofcompiled function
+    BACK = 2, // PC - 1 On some constants
+    NEXT_WORD = 3, // PC even + 2, PC odd + 3 Before or on some constants
 }
 
 impl fmt::Display for SEQ {
@@ -145,10 +145,10 @@ impl fmt::Display for SEQ {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum ArrayElement {
     #[default] // Default constructor
-    Fixnum = 0,
-    Character = 1,
-    Boole = 2,
-    Object = 3,
+    FIXNUM = 0,
+    CHARACTER = 1,
+    BOOLE = 2,
+    OBJECT = 3,
 }
 
 impl fmt::Display for ArrayElement {
@@ -166,10 +166,10 @@ impl fmt::Display for ArrayElement {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum ArrayElementType {
     #[default] // Default constructor
-    Fixnum = 0,
-    Character = 1,
-    Boole = 2,
-    Object = 3,
+    FIXNUM = 0,
+    CHARACTER = 1,
+    BOOLE = 2,
+    OBJECT = 3,
 }
 
 impl fmt::Display for ArrayElementType {
