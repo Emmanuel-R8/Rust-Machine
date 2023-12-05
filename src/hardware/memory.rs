@@ -18,7 +18,8 @@ use crate::common::constants::{
     VMATTRIBUTE_TRANSPORT_FAULT,
     VMATTRIBUTE_WRITE_FAULT,
 };
-use crate::common::types::{ Address, MemoryCell };
+use crate::common::memory_cell::MemoryCell;
+use crate::common::types::Address;
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::{ dpb, ldb };
 

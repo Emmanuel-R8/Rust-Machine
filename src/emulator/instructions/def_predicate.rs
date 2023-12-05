@@ -1,3 +1,5 @@
+use crate::hardware::machine::VirtualMachine;
+
 use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_predicate() -> Vec<Instruction> {
@@ -6,121 +8,121 @@ pub fn make_instructions_predicate() -> Vec<Instruction> {
             .set_name("eq".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o270),
+            .set_opcode(0o270).set_exec(Some(VirtualMachine::cpu_eq)),
         Instruction::new()
             .set_name("eq-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o274),
+            .set_opcode(0o274).set_exec(Some(VirtualMachine::cpu_eq_no_pop)),
         Instruction::new()
             .set_name("eql".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o263),
+            .set_opcode(0o263).set_exec(Some(VirtualMachine::cpu_eql)),
         Instruction::new()
             .set_name("eql-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o267),
+            .set_opcode(0o267).set_exec(Some(VirtualMachine::cpu_eql_no_pop)),
         Instruction::new()
             .set_name("equal-number".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o260),
+            .set_opcode(0o260).set_exec(Some(VirtualMachine::cpu_equal_number)),
         Instruction::new()
             .set_name("equal-number-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o264),
+            .set_opcode(0o264).set_exec(Some(VirtualMachine::cpu_equal_number_no_pop)),
         Instruction::new()
             .set_name("greaterp".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o262),
+            .set_opcode(0o262).set_exec(Some(VirtualMachine::cpu_greaterp)),
         Instruction::new()
             .set_name("greaterp-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o266),
+            .set_opcode(0o266).set_exec(Some(VirtualMachine::cpu_greaterp_no_pop)),
         Instruction::new()
             .set_name("lesserp".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o261),
+            .set_opcode(0o261).set_exec(Some(VirtualMachine::cpu_lesserp)),
         Instruction::new()
             .set_name("lesserp-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o265),
+            .set_opcode(0o265).set_exec(Some(VirtualMachine::cpu_lesserp_no_pop)),
         Instruction::new()
             .set_name("logtest".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o273),
+            .set_opcode(0o273).set_exec(Some(VirtualMachine::cpu_logtest)),
         Instruction::new()
             .set_name("logtest-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o277),
+            .set_opcode(0o277).set_exec(Some(VirtualMachine::cpu_logtest_no_pop)),
         Instruction::new()
             .set_name("type-member-1".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o040),
+            .set_opcode(0o040).set_exec(Some(VirtualMachine::cpu_type_member_1)),
         Instruction::new()
             .set_name("type-member-2".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o041),
+            .set_opcode(0o041).set_exec(Some(VirtualMachine::cpu_type_member_2)),
         Instruction::new()
             .set_name("type-member-3".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o042),
+            .set_opcode(0o042).set_exec(Some(VirtualMachine::cpu_type_member_3)),
         Instruction::new()
             .set_name("type-member-4".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o043),
+            .set_opcode(0o043).set_exec(Some(VirtualMachine::cpu_type_member_4)),
         Instruction::new()
             .set_name("type-member-1-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o044),
+            .set_opcode(0o044).set_exec(Some(VirtualMachine::cpu_type_member_1_no_pop)),
         Instruction::new()
             .set_name("type-member-2-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o045),
+            .set_opcode(0o045).set_exec(Some(VirtualMachine::cpu_type_member_2_no_pop)),
         Instruction::new()
             .set_name("type-member-3-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o046),
+            .set_opcode(0o046).set_exec(Some(VirtualMachine::cpu_type_member_3_no_pop)),
         Instruction::new()
             .set_name("type-member-4-no-pop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o047),
+            .set_opcode(0o047).set_exec(Some(VirtualMachine::cpu_type_member_4_no_pop)),
         Instruction::new()
             .set_name("endp".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o002),
+            .set_opcode(0o002).set_exec(Some(VirtualMachine::cpu_endp)),
         Instruction::new()
             .set_name("plusp".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o036),
+            .set_opcode(0o036).set_exec(Some(VirtualMachine::cpu_plusp)),
         Instruction::new()
             .set_name("minusp".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o035),
+            .set_opcode(0o035).set_exec(Some(VirtualMachine::cpu_minusp)),
         Instruction::new()
             .set_name("zerop".to_string())
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o034)
+            .set_opcode(0o034).set_exec(Some(VirtualMachine::cpu_zerop))
     ];
 }

@@ -1,3 +1,5 @@
+use crate::hardware::machine::VirtualMachine;
+
 use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_subprimitive() -> Vec<Instruction> {
@@ -6,141 +8,169 @@ pub fn make_instructions_subprimitive() -> Vec<Instruction> {
             .set_name("%ephemeralp".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o007),
+            .set_opcode(0o007)
+            .set_exec(Some(VirtualMachine::cpu_ephemeralp)),
         Instruction::new()
             .set_name("%unsigned-lessp".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o331),
+            .set_opcode(0o331)
+            .set_exec(Some(VirtualMachine::cpu_unsigned_lessp)),
         Instruction::new()
             .set_name("%unsigned-lessp-no-pop".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o335),
+            .set_opcode(0o335)
+            .set_exec(Some(VirtualMachine::cpu_unsigned_lessp_no_pop)),
         Instruction::new()
             .set_name("%allocate-list-block".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o311),
+            .set_opcode(0o311)
+            .set_exec(Some(VirtualMachine::cpu_allocate_list_block)),
         Instruction::new()
             .set_name("%allocate-structure-block".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o315),
+            .set_opcode(0o315)
+            .set_exec(Some(VirtualMachine::cpu_allocate_structure_block)),
         Instruction::new()
             .set_name("%pointer-plus".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o230),
+            .set_opcode(0o230)
+            .set_exec(Some(VirtualMachine::cpu_pointer_plus)),
         Instruction::new()
             .set_name("%pointer-difference".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o231),
+            .set_opcode(0o231)
+            .set_exec(Some(VirtualMachine::cpu_pointer_difference)),
         Instruction::new()
             .set_name("%pointer-increment".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o145),
+            .set_opcode(0o145)
+            .set_exec(Some(VirtualMachine::cpu_pointer_increment)),
         Instruction::new()
             .set_name("%read-internal-register".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o154),
+            .set_opcode(0o154)
+            .set_exec(Some(VirtualMachine::cpu_read_internal_register)),
         Instruction::new()
             .set_name("%write-internal-register".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o155),
+            .set_opcode(0o155)
+            .set_exec(Some(VirtualMachine::cpu_write_internal_register)),
         Instruction::new()
             .set_name("no-op".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o056),
+            .set_opcode(0o056)
+            .set_exec(Some(VirtualMachine::cpu_no_op)),
         Instruction::new()
             .set_name("%coprocessor-read".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o156),
+            .set_opcode(0o156)
+            .set_exec(Some(VirtualMachine::cpu_coprocessor_read)),
         Instruction::new()
             .set_name("%coprocessor-write".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o157),
+            .set_opcode(0o157)
+            .set_exec(Some(VirtualMachine::cpu_coprocessor_write)),
         Instruction::new()
             .set_name("%memory-read".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o116),
+            .set_opcode(0o116)
+            .set_exec(Some(VirtualMachine::cpu_memory_read)),
         Instruction::new()
             .set_name("%memory-read-address".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o117),
+            .set_opcode(0o117)
+            .set_exec(Some(VirtualMachine::cpu_memory_read_address)),
         Instruction::new()
             .set_name("%tag".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o012),
+            .set_opcode(0o012)
+            .set_exec(Some(VirtualMachine::cpu_tag)),
         Instruction::new()
             .set_name("%set-tag".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o327),
+            .set_opcode(0o327)
+            .set_exec(Some(VirtualMachine::cpu_set_tag)),
         Instruction::new()
             .set_name("store-conditional".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o233),
+            .set_opcode(0o233)
+            .set_exec(Some(VirtualMachine::cpu_store_conditional)),
         Instruction::new()
             .set_name("%p-store-contents".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o235),
+            .set_opcode(0o235)
+            .set_exec(Some(VirtualMachine::cpu_p_store_contents)),
         Instruction::new()
             .set_name("%memory-write".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o234),
+            .set_opcode(0o234)
+            .set_exec(Some(VirtualMachine::cpu_memory_write)),
         Instruction::new()
             .set_name("%set-cdr-code-1".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o146),
+            .set_opcode(0o146)
+            .set_exec(Some(VirtualMachine::cpu_set_cdr_code_1)),
         Instruction::new()
             .set_name("%set-cdr-code-2".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o147),
+            .set_opcode(0o147)
+            .set_exec(Some(VirtualMachine::cpu_set_cdr_code_2)),
         Instruction::new()
             .set_name("%merge-cdr-no-pop".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o342),
+            .set_opcode(0o342)
+            .set_exec(Some(VirtualMachine::cpu_merge_cdr_no_pop)),
         Instruction::new()
             .set_name("%generic-dispatch".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o052),
+            .set_opcode(0o052)
+            .set_exec(Some(VirtualMachine::cpu_generic_dispatch)),
         Instruction::new()
             .set_name("%message-dispatch".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o053),
+            .set_opcode(0o053)
+            .set_exec(Some(VirtualMachine::cpu_message_dispatch)),
         Instruction::new()
             .set_name("%jump".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o011),
+            .set_opcode(0o011)
+            .set_exec(Some(VirtualMachine::cpu_jump)),
         Instruction::new()
             .set_name("%check-preempt-request".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o054),
+            .set_opcode(0o054)
+            .set_exec(Some(VirtualMachine::cpu_check_preempt_request)),
         Instruction::new()
             .set_name("%halt".to_string())
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(0o377)
+            .set_exec(Some(VirtualMachine::cpu_halt)),
     ];
 }

@@ -3,17 +3,21 @@ use log::warn;
 
 use sets::Set;
 use std::cmp::Ordering;
-use std::fs::{DirEntry, File};
+use std::fs::{ DirEntry, File };
 use std::io::Read;
-use std::path::{Path, PathBuf};
-use std::{fmt, process};
+use std::path::{ Path, PathBuf };
+use std::{ fmt, process };
 use uuid::Uuid;
 
 use crate::common::constants::{
-    LoadFileFormat, QTag, IVORY_PAGE_SIZE_BYTES, IVORY_PAGE_SIZE_QS, VLMPAGE_SIZE_QS,
+    LoadFileFormat,
+    QTag,
+    IVORY_PAGE_SIZE_BYTES,
+    IVORY_PAGE_SIZE_QS,
+    VLMPAGE_SIZE_QS,
 };
-use crate::common::types::MemoryCell;
 
+use crate::common::memory_cell::MemoryCell;
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::pack_8_to_32;
 
@@ -22,11 +26,11 @@ use crate::utils::pack_8_to_32;
 pub struct LoadMapEntry {
     pub addr: u32, // VMA to be filled in by this load map entry
     // NOTE: opcount and opcode are field of a struct op{} in the C code
-    pub count: u32,                   // Number of words to be filled in by this entry
+    pub count: u32, // Number of words to be filled in by this entry
     pub map_code: LoadMapEntryOpcode, // An LoadMapEntryOpcode specifying how to do so
-    pub data: MemoryCell,             // Interpretation is based on the opcode
-                                      // pub world: Rc<RefCell<World<'a>>>, // Ref to World from which this entry was obtained
-                                      // !!!!!!!!! Should not be needed to link back
+    pub data: MemoryCell, // Interpretation is based on the opcode
+    // pub world: Rc<RefCell<World<'a>>>, // Ref to World from which this entry was obtained
+    // !!!!!!!!! Should not be needed to link back
 }
 
 pub fn clone(map_entries: &Set<LoadMapEntry>) -> Set<LoadMapEntry> {
@@ -63,7 +67,7 @@ pub enum LoadMapEntryOpcode {
     #[default] //
     Constant, // Store a constant data page into memory
     ConstantIncremented, // Store an auto-incrementing constant into memory
-    Copy,      // Copy an existing piece of memory
+    Copy, // Copy an existing piece of memory
 }
 
 impl fmt::Display for LoadMapEntryOpcode {
@@ -104,17 +108,17 @@ pub enum MapEntrySelector {
 #[derive()]
 pub struct World {
     pub id: Uuid,
-    pub pathname: PathBuf,      // -> Pathname of the world file
-    pub fd: Option<File>,       // Unix filedes # if the world file is open
+    pub pathname: PathBuf, // -> Pathname of the world file
+    pub fd: Option<File>, // Unix filedes # if the world file is open
     pub format: LoadFileFormat, // A LoadFileFormat indicating the type of file
-    pub byte_swapped: bool,     // World is byte swapped on this machine (VLM only)
+    pub byte_swapped: bool, // World is byte swapped on this machine (VLM only)
 
     pub page_base: u32,
     pub page: Vec<MemoryCell>, // -> The current VLM format pagemut
-    pub data_page_base: u32,   // Block number of first page of data (VLM only)
-    pub data_page: Vec<u32>,   // -> The data of the current VLM format page
-    pub tags_page_base: u32,   // Block number of first page of tags (VLM only)
-    pub tags_page: Vec<QTag>,  // -> The tags of the current VLM format page
+    pub data_page_base: u32, // Block number of first page of data (VLM only)
+    pub data_page: Vec<u32>, // -> The data of the current VLM format page
+    pub tags_page_base: u32, // Block number of first page of tags (VLM only)
+    pub tags_page: Vec<QTag>, // -> The tags of the current VLM format page
     // [MemoryCell; IVORY_PAGE_SIZE_BYTES] -> The data of the current Ivory format page.
     // TODO: rename to current_data-page
     pub ivory_data_page: Vec<MemoryCell>,
@@ -126,7 +130,7 @@ pub struct World {
 
     pub generation: u32, // Generation number of this world (> 0 if IDS)
     // pub parent_world: Option<Rc<RefCell<&'a World<'a>>>>, // -> Parent of this world if it's an IDS
-    pub parent_world: Uuid,      // -> Parent of this world if it's an IDS
+    pub parent_world: Uuid, // -> Parent of this world if it's an IDS
     pub parent_timestamp_1: u32, // Unique ID of this world's parent, part 1 ...
     pub parent_timestamp_2: u32, // ... part 2
 
@@ -232,10 +236,9 @@ impl World {
                     first_map_q = 8;
                 }
                 _ => {
-                    panic_exit(format!(
-                        "Format magic code of world file {} is unrecognized",
-                        pathname
-                    ));
+                    panic_exit(
+                        format!("Format magic code of world file {} is unrecognized", pathname)
+                    );
                 }
             }
         }
@@ -281,10 +284,10 @@ impl World {
     // Select the specified Set<LoadMapEntry>
     pub fn select_entries(&mut self, selector: MapEntrySelector) -> &Set<LoadMapEntry> {
         return match selector {
-            MapEntrySelector::Wired => &(self.wired_map_entries),
-            MapEntrySelector::MergedWired => &(self.merged_wired_map_entries),
-            MapEntrySelector::Unwired => &(self.unwired_map_entries),
-            MapEntrySelector::MergedUnwired => &(self.merged_unwired_map_entries),
+            MapEntrySelector::Wired => &self.wired_map_entries,
+            MapEntrySelector::MergedWired => &self.merged_wired_map_entries,
+            MapEntrySelector::Unwired => &self.unwired_map_entries,
+            MapEntrySelector::MergedUnwired => &self.merged_unwired_map_entries,
         };
     }
 
@@ -385,10 +388,10 @@ pub struct VLMPageBases {
     // #if BYTE_ORDER == LITTLE_ENDIAN
     pub data_page_base: u32,
     pub tags_page_base: u32, // Limits header and load maps to 112K bytes
-                             // #else
-                             //   isize tagsPageBase : 4; // Limits header and load maps to 112K bytes
-                             //   isize dataPageBase : 28;
-                             // #endif
+    // #else
+    //   isize tagsPageBase : 4; // Limits header and load maps to 112K bytes
+    //   isize dataPageBase : 28;
+    // #endif
 }
 
 pub const VLMPAGE_BASES: VLMPageBases = VLMPageBases {
@@ -400,13 +403,13 @@ pub const VLMPAGE_BASES: VLMPageBases = VLMPageBases {
 #[derive(Default, Debug)]
 pub struct SaveWorldEntry {
     pub address: u32, // VMA of data (usually a region) to be saved
-    pub extent: u32,  // Number of words starting at this address to save
+    pub extent: u32, // Number of words starting at this address to save
 }
 
 #[derive(Default, Debug)]
 pub struct SaveWorldData {
-    pub patname: u32,                    // Pathname of the world file (a DTP-STRING)
-    pub entry_count: u32,                // Number of address/extent pairs to follow
+    pub patname: u32, // Pathname of the world file (a DTP-STRING)
+    pub entry_count: u32, // Number of address/extent pairs to follow
     pub entries: Option<SaveWorldEntry>, //
 }
 
@@ -435,7 +438,7 @@ pub fn read_ivory_world_file_page(w: &mut World, page_number: u32) {
 pub fn merge_a_map<'a>(
     world: &World,
     fore_map: &Set<LoadMapEntry>,
-    back_map: &Set<LoadMapEntry>,
+    back_map: &Set<LoadMapEntry>
 ) -> Set<LoadMapEntry> {
     // Load the relevant maps
     // We need mutable copies to adjust ends and starts if need at each iteration.
@@ -532,10 +535,10 @@ pub fn merge_a_map<'a>(
         if back_start < fore_start && back_final >= fore_start {
             new_map_entries.insert(LoadMapEntry {
                 addr: new_back.data[back_idx as usize].addr,
-                count: new_fore.data[fore_idx as usize].addr
-                    - (new_back.data[back_idx as usize].addr
-                        + new_back.data[back_idx as usize].count
-                        - 1),
+                count: new_fore.data[fore_idx as usize].addr -
+                (new_back.data[back_idx as usize].addr +
+                    new_back.data[back_idx as usize].count -
+                    1),
                 map_code: new_back.data[back_idx as usize].map_code,
                 data: new_back.data[back_idx as usize].data,
             });
@@ -652,11 +655,13 @@ pub fn merge_a_map<'a>(
 
 pub fn read_ivory_world_file_q(w: &World, address: u32) -> MemoryCell {
     if address >= IVORY_PAGE_SIZE_BYTES {
-        panic_exit(format!(
-            "Invalid word number {} for world file {}",
-            address,
-            &w.pathname.display().to_string()
-        ));
+        panic_exit(
+            format!(
+                "Invalid word number {} for world file {}",
+                address,
+                &w.pathname.display().to_string()
+            )
+        );
     }
 
     return w.ivory_data_page[address as usize];
@@ -962,7 +967,7 @@ pub fn virtual_memory_write_block_constant(
     mut vma: u32,
     mut object: *mut MemoryCell,
     mut count: u32,
-    increment: bool,
+    increment: bool
 ) -> u32 {
     // let mut data: *mut isize = &mut *DataSpace.offset(vma ) as *mut isize;
     // let mut tag: *mut Tag = &mut *TagSpace.offset(vma ) as *mut Tag;
