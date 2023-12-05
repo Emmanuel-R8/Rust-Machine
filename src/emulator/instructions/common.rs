@@ -28,15 +28,15 @@ use crate::hardware::machine::VirtualMachine;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
-    UNDEFINED,
-    NOT_APPLICABLE,
-    SIGNED,
-    UNSIGNED,
+    Undefined,
+    NotApplicable,
+    Signed,
+    Unsigned,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InstructionFamily {
-    UNDEFINED,
+    Undefined,
     List,
     Interruptible,
     Predicate,
@@ -56,7 +56,7 @@ pub enum InstructionFamily {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InstructionFormat {
-    UNDEFINED,
+    Undefined,
     OperandFromStack,
     OperandFromStackImmediate,
     Immediate10Bits,
@@ -80,11 +80,11 @@ pub struct Instruction {
 impl Default for Instruction {
     fn default() -> Self {
         return Self {
-            family: InstructionFamily::UNDEFINED,
-            format: InstructionFormat::UNDEFINED,
+            family: InstructionFamily::Undefined,
+            format: InstructionFormat::Undefined,
             arg_count: 0,
             ret_count: 0,
-            immediate_arg_type: ImmediateArgumentType::UNDEFINED,
+            immediate_arg_type: ImmediateArgumentType::Undefined,
             name: "unknown".to_string(),
             opcode: 0,
             exec: None,
