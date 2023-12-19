@@ -1,9 +1,8 @@
 // #![allow(non_camel)]
-// #![allow(dead_code)]
+#![allow(dead_code)]
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
 
-#[macro_use()]
 extern crate num;
 extern crate num_derive;
 
@@ -78,22 +77,56 @@ mod emulator {
 
 mod utils;
 
-use emulator::instructions::def_build_set::build_instruction_vec_map;
+mod ui {
+    pub mod termui;
+}
+
 //
 // EXTERNAL IMPORTS
 //
-use simplelog::{ Config, LevelFilter, WriteLogger };
 use std::fs::File;
+use std::io::stdout;
+use crossterm::{
+    terminal::{ enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen },
+    execute,
+    event::{ EnableMouseCapture, DisableMouseCapture },
+};
+use ratatui::{ backend::CrosstermBackend, Terminal };
+use simplelog::{ Config, LevelFilter, WriteLogger };
+
+use anyhow::Result;
 
 //
 // LOCAL IMPORTS
 //
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
+use emulator::instructions::def_build_set::build_instruction_vec_map;
+use ui::termui::{ AppUI, run_app };
 
 //
 //
-pub fn main() {
+pub fn main() -> Result<()> {
+    //
+    // UI terminal
+    //
+
+    // setup terminal
+    enable_raw_mode()?;
+    let mut stdout = stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut termui = Terminal::new(backend)?;
+
+    // create app and run it
+    let app = AppUI::new();
+    let res = run_app(&mut termui, app);
+
+    // restore terminal
+    disable_raw_mode()?;
+    execute!(termui.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
+    termui.show_cursor()?;
+
     // Global state
     let mut ctx: GlobalContext = GlobalContext::new();
     let instruction_vec_map = build_instruction_vec_map();
@@ -122,9 +155,9 @@ pub fn main() {
     // let message: &str = "";
     // let reason: u32 = 0;
 
-    let mut config = VLMConfig::default();
-    let mut enable_ids_p = config.enable_ids;
-    let mut trace_p = config.tracing.trace_post;
+    let config = VLMConfig::default();
+    let enable_ids_p = config.enable_ids;
+    let trace_p = config.tracing.trace_post;
 
     // let TestFunction = config.testFunction;
 
@@ -212,4 +245,6 @@ pub fn main() {
     //         break;
     //     }
     // }
+
+    return Ok(());
 }

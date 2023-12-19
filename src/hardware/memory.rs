@@ -348,7 +348,7 @@ impl<'a> GlobalContext<'a> {
 // Computes the PROT_XXX setting for a particular combination of
 // VMAttribute's.  C.f., segv_handler, which translates resulting segfault
 // back to appropriate Lisp fault
-pub fn compute_protection(mut vma: VMAttribute) -> u32 {
+pub fn compute_protection(vma: VMAttribute) -> u32 {
     //  Don't cause transport faults if they are overridden
     if (vma & VMATTRIBUTE_TRANSPORT_DISABLE) != 0 {
         clear_vmtransport_disable(vma);
