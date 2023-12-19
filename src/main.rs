@@ -82,19 +82,14 @@ mod ui {
 }
 
 //
-// EXTERNAL IMPORTS
+// STANDARD IMPORTS
 //
 use std::fs::File;
-use std::io::stdout;
-use crossterm::{
-    terminal::{ enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen },
-    execute,
-    event::{ EnableMouseCapture, DisableMouseCapture },
-};
-use ratatui::{ backend::CrosstermBackend, Terminal };
-use simplelog::{ Config, LevelFilter, WriteLogger };
 
-use anyhow::Result;
+//// EXTERNAL IMPORTS
+//
+use anyhow::{ Result, Context };
+use simplelog::{ Config, LevelFilter, WriteLogger };
 
 //
 // LOCAL IMPORTS
@@ -102,32 +97,15 @@ use anyhow::Result;
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 use emulator::instructions::def_build_set::build_instruction_vec_map;
-use ui::termui::{ AppUI, run_app };
+use ui::termui::{ AppUI, run_app, setup_termui, restore_terminal };
 
 //
 //
 pub fn main() -> Result<()> {
+    ///////////////////////////////////////////////////////////////////////////
     //
-    // UI terminal
-    //
-
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut termui = Terminal::new(backend)?;
-
-    // create app and run it
-    let app = AppUI::new();
-    let res = run_app(&mut termui, app);
-
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(termui.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
-    termui.show_cursor()?;
-
     // Global state
+    //
     let mut ctx: GlobalContext = GlobalContext::new();
     let instruction_vec_map = build_instruction_vec_map();
 
@@ -245,6 +223,21 @@ pub fn main() -> Result<()> {
     //         break;
     //     }
     // }
+
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    // UI terminal
+    //
+
+    // setup terminal
+    let mut termui = setup_termui()?;
+
+    // create app and run it
+    let app = AppUI::new();
+    run_app(&mut termui, app).context("app loop failed")?;
+
+    // restore terminal
+    restore_terminal(&mut termui)?;
 
     return Ok(());
 }
