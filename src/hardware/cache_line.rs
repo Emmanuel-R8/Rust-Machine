@@ -32,6 +32,9 @@ impl Default for InstructionCacheLine {
 
 impl Clone for InstructionCacheLine {
     fn clone(&self) -> Self {
+
+
+
         InstructionCacheLine {
             pc: self.pc.clone(),
             next_pc: self.next_pc.clone(),

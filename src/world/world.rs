@@ -14,7 +14,7 @@ use crate::common::constants::{
     QTag,
     IVORY_PAGE_SIZE_BYTES,
     IVORY_PAGE_SIZE_QS,
-    VLMPAGE_SIZE_QS,
+    VLMPAGE_SIZE_QS, VLMWORLD_FILE_COOKIE, VLMWORLD_FILE_COOKIE_SWAPPED, IVORY_WORLD_FILE_COOKIE, VLMVERSION1_AND_ARCHITECTURE, VLMVERSION2_AND_ARCHITECTURE,
 };
 
 use crate::common::memory_cell::MemoryCell;
@@ -187,7 +187,7 @@ impl World {
 
         // Read 4 bytes for the file magic cookie
         let mut cookie = [0 as u8; 4];
-        f.read(&mut cookie);
+        let _ = f.read(&mut cookie);
 
         match pack_8_to_32(cookie) {
             VLMWORLD_FILE_COOKIE => {
@@ -443,13 +443,13 @@ pub fn merge_a_map<'a>(
     // Load the relevant maps
     // We need mutable copies to adjust ends and starts if need at each iteration.
     let mut new_back = clone(&back_map);
-    let mut new_fore = clone(fore_map);
+    let new_fore = clone(fore_map);
 
     let n_back = new_back.data.len() as u32;
     let n_fore = new_fore.data.len() as u32;
 
     // Resulting new map
-    let mut new_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
+    let new_map_entries: Set<LoadMapEntry> = Set::<LoadMapEntry>::new_ordered(&[], true);
 
     // See SYS:IFEP;WORLD-SUBSTRATE.LISP for an explanation of the maximum number of entries
     let max = n_back + n_fore + n_fore;
@@ -683,7 +683,7 @@ pub fn read_ivory_world_file_q(w: &World, address: u32) -> MemoryCell {
 // }
 
 pub fn world_p(candidate_world: DirEntry) -> bool {
-    let mut a_world = World::default();
+    let a_world = World::default();
     let mut new_worlds: Vec<World>;
     let mut candidate_pathname: &Path;
 
@@ -784,12 +784,12 @@ pub fn map_virtual_address_tag(addr: u32) -> u32 {
 
 impl World {
     pub fn write_vlm_world_file_pages(&self) {
-        let mut page_number: u32 = 0;
-        let mut word_count: u32 = 0;
-        let mut byte_count: u32 = 0;
-        let mut offset: u64 = 0;
-        let mut increment: u32 = 0;
-        let mut i: usize = 0;
+        let page_number: u32 = 0;
+        let word_count: u32 = 0;
+        let byte_count: u32 = 0;
+        let offset: u64 = 0;
+        let increment: u32 = 0;
+        let i: usize = 0;
 
         // MemoryCell = 1 byte tag / 4 bytes data
         // pages are stored as 1 block with all the tags / 3 blocks with all the data
@@ -964,9 +964,9 @@ fn byte_swap_one_world(world: &mut World) {
 }
 
 pub fn virtual_memory_write_block_constant(
-    mut vma: u32,
-    mut object: *mut MemoryCell,
-    mut count: u32,
+    vma: u32,
+    object: *mut MemoryCell,
+    count: u32,
     increment: bool
 ) -> u32 {
     // let mut data: *mut isize = &mut *DataSpace.offset(vma ) as *mut isize;
@@ -1018,7 +1018,7 @@ pub fn virtual_memory_write_block_constant(
     return 0;
 }
 
-pub fn virtual_memory_write(mut vma: u32, object: MemoryCell) -> u32 {
+pub fn virtual_memory_write(vma: u32, object: MemoryCell) -> u32 {
     // memory_vma = vma;
     // *DataSpace.offset(vma ) = (*object).parts.data.u ;
     // *TagSpace.offset(vma ) = (*object).parts.tag as Tag;

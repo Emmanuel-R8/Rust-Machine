@@ -43,7 +43,7 @@ impl<'a> AppUI<'a> {
 // on events, or you could have a single application state and update it based on events.
 pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: AppUI) -> Result<bool> {
     loop {
-        terminal.draw(|f| ui(f, &app))?;
+        terminal.draw(|frame| ui(frame, &app))?;
 
         // Check if the user has pressed 'q'.
         // This is where you would handle events. This example just
@@ -51,7 +51,6 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: AppUI) -> Result
         // events.
         // There is a 100ms timeout on the event poll so that the application can exit in a timely
         // manner, and to ensure that the terminal is rendered at least once every 100ms.
-
         if event::poll(Duration::from_millis(100)).context("event poll failed")? {
             if let Event::Key(key) = event::read().context("event read failed")? {
                 if key.kind == KeyEventKind::Press {
