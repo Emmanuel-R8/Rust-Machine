@@ -1,11 +1,10 @@
 use c2rust_bitfields::BitfieldStruct;
 
 use std::fmt::{ Debug, Display, Formatter, Result };
-use std::ops::{ Add, AddAssign, Sub, SubAssign, Neg };
-use std::{ cell::RefCell, rc::Rc };
+use std::ops::{ Add, AddAssign, Sub, SubAssign };
 
 // Representation of lisp objects
-use super::constants::{ QTag, CDR, VLMPAGE_SIZE_QS, ADDRESS_T, ADDRESS_NIL };
+use super::constants::{ QTag, CDR };
 
 // See I-Machine specs p. 4
 #[repr(C)]
@@ -152,12 +151,7 @@ impl PartialEq for QImmediate {
                     QImmediate::Float(val2) => val1 == val2,
                     _ => false,
                 }
-            QImmediate::Float(val1) =>
-                match other {
-                    QImmediate::Float(val2) => val1 == val2,
-                    _ => false,
-                }
-            _ => false,
+            _ => false
         }
     }
 }
@@ -191,7 +185,7 @@ impl Debug for QImmediate {
 impl Add for QImmediate {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        let mut q = self;
+        let q = self;
 
         match self {
             QImmediate::Unsigned(mut val1) =>
@@ -233,7 +227,7 @@ impl Sub for QImmediate {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
-        let mut q = self;
+        let q = self;
 
         match self {
             QImmediate::Unsigned(mut val1) =>

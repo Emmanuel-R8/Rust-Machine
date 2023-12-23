@@ -1,5 +1,3 @@
-use std::{ cell::RefCell, rc::Rc };
-
 use crate::common::memory_cell::MemoryCell;
 
 ////
@@ -14,7 +12,7 @@ pub struct InstructionCacheLine {
     pub code: u32,
     pub operand: u32,
     pub instruction: u64,
-    pub next_cp: Rc<RefCell<InstructionCacheLine>>,
+    pub next_cp: Option<Box<InstructionCacheLine>>,
 }
 
 impl Default for InstructionCacheLine {
@@ -25,23 +23,30 @@ impl Default for InstructionCacheLine {
             code: 0,
             operand: 0,
             instruction: 0,
-            next_cp: Rc::default(),
+            next_cp: None,
         }
     }
 }
 
 impl Clone for InstructionCacheLine {
     fn clone(&self) -> Self {
+        let next_pc = match self.next_pc.is_nil(){
+            false => self.next_pc.clone(),
+            true => MemoryCell::default(),
+        };
 
-
+        let next_cp = match self.next_cp{
+            None  => None,
+            _ => self.next_cp.clone(),
+        };
 
         InstructionCacheLine {
             pc: self.pc.clone(),
-            next_pc: self.next_pc.clone(),
+            next_pc: next_pc,
             code: self.code,
             operand: self.operand,
             instruction: self.instruction,
-            next_cp: Rc::new(RefCell::new(self.clone())),
+            next_cp: next_cp,
         }
     }
 }

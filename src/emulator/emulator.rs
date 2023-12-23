@@ -150,7 +150,7 @@ impl<'a> GlobalContext<'a> {
         self.cpu.fp = self.cpu.sp;
 
         // Push the control register
-        let mut q = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, self.cpu.control.as_raw());
+        let q = MemoryCell::new_cdr_tag_u(CDR::Jump, QTag::Fixnum, self.cpu.control.as_raw());
         self.cpu.sp = self.inc_and_write_at(self.cpu.sp, q);
 
         // Create a new control register
@@ -269,8 +269,8 @@ impl<'a> GlobalContext<'a> {
             );
         }
 
-        let mut new_merged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
-        let mut new_unmerged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        let new_merged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
+        let new_unmerged_wired_entries = Set::<LoadMapEntry>::new_ordered(&[], true);
 
         self.find_parent_worlds(world_search_path);
         let w = self.worlds.get(&self.world);
@@ -644,7 +644,8 @@ impl<'a> GlobalContext<'a> {
     fn read_swapped_vlm_world_file_q(&self, q_address: u32) -> MemoryCell {
         let w = self.worlds.get(&self.world).unwrap();
 
-        if q_address < 0 || q_address >= VLMPAGE_SIZE_QS {
+        // Comparing q_address < 0 is not necessary with type constraints
+        if q_address >= VLMPAGE_SIZE_QS {
             // self.close(true);
             panic_exit(
                 format!(

@@ -1,6 +1,6 @@
 use std::ops::{ SubAssign, AddAssign, Sub, Add, Neg };
 
-use super::{ constants::{ QTag, CDR, ADDRESS_T, ADDRESS_NIL }, types::Address };
+use super::{ constants::{ QTag, CDR, ADDRESS_T, ADDRESS_NIL, QTAG_FIXNUM, QTAG_SINGLEFLOAT }, types::Address };
 
 #[derive(Debug)]
 pub struct MemoryCell {
@@ -147,17 +147,14 @@ impl MemoryCell {
 
     // Non mutating
     pub fn inc(self) -> Self {
-        let tag_i = QTag::Fixnum as u8;
-        let tag_f = QTag::SingleFloat as u8;
-
         match self.tag() {
-            tag_i => {
+            QTAG_FIXNUM => {
                 let mut m = self.clone();
                 let i = self.as_i32().unwrap() + 1;
                 m.set_i32(i);
                 return m;
             }
-            tag_f => {
+            QTAG_SINGLEFLOAT => {
                 let mut m = self.clone();
                 let f = self.as_f32().unwrap() + 1.0;
                 m.set_f32(f);
@@ -169,17 +166,14 @@ impl MemoryCell {
 
     // Non mutating
     pub fn dec(self) -> Self {
-        let tag_i = QTag::Fixnum as u8;
-        let tag_f = QTag::SingleFloat as u8;
-
         match self.tag() {
-            tag_i => {
+            QTAG_FIXNUM => {
                 let mut m = self.clone();
                 let i = self.as_i32().unwrap() - 1;
                 m.set_i32(i);
                 return m;
             }
-            tag_f => {
+            QTAG_SINGLEFLOAT => {
                 let mut m = self.clone();
                 let f = self.as_f32().unwrap() - 1.0;
                 m.set_f32(f);
@@ -192,11 +186,11 @@ impl MemoryCell {
     // Mutating
     pub fn inc_mut(&mut self) -> &Self {
         match self.tag() {
-            tag_i => {
+            QTAG_FIXNUM => {
                 let i = self.as_i32().unwrap() + 1;
                 self.set_i32(i);
             }
-            tag_f => {
+            QTAG_SINGLEFLOAT => {
                 let f = self.as_f32().unwrap() + 1.0;
                 self.set_f32(f);
             }
@@ -209,11 +203,11 @@ impl MemoryCell {
     // Non mutating
     pub fn dec_mut(&mut self) -> &Self {
         match self.tag() {
-            tag_i => {
+            QTAG_FIXNUM => {
                 let i = self.as_i32().unwrap() - 1;
                 self.set_i32(i);
             }
-            tag_f => {
+            QTAG_SINGLEFLOAT => {
                 let f = self.as_f32().unwrap() - 1.0;
                 self.set_f32(f);
             }

@@ -1,6 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use crate::common::constants::{
     QTag,
     TrapMode,
@@ -300,7 +297,7 @@ impl CPU {
                 code: 0,
                 operand: 0,
                 instruction: 0,
-                next_cp: Rc::new(RefCell::default()),
+                next_cp: None,
             };
 
             self.instruction_cache[2 * (i as usize) + 1] = InstructionCacheLine {
@@ -309,7 +306,7 @@ impl CPU {
                 code: 0,
                 operand: 0,
                 instruction: 0,
-                next_cp: Rc::new(RefCell::default()),
+                next_cp: None,
             };
         }
 

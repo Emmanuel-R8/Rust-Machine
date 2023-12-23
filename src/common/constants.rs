@@ -7,6 +7,10 @@ use std::fmt::{ self };
 // TYPES tag - 6 top bits of a Lisp objects
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+pub const QTAG_FIXNUM: u8 = 0o10;
+pub const QTAG_SINGLEFLOAT: u8 = 0o12;
+
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum QTag {

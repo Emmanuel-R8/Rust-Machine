@@ -98,9 +98,9 @@ impl Default for VLMConfig<'static> {
         };
 
         // let mut options = 0 as XrmDatabase;
-        let mut home_dir = PathBuf::from("");
-        let mut working_dir = PathBuf::from("");
-        let mut config_file = PathBuf::from("");
+        let home_dir = PathBuf::from("");
+        let working_dir = PathBuf::from("");
+        let config_file = PathBuf::from("");
 
         // XrmInitialize();
         // GetDefaultConfiguration(config, &mut options);
