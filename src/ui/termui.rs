@@ -9,29 +9,68 @@ use crossterm::{
 };
 use ratatui::{ prelude::*, widgets::* };
 
+// Contains all the state data for the UI
 pub struct AppUI<'a> {
+    pub tab_index: usize,
     pub tab_names: Vec<&'a str>,
-    pub index: usize,
+
+    pub table_state: TableState,
+    pub table_content: Vec<Vec<&'a str>>,
 }
 
 impl<'a> AppUI<'a> {
     pub fn new() -> AppUI<'a> {
         AppUI {
-            tab_names: vec!["Main Tab", "Memory", "World File", "Other..."],
-            index: 0,
+            //
+            // Global App statae
+            tab_index: 0,
+            tab_names: vec!["Main Tab", "Table example", "Memory", "World File", "Other..."],
+            //
+            // Tab: Table example
+            table_state: TableState::default(),
+            table_content: vec![
+                vec!["Row11", "Row12", "Row13"],
+                vec!["Row21", "Row22", "Row23"],
+                vec!["Row31", "Row32", "Row33"],
+                vec!["Row41", "Row42", "Row43"],
+                vec!["Row51", "Row52", "Row53"],
+                vec!["Row61", "Row62\nTest", "Row63"],
+                vec!["Row71", "Row72", "Row73"],
+                vec!["Row81", "Row82", "Row83"],
+                vec!["Row91", "Row92", "Row93"]
+            ],
         }
     }
 
     pub fn next_tab(&mut self) {
-        self.index = (self.index + 1) % self.tab_names.len();
+        self.tab_index = (self.tab_index + 1) % self.tab_names.len();
     }
 
     pub fn previous_tab(&mut self) {
-        if self.index > 0 {
-            self.index -= 1;
+        if self.tab_index > 0 {
+            self.tab_index -= 1;
         } else {
-            self.index = self.tab_names.len() - 1;
+            self.tab_index = self.tab_names.len() - 1;
         }
+    }
+
+    //
+    // Tab example with a table content
+    //
+    pub fn next_cell(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => (i + 1) % self.table_content.len(),
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+    }
+
+    pub fn previous_cell(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => (i - 1) % self.table_content.len(),
+            None => 0,
+        };
+        self.table_state.select(Some(i));
     }
 }
 
@@ -90,12 +129,12 @@ pub fn ui(f: &mut Frame, app: &AppUI) {
 
     let tabs = Tabs::new(titles)
         .block(Block::default().borders(Borders::ALL).title("Tabs"))
-        .select(app.index)
+        .select(app.tab_index)
         .style(Style::default().cyan().on_gray())
         .highlight_style(Style::default().bold().on_black());
     f.render_widget(tabs, chunks[0]);
 
-    let inner = match app.index {
+    let inner = match app.tab_index {
         0 => Block::default().title("Inner 0").borders(Borders::ALL),
         1 => Block::default().title("Inner 1").borders(Borders::ALL),
         2 => Block::default().title("Inner 2").borders(Borders::ALL),
@@ -110,7 +149,7 @@ pub fn ui(f: &mut Frame, app: &AppUI) {
 /// This is where you would enable raw mode, enter the alternate screen, and
 /// hide the cursor. This example does not handle errors. A more robust application would probably
 /// want to handle errors and ensure that the terminal is restored to a sane state before exiting.
-pub fn setup_termui() -> Result<Terminal<CrosstermBackend<Stdout>>> {
+pub fn setup_terminal() -> Result<Terminal<CrosstermBackend<Stdout>>> {
     let mut stdout = io::stdout();
     enable_raw_mode().context("failed to enable raw mode")?;
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture).context(

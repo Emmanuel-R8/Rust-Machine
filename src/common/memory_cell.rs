@@ -1,6 +1,9 @@
 use std::ops::{ SubAssign, AddAssign, Sub, Add, Neg };
 
-use super::{ constants::{ QTag, CDR, ADDRESS_T, ADDRESS_NIL, QTAG_FIXNUM, QTAG_SINGLEFLOAT }, types::Address };
+use super::{
+    constants::{ QTag, CDR, ADDRESS_T, ADDRESS_NIL, QTAG_FIXNUM, QTAG_SINGLEFLOAT },
+    types::Address,
+};
 
 #[derive(Debug)]
 pub struct MemoryCell {
@@ -11,9 +14,17 @@ pub struct MemoryCell {
 
 impl MemoryCell {
     pub fn new(cdr: u8, tag: u8, half_word1: u16, half_word2: u16) -> Self {
-        assert!(cdr <= 0b0000_0111); // make sure cdr is within 3 bits
-        assert!(tag <= 0b0001_1111); // make sure tag is within 5 bits
-        let cdr_tag = (cdr << 5) | tag; // pack cdr and tag into one byte
+        assert!(
+            cdr <= 0b0000_0111,
+            "cdr must be 3 bits (called with cdr: {cdr:#05o} / {cdr:#010b}, tag: {tag:#05o} / {tag:#010b}, half_word1: {half_word1:#010x}, half_word2: {half_word2:#010x})"
+        ); // make sure cdr is within 3 bits
+        assert!(
+            tag <= 0b0011_1111,
+            "tag must be 6 bits (called with cdr: {cdr:#05o} / {cdr:#010b}, tag: {tag:#05o} / {tag:#010b}, half_word1: {half_word1:#010x}, half_word2: {half_word2:#010x})"
+        ); // make sure tag is within 6 bits
+
+        // pack cdr and tag into one byte
+        let cdr_tag = (cdr << 6) | tag;
         return MemoryCell {
             cdr_tag,
             half_word1,
@@ -44,19 +55,19 @@ impl MemoryCell {
     }
 
     pub fn cdr(&self) -> u8 {
-        self.cdr_tag >> 5 // retrieve cdr
+        self.cdr_tag >> 6 // retrieve cdr
     }
 
     pub fn set_cdr(&mut self, cdr: CDR) {
-        self.cdr_tag = ((cdr as u8) << 5) | (self.cdr_tag & 0b0001_1111);
+        self.cdr_tag = ((cdr as u8) << 6) | (self.cdr_tag & 0b0011_1111);
     }
 
     pub fn tag(&self) -> u8 {
-        self.cdr_tag & 0b0001_1111
+        self.cdr_tag & 0b0011_1111
     }
 
     pub fn set_tag(&mut self, tag: QTag) -> &Self {
-        self.cdr_tag = (self.cdr() << 5) | ((tag as u8) & 0b0001_1111);
+        self.cdr_tag = (self.cdr() << 6) | ((tag as u8) & 0b0011_1111);
         return self;
     }
 

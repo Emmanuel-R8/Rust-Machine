@@ -16,52 +16,52 @@ pub const QTAG_SINGLEFLOAT: u8 = 0o12;
 pub enum QTag {
     //  Headers  special markers and forwarding pointers.
     #[default] // Default constructor
-    Null = 0, //  00 Unbound variable/function
-    MonitorForward = 1, //  01 This cell being monitored
-    HeaderP = 2, //  02 Structure header
-    HeaderI = 3, //  03 Structure header
-    ExternalValueCellPointer = 4, //  04 Invisible except for binding
-    OneQForward = 5, //  05 Invisible pointer (forwards one cell)
-    HeaderForward = 6, //  06 Invisible pointer (forwards whole structure)
-    ElementForward = 7, //  07 Invisible pointer in element of structure
+    Null = 0o00, //  00 Unbound variable/function
+    MonitorForward = 0o01, //  01 This cell being monitored
+    HeaderP = 0o02, //  02 Structure header
+    HeaderI = 0o03, //  03 Structure header
+    ExternalValueCellPointer = 0o04, //  04 Invisible except for binding
+    OneQForward = 0o05, //  05 Invisible pointer (forwards one cell)
+    HeaderForward = 0o06, //  06 Invisible pointer (forwards whole structure)
+    ElementForward = 0o07, //  07 Invisible pointer in element of structure
     //
     //  Numeric data types. - All have the following bits on/off 000001xxxxxx
-    Fixnum = 8, //  10 Small integer
-    SmallRatio = 9, //  11 Ratio with small numerator and denominator
-    SingleFloat = 10, //  12 SinglePrecision floating point
-    DoubleFloat = 11, //  13 DoublePrecision floating point
-    Bignum = 12, //  14 Big integer
-    BigRatio = 13, //  15 Ratio with big numerator or denominator
-    Complex = 14, //  16 Complex number
-    SpareNumber = 15, //  17 A number to the hardware trap mechanism
+    Fixnum = 0o10, //  10 Small integer
+    SmallRatio = 0o11, //  11 Ratio with small numerator and denominator
+    SingleFloat = 0o12, //  12 SinglePrecision floating point
+    DoubleFloat = 0o13, //  13 DoublePrecision floating point
+    Bignum = 0o14, //  14 Big integer
+    BigRatio = 0o15, //  15 Ratio with big numerator or denominator
+    Complex = 0o16, //  16 Complex number
+    SpareNumber = 0o17, //  17 A number to the hardware trap mechanism
 
     //  Instance data types.
-    Instance = 16, //  20 Ordinary instance
-    ListInstance = 17, //  21 Instance that masquerades as a cons
-    ArrayInstance = 18, //  22 Instance that masquerades as an array
-    StringInstance = 19, //  23 Instance that masquerades as a string
+    Instance = 0o20, //  20 Ordinary instance
+    ListInstance = 0o21, //  21 Instance that masquerades as a cons
+    ArrayInstance = 0o22, //  22 Instance that masquerades as an array
+    StringInstance = 0o23, //  23 Instance that masquerades as a string
 
     //  Primitive data types.
-    NIL = 20, //  24 The symbol NIL
-    List = 21, //  25 A cons
-    Array = 22, //  26 An array that is not a string
-    String = 23, //  27 A string
-    Symbol = 24, //  30 A symbol other than NIL
-    Locative = 25, //  31 Locative pointer
-    LexicalClosure = 26, //  32 Lexical closure of a function
-    DynamicClosure = 27, //  33 Dynamic closure of a function
-    CompiledFunction = 28, //  34 Compiled code
-    GenericFunction = 29, //  35 Generic function (see later section)
-    SparePointer1 = 30, //  36 Spare
-    SparePointer2 = 31, //  37 Spare
-    PhysicalAddress = 32, //  40 Physical address
-    NativeInstruction = 33, //  41 Spare
-    BoundLocation = 34, //  42 Deep bound marker
-    Character = 35, //  43 Common Lisp character object
-    LogicVariable = 36, //  44 Unbound logic variable marker
-    GCForward = 37, //  45 ObjectMoved flag for garbage collector
-    EvenPC = 38, //  46 PC at first instruction in word
-    OddPC = 39, //  47 PC at second instruction in word
+    NIL = 0o24, //  24 The symbol NIL
+    List = 0o25, //  25 A cons
+    Array = 0o26, //  26 An array that is not a string
+    String = 0o27, //  27 A string
+    Symbol = 0o30, //  30 A symbol other than NIL
+    Locative = 0o31, //  31 Locative pointer
+    LexicalClosure = 0o32, //  32 Lexical closure of a function
+    DynamicClosure = 0o33, //  33 Dynamic closure of a function
+    CompiledFunction = 0o34, //  34 Compiled code
+    GenericFunction = 0o35, //  35 Generic function (see later section)
+    SparePointer1 = 0o36, //  36 Spare
+    SparePointer2 = 0o37, //  37 Spare
+    PhysicalAddress = 0o40, //  40 Physical address
+    NativeInstruction = 0o41, //  41 Spare
+    BoundLocation = 0o42, //  42 Deep bound marker
+    Character = 0o43, //  43 Common Lisp character object
+    LogicVariable = 0o44, //  44 Unbound logic variable marker
+    GCForward = 0o45, //  45 ObjectMoved flag for garbage collector
+    EvenPC = 0o46, //  46 PC at first instruction in word
+    OddPC = 0o47, //  47 PC at second instruction in word
 
     //  FullWord instructions.
     CallCompiledEven = 40, //  50 Start call
@@ -104,6 +104,11 @@ impl fmt::Display for QTag {
 // CDR tag for data
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+pub const CDR_NEXT: u8 = 0;
+pub const CDR_ILLEGAL: u8 = 1;
+pub const CDR_NORMAL: u8 = 2;
+pub const CDR_JUMP: u8 = 3;
+
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum CDR {
@@ -183,29 +188,26 @@ impl fmt::Display for ArrayElementType {
 }
 
 // see aihead.h
+// 32 bits = 0o37_777_777_777
 // The top 6 bits describes the type of array
-const ARRAY_TYPE_FIELD_MASK: u32 = 0b11111100_00000000_00000000_00000000;
-
 // Format of those 6 bits
-const ARRAY_ELEMENT_TYPE_MASK: u32 = 0b11000000_00000000_00000000_00000000;
-
-const ARRAY_BYTE_PACKING_MASK: u32 = 0b00111000_00000000_00000000_00000000;
-const ARRAY_LIST_BIT_MASK: u32 = 0b00000100_00000000_00000000_00000000;
-const ARRAY_NAMED_STRUCTURE_BIT_MASK: u32 = 0b00000010_00000000_00000000_00000000;
-const ARRAY_SPARE1_MASK: u32 = 0b00000001_00000000_00000000_00000000;
-const ARRAY_LONG_PREFIX_BIT_MASK: u32 = 0b00000000_10000000_00000000_00000000;
-const ARRAY_LEADER_LENGTH_FIELD_MASK: u32 = 0b00000000_01111111_10000000_00000000;
-
-const ARRAY_LENGTH_MASK: u32 = 0b00000000_00000000_01111111_11111111;
-const ARRAY_LONG_DIMENSIONS_FIELD_MASK: u32 = 0b00000000_00000000_00000000_00000111;
-const ARRAY_LONG_SPARE_MASK: u32 = 0b00000000_00000000_01111111_11111000;
-const ARRAY_DISCONTIGUOUS_BIT_MASK: u32 = 0b00000000_00000000_00100000_00000000;
-const ARRAY_DISPLACED_BIT_MASK: u32 = 0b00000000_00000000_01000000_00000000;
-
-const ARRAY_REGISTER_ELEMENT_TYPE_MASK: u32 = 0b11000000_00000000_00000000_00000000;
-const ARRAY_REGISTER_BYTE_PACKING_MASK: u32 = 0b00111000_00000000_00000000_00000000;
-const ARRAY_REGISTER_BYTE_OFFSET_MASK: u32 = 0b00000111_11000000_00000000_00000000;
-const ARRAY_REGISTER_EVENT_COUNT_MASK: u32 = 0b00000000_00111111_11111111_11111111;
+pub const ARRAY_TYPE_FIELD_MASK: u32            = 0b111111_000_00000000_00_0000000000_000;
+pub const ARRAY_ELEMENT_TYPE_MASK: u32          = 0b110000_000_00000000_00_0000000000_000;
+pub const ARRAY_BYTE_PACKING_MASK: u32          = 0b001110_000_00000000_00_0000000000_000;
+pub const ARRAY_LIST_BIT_MASK: u32              = 0b000001_000_00000000_00_0000000000_000;
+pub const ARRAY_NAMED_STRUCTURE_BIT_MASK: u32   = 0b000000_100_00000000_00_0000000000_000;
+pub const ARRAY_SPARE1_MASK: u32                = 0b000000_010_00000000_00_0000000000_000;
+pub const ARRAY_LONG_PREFIX_BIT_MASK: u32       = 0b000000_001_00000000_00_0000000000_000;
+pub const ARRAY_LEADER_LENGTH_FIELD_MASK: u32   = 0b000000_000_11111111_00_0000000000_000;
+pub const ARRAY_LENGTH_MASK: u32                = 0b000000_000_00000000_11_1111111111_111;
+pub const ARRAY_LONG_DIMENSIONS_FIELD_MASK: u32 = 0b000000_000_00000000_00_0000000000_111;
+pub const ARRAY_LONG_SPARE_MASK: u32            = 0b000000_000_00000000_11_1111111111_000;
+pub const ARRAY_DISCONTIGUOUS_BIT_MASK: u32     = 0b000000_000_00000000_01_0000000000_000;
+pub const ARRAY_DISPLACED_BIT_MASK: u32         = 0b000000_000_00000000_10_0000000000_000;
+pub const ARRAY_REGISTER_ELEMENT_TYPE_MASK: u32 = 0b110000_000_00000000_00_0000000000_000;
+pub const ARRAY_REGISTER_BYTE_PACKING_MASK: u32 = 0b001110_000_00000000_00_0000000000_000;
+pub const ARRAY_REGISTER_BYTE_OFFSET_MASK: u32  = 0b000001_111_10000000_00_0000000000_000;
+pub const ARRAY_REGISTER_EVENT_COUNT_MASK: u32  = 0b000000_000_01111111_11_1111111111_111;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -237,228 +239,228 @@ pub enum OpCode {
     // List manipulation
     Car = 0o000_000,
     Cdr = 0o000_001,
-    SetToCar = 0b0001100000,
-    SetToCdr = 0b0001100001,
-    SetToCdrPushCar = 0b0001100010,
-    Rplaca = 0b0010000000,
-    Rplacd = 0b0010000001,
-    Rgetf = 0b0010010101,
-    Member = 0b0010010110,
-    Assoc = 0b0010010111,
+    SetToCar = 0b0_001_100_000,
+    SetToCdr = 0b0_001_100_001,
+    SetToCdrPushCar = 0b0_001_100_010,
+    Rplaca = 0b0_010_000_000,
+    Rplacd = 0b0_010000001,
+    Rgetf = 0b0_010010101,
+    Member = 0b0_010010110,
+    Assoc = 0b0_010010111,
 
     // AI Instructions
-    Dereference = 0b0000001011,
-    Unify = 0b0010011111,
-    PushLocalLogicVariables = 0b0001000011,
-    PushGlobalLogicVariable = 0b0000101101,
-    LogicTailTest = 0b0000001100,
+    Dereference = 0b0_000001011,
+    Unify = 0b0_010011111,
+    PushLocalLogicVariables = 0b0_001000011,
+    PushGlobalLogicVariable = 0b0_000101101,
+    LogicTailTest = 0b0_000001100,
 
     // Binary predicates
-    Eq = 0b0010111000,
-    EqNoPop = 0b0010111100,
-    Eql = 0b0010110011,
-    EqlNoPop = 0b0010110111,
-    EqualNumber = 0b0010110000,
-    EqualNumberNoPop = 0b0010110100,
-    Greaterp = 0b0010110010,
-    GreaterpNoPop = 0b0010110110,
-    Lessp = 0b0010110001,
-    LesspNoPop = 0b0010110101,
-    Logtest = 0b0010111011,
-    LogtestNoPop = 0b0010111111,
-    TypeMember = 0b0000100000,
-    TypeMemberNoPop = 0b0000100100,
+    Eq = 0b0_010111000,
+    EqNoPop = 0b0_010111100,
+    Eql = 0b0_010110011,
+    EqlNoPop = 0b0_010110111,
+    EqualNumber = 0b0_010110000,
+    EqualNumberNoPop = 0b0_010110100,
+    Greaterp = 0b0_010110010,
+    GreaterpNoPop = 0b0_010110110,
+    Lessp = 0b0_010110001,
+    LesspNoPop = 0b0_010110101,
+    Logtest = 0b0_010111011,
+    LogtestNoPop = 0b0_010111111,
+    TypeMember = 0b0_000100000,
+    TypeMemberNoPop = 0b0_000100100,
 
     // Unary predicates
-    Endp = 0b0000000010,
-    Plusp = 0b0000011110,
-    Minusp = 0b0000011101,
-    Zerop = 0b0000011100,
+    Endp = 0b0_000000010,
+    Plusp = 0b0_000011110,
+    Minusp = 0b0_000011101,
+    Zerop = 0b0_000011100,
 
     // Numeric operations
-    Add = 0b0011000000,
-    Sub = 0b0011000001,
-    UnaryMinus = 0b0001001100,
-    Increment = 0b0001100011,
-    Decrement = 0b0001100100,
-    Multiply = 0b0010000010,
-    Quotient = 0b0010000011,
-    Ceiling = 0b0010000100,
-    Floor = 0b0010000101,
-    Truncate = 0b0010000110,
-    Round = 0b0010000111,
-    RationalQuotient = 0b0010001001,
-    Max = 0b0010001011,
-    Min = 0b0010001010,
-    Logand = 0b0010001101,
-    Logior = 0b0010001111,
-    Logxor = 0b0010001110,
-    Ash = 0b0010011010,
-    Rot = 0b0010010000,
-    Lsh = 0b0010010001,
-    Op32BitPlus = 0b0011000010,
-    Op32BitDifference = 0b0011000011,
-    MultiplyDouble = 0b0010010010,
-    AddBignumStep = 0b0011000100,
-    SubBignumStep = 0b0011000101,
-    MultiplyBignumStep = 0b0011000110,
-    DivideBignumStep = 0b0011000111,
-    LshcBignumStep = 0b0010010011,
+    Add = 0b0_011000000,
+    Sub = 0b0_011000001,
+    UnaryMinus = 0b0_001001100,
+    Increment = 0b0_001100011,
+    Decrement = 0b0_001100100,
+    Multiply = 0b0_010000010,
+    Quotient = 0b0_010000011,
+    Ceiling = 0b0_010000100,
+    Floor = 0b0_010000101,
+    Truncate = 0b0_010000110,
+    Round = 0b0_010000111,
+    RationalQuotient = 0b0_010001001,
+    Max = 0b0_010001011,
+    Min = 0b0_010001010,
+    Logand = 0b0_010001101,
+    Logior = 0b0_010001111,
+    Logxor = 0b0_010001110,
+    Ash = 0b0_010011010,
+    Rot = 0b0_010010000,
+    Lsh = 0b0_010010001,
+    Op32BitPlus = 0b0_011000010,
+    Op32BitDifference = 0b0_011000011,
+    MultiplyDouble = 0b0_010010010,
+    AddBignumStep = 0b0_011000100,
+    SubBignumStep = 0b0_011000101,
+    MultiplyBignumStep = 0b0_011000110,
+    DivideBignumStep = 0b0_011000111,
+    LshcBignumStep = 0b0_010010011,
 
     // Data movement
-    Push = 0b0001000000,
-    Pop = 0b0011100000,
-    Movem = 0b0011100001,
-    PushNNils = 0b0001000001,
-    PushAddress = 0b0001101000,
-    SetSpToAddress = 0b0001101001,
-    SetSpToAddressSaveTos = 0b0001101010,
-    PushAddressSpRelative = 0b0001000010,
-    StackBlt = 0b0010010100,
-    StackBltAddress = 0b0011101010,
+    Push = 0b0_001000000,
+    Pop = 0b0_011100000,
+    Movem = 0b0_011100001,
+    PushNNils = 0b0_001000001,
+    PushAddress = 0b0_001101000,
+    SetSpToAddress = 0b0_001101001,
+    SetSpToAddressSaveTos = 0b0_001101010,
+    PushAddressSpRelative = 0b0_001000010,
+    StackBlt = 0b0_010010100,
+    StackBltAddress = 0b0_011101010,
 
     // FieldExtraction instructions
-    Ldb = 0b0001111000,
-    Dpb = 0b0011111000,
-    CharLdb = 0b0001111001,
-    CharDpb = 0b0011111001,
-    PLdb = 0b0001111010,
-    PDpb = 0b0011111010,
-    PTagLdb = 0b0001111011,
-    PTagDpb = 0b0011111011,
+    Ldb = 0b0_001111000,
+    Dpb = 0b0_011111000,
+    CharLdb = 0b0_001111001,
+    CharDpb = 0b0_011111001,
+    PLdb = 0b0_001111010,
+    PDpb = 0b0_011111010,
+    PTagLdb = 0b0_001111011,
+    PTagDpb = 0b0_011111011,
 
     // Array operations
-    Aref1 = 0b0011001010,
-    Aset1 = 0b0011001000,
-    Aloc1 = 0b0011001011,
-    Setup1DArray = 0b0000000011,
-    SetupForce1DArray = 0b0000000100,
-    FastAref1 = 0b0011101000,
-    FastAset1 = 0b0011101001,
-    ArrayLeader = 0b0011001110,
-    StoreArrayLeader = 0b0011001100,
-    AlocLeader = 0b0011001111,
+    Aref1 = 0b0_011001010,
+    Aset1 = 0b0_011001000,
+    Aloc1 = 0b0_011001011,
+    Setup1DArray = 0b0_000000011,
+    SetupForce1DArray = 0b0_000000100,
+    FastAref1 = 0b0_011101000,
+    FastAset1 = 0b0_011101001,
+    ArrayLeader = 0b0_011001110,
+    StoreArrayLeader = 0b0_011001100,
+    AlocLeader = 0b0_011001111,
 
     // Branch instructions
-    Branch = 0b0001111100,
-    BranchTrue = 0b0000110000,
-    BranchTrueElseExtraPop = 0b0000110001,
-    BranchTrueAndExtraPop = 0b0000110010,
-    BranchTrueExtraPop = 0b0000110011,
-    BranchTrueNoPop = 0b0000110100,
-    BranchTrueAndNoPop = 0b0000110101,
-    BranchTrueElseNoPop = 0b0000110110,
-    BranchTrueAndNoPopElseNoPopExtraPop = 0b0000110111,
-    BranchFalse = 0b0000111000,
-    BranchFalseElseExtraPop = 0b0000111001,
-    BranchFalseAndExtraPop = 0b0000111010,
-    BranchFalseExtraPop = 0b0000111011,
-    BranchFalseNoPop = 0b0000111100,
-    BranchFalseAndNoPop = 0b0000111101,
-    BranchFalseElseNoPop = 0b0000111110,
-    BranchFalseAndNoPopElseNoPopExtraPop = 0b0000111111,
-    LoopDecrementTos = 0b0001111101,
-    LoopIncrementTosLessThan = 0b0011111101,
+    Branch = 0b0_001111100,
+    BranchTrue = 0b0_000110000,
+    BranchTrueElseExtraPop = 0b0_000110001,
+    BranchTrueAndExtraPop = 0b0_000110010,
+    BranchTrueExtraPop = 0b0_000110011,
+    BranchTrueNoPop = 0b0_000110100,
+    BranchTrueAndNoPop = 0b0_000110101,
+    BranchTrueElseNoPop = 0b0_000110110,
+    BranchTrueAndNoPopElseNoPopExtraPop = 0b0_000110111,
+    BranchFalse = 0b0_000111000,
+    BranchFalseElseExtraPop = 0b0_000111001,
+    BranchFalseAndExtraPop = 0b0_000111010,
+    BranchFalseExtraPop = 0b0_000111011,
+    BranchFalseNoPop = 0b0_000111100,
+    BranchFalseAndNoPop = 0b0_000111101,
+    BranchFalseElseNoPop = 0b0_000111110,
+    BranchFalseAndNoPopElseNoPopExtraPop = 0b0_000111111,
+    LoopDecrementTos = 0b0_001111101,
+    LoopIncrementTosLessThan = 0b0_011111101,
 
     // Block instructions
-    Block0Read = 0b0001010000,
-    Block1Read = 0b0001010001,
-    Block2Read = 0b0001010010,
-    Block3Read = 0b0001010011,
-    Block0ReadShift = 0b0001010100,
-    Block1ReadShift = 0b0001010101,
-    Block2ReadShift = 0b0001010110,
-    Block3ReadShift = 0b0001010111,
-    Block0ReadAlu = 0b0001110000,
-    Block1ReadAlu = 0b0001110001,
-    Block2ReadAlu = 0b0001110010,
-    Block3ReadAlu = 0b0001110011,
-    Block0ReadTest = 0b0001011000,
-    Block1ReadTest = 0b0001011001,
-    Block2ReadTest = 0b0001011010,
-    Block3ReadTest = 0b0001011011,
-    Block0Write = 0b0000011000,
-    Block1Write = 0b0000011001,
-    Block2Write = 0b0000011010,
-    Block3Write = 0b0000011011,
+    Block0Read = 0b0_001010000,
+    Block1Read = 0b0_001010001,
+    Block2Read = 0b0_001010010,
+    Block3Read = 0b0_001010011,
+    Block0ReadShift = 0b0_001010100,
+    Block1ReadShift = 0b0_001010101,
+    Block2ReadShift = 0b0_001010110,
+    Block3ReadShift = 0b0_001010111,
+    Block0ReadAlu = 0b0_001110000,
+    Block1ReadAlu = 0b0_001110001,
+    Block2ReadAlu = 0b0_001110010,
+    Block3ReadAlu = 0b0_001110011,
+    Block0ReadTest = 0b0_001011000,
+    Block1ReadTest = 0b0_001011001,
+    Block2ReadTest = 0b0_001011010,
+    Block3ReadTest = 0b0_001011011,
+    Block0Write = 0b0_000011000,
+    Block1Write = 0b0_000011001,
+    Block2Write = 0b0_000011010,
+    Block3Write = 0b0_000011011,
 
     // Function calling
-    StartCall = 0b0000001000,
-    FinishCallN = 0b0001011100,
-    FinishCallNApply = 0b0001011101,
-    FinishCallTos = 0b0001011110,
-    FinishCallTosApply = 0b0001011111,
-    EntryRestAccepted = 0b0001111110,
-    EntryRestNotAccepted = 0b0001111111,
-    LocateLocals = 0b0000101000,
-    ReturnSingle = 0b0001001101,
-    ReturnMultiple = 0b0001000100,
-    ReturnKludge = 0b0001000101,
-    TakeValues = 0b0001000110,
+    StartCall = 0b0_000001000,
+    FinishCallN = 0b0_001011100,
+    FinishCallNApply = 0b0_001011101,
+    FinishCallTos = 0b0_001011110,
+    FinishCallTosApply = 0b0_001011111,
+    EntryRestAccepted = 0b0_001111110,
+    EntryRestNotAccepted = 0b0_001111111,
+    LocateLocals = 0b0_000101000,
+    ReturnSingle = 0b0_001001101,
+    ReturnMultiple = 0b0_001000100,
+    ReturnKludge = 0b0_001000101,
+    TakeValues = 0b0_001000110,
 
     // Binding instructions
-    BindLocativeToValue = 0b0010011110,
-    BindLocative = 0b0000000101,
-    UnbindN = 0b0001000111,
-    RestoreBindingStack = 0b0000000110,
+    BindLocativeToValue = 0b0_010011110,
+    BindLocative = 0b0_000000101,
+    UnbindN = 0b0_001000111,
+    RestoreBindingStack = 0b0_000000110,
 
     // Catch
-    CatchOpen = 0b0011111110,
-    CatchClose = 0b0000101001,
+    CatchOpen = 0b0_011111110,
+    CatchClose = 0b0_000101001,
 
     // Lexical variables - Each takes 8 opcodes
-    PushLexicalVar = 0b0000010000,
-    PopLexicalVar = 0b0010100000,
-    MovemLexicalVar = 0b0010101000,
+    PushLexicalVar = 0b0_000010000,
+    PopLexicalVar = 0b0_010100000,
+    MovemLexicalVar = 0b0_010101000,
 
     // Instance variables
-    PushInstanceVariable = 0b0001001000,
-    PopInstanceVariable = 0b0011010000,
-    MovemInstanceVariable = 0b0011010001,
-    PushAddressInstanceVariable = 0b0001001001,
-    PushInstanceVariableOrdered = 0b0001001010,
-    PopInstanceVariableOrdered = 0b0011010010,
-    MovemInstanceVariableOrdered = 0b0011010011,
-    PushAddressInstanceVariableOrdered = 0b0001001011,
-    InstanceRef = 0b0011010100,
-    InstanceSet = 0b0011010101,
-    InstanceLoc = 0b0011010110,
+    PushInstanceVariable = 0b0_001001000,
+    PopInstanceVariable = 0b0_011010000,
+    MovemInstanceVariable = 0b0_011010001,
+    PushAddressInstanceVariable = 0b0_001001001,
+    PushInstanceVariableOrdered = 0b0_001001010,
+    PopInstanceVariableOrdered = 0b0_011010010,
+    MovemInstanceVariableOrdered = 0b0_011010011,
+    PushAddressInstanceVariableOrdered = 0b0_001001011,
+    InstanceRef = 0b0_011010100,
+    InstanceSet = 0b0_011010101,
+    InstanceLoc = 0b0_011010110,
 
     // Sub-primitives
-    Ephemeralp = 0b0000000111,
-    UnsignedLessp = 0b0011011001,
-    UnsignedLesspNoPop = 0b0011011101,
-    Alu = 0b0010001100,
-    AllocateListBlock = 0b0011001001,
-    AllocateStructureBlock = 0b0011001101,
-    PointerPlus = 0b0010011000,
-    PointerDifference = 0b0010011001,
-    PointerIncrement = 0b0001100101,
+    Ephemeralp = 0b0_000000111,
+    UnsignedLessp = 0b0_011011001,
+    UnsignedLesspNoPop = 0b0_011011101,
+    Alu = 0b0_010001100,
+    AllocateListBlock = 0b0_011001001,
+    AllocateStructureBlock = 0b0_011001101,
+    PointerPlus = 0b0_010011000,
+    PointerDifference = 0b0_010011001,
+    PointerIncrement = 0b0_001100101,
 
     // Read/Write
-    ReadInternalRegister = 0b0001101100,
-    WriteInternalRegister = 0b0001101101,
-    CoprocessorRead = 0b0001101110,
-    CoprocessorWrite = 0b0001101111,
-    MemoryRead = 0b0001001110,
-    MemoryReadAddress = 0b0001001111,
-    Tag = 0b0000001010,
-    SetTag = 0b0011010111,
-    StoreConditional = 0b0010011011,
-    MemoryWrite = 0b0010011100,
-    PStoreContents = 0b0010011101,
-    SetCdrCode1 = 0b0001100110,
-    SetCdrCode2 = 0b0001100111,
-    MergeCdrNoPop = 0b0011100010,
-    GenericDispatch = 0b0000101010,
-    MessageDispatch = 0b0000101011,
+    ReadInternalRegister = 0b0_001101100,
+    WriteInternalRegister = 0b0_001101101,
+    CoprocessorRead = 0b0_001101110,
+    CoprocessorWrite = 0b0_001101111,
+    MemoryRead = 0b0_001001110,
+    MemoryReadAddress = 0b0_001001111,
+    Tag = 0b0_000001010,
+    SetTag = 0b0_011010111,
+    StoreConditional = 0b0_010011011,
+    MemoryWrite = 0b0_010011100,
+    PStoreContents = 0b0_010011101,
+    SetCdrCode1 = 0b0_001100110,
+    SetCdrCode2 = 0b0_001100111,
+    MergeCdrNoPop = 0b0_011100010,
+    GenericDispatch = 0b0_000101010,
+    MessageDispatch = 0b0_000101011,
 
     // Other
-    Jump = 0b0000001001,
-    CheckPreemptRequest = 0b0000101100,
+    Jump = 0b0_000001001,
+    CheckPreemptRequest = 0b0_000101100,
     #[default] // Default constructor
-    NoOp = 0b0000101110,
-    Halt = 0b0000101111,
+    NoOp = 0b0_000101110,
+    Halt = 0b0_000101111,
 }
 
 impl fmt::Display for OpCode {

@@ -260,8 +260,8 @@ impl VMMemory {
         let addr_u = addr.as_address();
 
         let cdr_tag = self.tags[addr_u];
-        let cdr = (cdr_tag & 0b1110_0000) >> 5;
-        let tag = cdr_tag & 0b0001_1111;
+        let cdr = (cdr_tag & 0b1100_0000) >> 6;
+        let tag = cdr_tag & 0b0011_1111;
 
         let data = self.data[addr_u];
         let half_word1 = ((data | 0xffff_0000) >> 16) as u16;

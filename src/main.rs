@@ -39,37 +39,38 @@ mod emulator {
     pub mod instructions {
         pub mod common;
 
-        pub mod exec_list;
-        pub mod exec_interruptible;
-        pub mod exec_predicate;
-        pub mod exec_numeric;
-        pub mod exec_data_movement;
-        pub mod exec_field_extraction;
-        pub mod exec_array;
-        pub mod exec_branch_loop;
-        pub mod exec_block;
-        pub mod exec_function_calling;
-        pub mod exec_binding;
-        pub mod exec_catch;
-        pub mod exec_lexical_variable;
-        pub mod exec_instance_variable;
-        pub mod exec_subprimitive;
+        // File number matches documentation order
+        pub mod exec_01_list;
+        pub mod exec_02_interruptible;
+        pub mod exec_03_predicate;
+        pub mod exec_04_numeric;
+        pub mod exec_05_data_movement;
+        pub mod exec_06_field_extraction;
+        pub mod exec_07_array;
+        pub mod exec_08_branch_loop;
+        pub mod exec_09_block;
+        pub mod exec_10_function_calling;
+        pub mod exec_11_binding;
+        pub mod exec_12_catch;
+        pub mod exec_13_lexical_variable;
+        pub mod exec_14_instance_variable;
+        pub mod exec_15_subprimitive;
 
-        pub mod def_list;
-        pub mod def_interruptible;
-        pub mod def_predicate;
-        pub mod def_numeric;
-        pub mod def_data_movement;
-        pub mod def_field_extraction;
-        pub mod def_array;
-        pub mod def_branch_loop;
-        pub mod def_block;
-        pub mod def_function_calling;
-        pub mod def_binding;
-        pub mod def_catch;
-        pub mod def_lexical_variable;
-        pub mod def_instance_variable;
-        pub mod def_subprimitive;
+        pub mod def_01_list;
+        pub mod def_02_interruptible;
+        pub mod def_03_predicate;
+        pub mod def_04_numeric;
+        pub mod def_05_data_movement;
+        pub mod def_06_field_extraction;
+        pub mod def_07_array;
+        pub mod def_08_branch_loop;
+        pub mod def_09_block;
+        pub mod def_10_function_calling;
+        pub mod def_11_binding;
+        pub mod def_12_catch;
+        pub mod def_13_lexical_variable;
+        pub mod def_14_instance_variable;
+        pub mod def_15_subprimitive;
 
         pub mod def_build_set;
     }
@@ -97,7 +98,7 @@ use simplelog::{ Config, LevelFilter, WriteLogger };
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 use emulator::instructions::def_build_set::build_instruction_vec_map;
-use ui::termui::{ AppUI, run_app, setup_termui, restore_terminal };
+use ui::termui::{ AppUI, run_app, setup_terminal, restore_terminal };
 
 //
 //
@@ -230,14 +231,14 @@ pub fn main() -> Result<()> {
     //
 
     // setup terminal
-    let mut termui = setup_termui()?;
+    let mut terminal_ui = setup_terminal()?;
 
     // create app and run it
     let app = AppUI::new();
-    run_app(&mut termui, app).context("app loop failed")?;
+    run_app(&mut terminal_ui, app).context("app loop failed")?;
 
     // restore terminal
-    restore_terminal(&mut termui)?;
+    restore_terminal(&mut terminal_ui)?;
 
     return Ok(());
 }
