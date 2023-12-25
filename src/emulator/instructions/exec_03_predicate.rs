@@ -34,11 +34,11 @@ impl VirtualMachine {
         return self;
     }
 
-    pub fn cpu_lesserp(&mut self) -> &mut Self {
+    pub fn cpu_lessp(&mut self) -> &mut Self {
         return self;
     }
 
-    pub fn cpu_lesserp_no_pop(&mut self) -> &mut Self {
+    pub fn cpu_lessp_no_pop(&mut self) -> &mut Self {
         return self;
     }
 

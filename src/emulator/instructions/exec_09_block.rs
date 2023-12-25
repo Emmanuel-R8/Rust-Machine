@@ -2,6 +2,10 @@ use crate::hardware::machine::VirtualMachine;
 
 // Instruction add
 impl VirtualMachine {
+    pub fn cpu_block_0_read(&mut self) -> &mut Self {
+        return self;
+    }
+
     pub fn cpu_block_1_read(&mut self) -> &mut Self {
         return self;
     }
@@ -14,10 +18,9 @@ impl VirtualMachine {
         return self;
     }
 
-    pub fn cpu_block_4_read(&mut self) -> &mut Self {
+    pub fn cpu_block_0_read_shift(&mut self) -> &mut Self {
         return self;
     }
-
     pub fn cpu_block_1_read_shift(&mut self) -> &mut Self {
         return self;
     }
@@ -30,10 +33,9 @@ impl VirtualMachine {
         return self;
     }
 
-    pub fn cpu_block_4_read_shift(&mut self) -> &mut Self {
+    pub fn cpu_block_0_read_alu(&mut self) -> &mut Self {
         return self;
     }
-
     pub fn cpu_block_1_read_alu(&mut self) -> &mut Self {
         return self;
     }
@@ -46,10 +48,9 @@ impl VirtualMachine {
         return self;
     }
 
-    pub fn cpu_block_4_read_alu(&mut self) -> &mut Self {
+    pub fn cpu_block_0_test(&mut self) -> &mut Self {
         return self;
     }
-
     pub fn cpu_block_1_test(&mut self) -> &mut Self {
         return self;
     }
@@ -62,10 +63,9 @@ impl VirtualMachine {
         return self;
     }
 
-    pub fn cpu_block_4_test(&mut self) -> &mut Self {
+    pub fn cpu_block_0_write(&mut self) -> &mut Self {
         return self;
     }
-
     pub fn cpu_block_1_write(&mut self) -> &mut Self {
         return self;
     }
@@ -75,10 +75,6 @@ impl VirtualMachine {
     }
 
     pub fn cpu_block_3_write(&mut self) -> &mut Self {
-        return self;
-    }
-
-    pub fn cpu_block_4_write(&mut self) -> &mut Self {
         return self;
     }
 }

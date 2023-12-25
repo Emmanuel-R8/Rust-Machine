@@ -1,3 +1,4 @@
+use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
 use super::common::{ Instruction, InstructionFamily, InstructionFormat };
@@ -5,124 +6,124 @@ use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 pub fn make_instructions_block() -> Vec<Instruction> {
     return vec![
         Instruction::new()
+            .set_name("%block-0-read".to_string())
+            .set_family(InstructionFamily::Block)
+            .set_format(InstructionFormat::Immediate10Bits)
+            .set_opcode(OpCode::Block0Read)
+            .set_exec(Some(VirtualMachine::cpu_block_0_read)),
+        Instruction::new()
             .set_name("%block-1-read".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o120)
+            .set_opcode(OpCode::Block1Read)
             .set_exec(Some(VirtualMachine::cpu_block_1_read)),
         Instruction::new()
             .set_name("%block-2-read".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o121)
+            .set_opcode(OpCode::Block2Read)
             .set_exec(Some(VirtualMachine::cpu_block_2_read)),
         Instruction::new()
             .set_name("%block-3-read".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o122)
+            .set_opcode(OpCode::Block3Read)
             .set_exec(Some(VirtualMachine::cpu_block_3_read)),
         Instruction::new()
-            .set_name("%block-4-read".to_string())
+            .set_name("%block-0-read-shift".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o123)
-            .set_exec(Some(VirtualMachine::cpu_block_4_read)),
+            .set_opcode(OpCode::Block0ReadShift)
+            .set_exec(Some(VirtualMachine::cpu_block_0_read_shift)),
         Instruction::new()
             .set_name("%block-1-read-shift".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o124)
+            .set_opcode(OpCode::Block1ReadShift)
             .set_exec(Some(VirtualMachine::cpu_block_1_read_shift)),
         Instruction::new()
             .set_name("%block-2-read-shift".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o125)
+            .set_opcode(OpCode::Block2ReadShift)
             .set_exec(Some(VirtualMachine::cpu_block_2_read_shift)),
         Instruction::new()
             .set_name("%block-3-read-shift".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o126)
+            .set_opcode(OpCode::Block3ReadShift)
             .set_exec(Some(VirtualMachine::cpu_block_3_read_shift)),
         Instruction::new()
-            .set_name("%block-4-read-shift".to_string())
+            .set_name("%block-0-read-alu".to_string())
             .set_family(InstructionFamily::Block)
-            .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o127)
-            .set_exec(Some(VirtualMachine::cpu_block_4_read_shift)),
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(OpCode::Block0ReadAlu)
+            .set_exec(Some(VirtualMachine::cpu_block_0_read_alu)),
         Instruction::new()
             .set_name("%block-1-read-alu".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o160)
+            .set_opcode(OpCode::Block1ReadAlu)
             .set_exec(Some(VirtualMachine::cpu_block_1_read_alu)),
         Instruction::new()
             .set_name("%block-2-read-alu".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o161)
+            .set_opcode(OpCode::Block2ReadAlu)
             .set_exec(Some(VirtualMachine::cpu_block_2_read_alu)),
         Instruction::new()
             .set_name("%block-3-read-alu".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o162)
+            .set_opcode(OpCode::Block3ReadAlu)
             .set_exec(Some(VirtualMachine::cpu_block_3_read_alu)),
         Instruction::new()
-            .set_name("%block-4-read-alu".to_string())
+            .set_name("%block-0-test".to_string())
             .set_family(InstructionFamily::Block)
-            .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o163)
-            .set_exec(Some(VirtualMachine::cpu_block_4_read_alu)),
+            .set_format(InstructionFormat::Immediate10Bits)
+            .set_opcode(OpCode::Block0ReadTest)
+            .set_exec(Some(VirtualMachine::cpu_block_0_test)),
         Instruction::new()
             .set_name("%block-1-test".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o130)
+            .set_opcode(OpCode::Block1ReadTest)
             .set_exec(Some(VirtualMachine::cpu_block_1_test)),
         Instruction::new()
             .set_name("%block-2-test".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o131)
+            .set_opcode(OpCode::Block2ReadTest)
             .set_exec(Some(VirtualMachine::cpu_block_2_test)),
         Instruction::new()
             .set_name("%block-3-test".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o132)
+            .set_opcode(OpCode::Block3ReadTest)
             .set_exec(Some(VirtualMachine::cpu_block_3_test)),
         Instruction::new()
-            .set_name("%block-4-test".to_string())
+            .set_name("%block-0-write".to_string())
             .set_family(InstructionFamily::Block)
-            .set_format(InstructionFormat::Immediate10Bits)
-            .set_opcode(0o133)
-            .set_exec(Some(VirtualMachine::cpu_block_4_test)),
+            .set_format(InstructionFormat::OperandFromStack)
+            .set_opcode(OpCode::Block0Write)
+            .set_exec(Some(VirtualMachine::cpu_block_0_write)),
         Instruction::new()
             .set_name("%block-1-write".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o030)
+            .set_opcode(OpCode::Block1Write)
             .set_exec(Some(VirtualMachine::cpu_block_1_write)),
         Instruction::new()
             .set_name("%block-2-write".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o031)
+            .set_opcode(OpCode::Block2Write)
             .set_exec(Some(VirtualMachine::cpu_block_2_write)),
         Instruction::new()
             .set_name("%block-3-write".to_string())
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o032)
+            .set_opcode(OpCode::Block3Write)
             .set_exec(Some(VirtualMachine::cpu_block_3_write)),
-        Instruction::new()
-            .set_name("%block-4-write".to_string())
-            .set_family(InstructionFamily::Block)
-            .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o033)
-            .set_exec(Some(VirtualMachine::cpu_block_4_write))
     ];
 }

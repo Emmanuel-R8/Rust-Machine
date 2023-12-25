@@ -1,5 +1,7 @@
+use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_numeric() -> Vec<Instruction> {
     return vec![
@@ -7,7 +9,7 @@ pub fn make_instructions_numeric() -> Vec<Instruction> {
             .set_name("add".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o300)
+            .set_opcode(OpCode::Add)
             .set_arg_count(2)
             .set_ret_count(1)
             .set_exec(Some(VirtualMachine::cpu_add)),
@@ -15,137 +17,163 @@ pub fn make_instructions_numeric() -> Vec<Instruction> {
             .set_name("sub".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o301)
+            .set_opcode(OpCode::Sub)
             .set_exec(Some(VirtualMachine::cpu_sub)),
         Instruction::new()
             .set_name("unary-minus".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o114).set_exec(Some(VirtualMachine::cpu_unary_minus)),
+            .set_opcode(OpCode::UnaryMinus)
+            .set_exec(Some(VirtualMachine::cpu_unary_minus)),
         Instruction::new()
             .set_name("increment".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o143).set_exec(Some(VirtualMachine::cpu_increment)),
+            .set_opcode(OpCode::Increment)
+            .set_exec(Some(VirtualMachine::cpu_increment)),
         Instruction::new()
             .set_name("decrement".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o144).set_exec(Some(VirtualMachine::cpu_decrement)),
+            .set_opcode(OpCode::Decrement)
+            .set_exec(Some(VirtualMachine::cpu_decrement)),
         Instruction::new()
             .set_name("multiply".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o202).set_exec(Some(VirtualMachine::cpu_multiply)),
+            .set_opcode(OpCode::Multiply)
+            .set_exec(Some(VirtualMachine::cpu_multiply)),
         Instruction::new()
             .set_name("quotient".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o203).set_exec(Some(VirtualMachine::cpu_quotient)),
+            .set_opcode(OpCode::Quotient)
+            .set_exec(Some(VirtualMachine::cpu_quotient)),
         Instruction::new()
             .set_name("ceiling".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o204).set_exec(Some(VirtualMachine::cpu_ceiling)),
+            .set_opcode(OpCode::Ceiling)
+            .set_exec(Some(VirtualMachine::cpu_ceiling)),
         Instruction::new()
             .set_name("floor".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o205).set_exec(Some(VirtualMachine::cpu_floor)),
+            .set_opcode(OpCode::Floor)
+            .set_exec(Some(VirtualMachine::cpu_floor)),
         Instruction::new()
             .set_name("truncate".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o206).set_exec(Some(VirtualMachine::cpu_truncate)),
+            .set_opcode(OpCode::Truncate)
+            .set_exec(Some(VirtualMachine::cpu_truncate)),
         Instruction::new()
             .set_name("round".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o207).set_exec(Some(VirtualMachine::cpu_round)),
-        Instruction::new()
-            .set_name("remainder".to_string())
-            .set_family(InstructionFamily::Numeric)
-            .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o210).set_exec(Some(VirtualMachine::cpu_remainder)),
+            .set_opcode(OpCode::Round)
+            .set_exec(Some(VirtualMachine::cpu_round)),
+        // Instruction::new()
+        //     .set_name("remainder".to_string())
+        //     .set_family(InstructionFamily::Numeric)
+        //     .set_format(InstructionFormat::OperandFromStack)
+        //     .set_opcode(0o210)
+        //     .set_exec(Some(VirtualMachine::cpu_remainder)),
         Instruction::new()
             .set_name("rational-quotient".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o211).set_exec(Some(VirtualMachine::cpu_rational_quotient)),
+            .set_opcode(OpCode::RationalQuotient)
+            .set_exec(Some(VirtualMachine::cpu_rational_quotient)),
         Instruction::new()
             .set_name("min".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o212).set_exec(Some(VirtualMachine::cpu_min)),
+            .set_opcode(OpCode::Min)
+            .set_exec(Some(VirtualMachine::cpu_min)),
         Instruction::new()
             .set_name("max".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o213).set_exec(Some(VirtualMachine::cpu_max)),
+            .set_opcode(OpCode::Max)
+            .set_exec(Some(VirtualMachine::cpu_max)),
         Instruction::new()
             .set_name("logand".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o215).set_exec(Some(VirtualMachine::cpu_logand)),
+            .set_opcode(OpCode::Logand)
+            .set_exec(Some(VirtualMachine::cpu_logand)),
         Instruction::new()
             .set_name("logxor".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o216).set_exec(Some(VirtualMachine::cpu_logxor)),
+            .set_opcode(OpCode::Logxor)
+            .set_exec(Some(VirtualMachine::cpu_logxor)),
         Instruction::new()
             .set_name("logior".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o217).set_exec(Some(VirtualMachine::cpu_logior)),
+            .set_opcode(OpCode::Logior)
+            .set_exec(Some(VirtualMachine::cpu_logior)),
         Instruction::new()
             .set_name("rot".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o220).set_exec(Some(VirtualMachine::cpu_rot)),
+            .set_opcode(OpCode::Rot)
+            .set_exec(Some(VirtualMachine::cpu_rot)),
         Instruction::new()
             .set_name("lsh".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o221).set_exec(Some(VirtualMachine::cpu_lsh)),
+            .set_opcode(OpCode::Lsh)
+            .set_exec(Some(VirtualMachine::cpu_lsh)),
         Instruction::new()
-            .set_name("multiply-divide".to_string())
+            .set_name("multiply-double".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o222).set_exec(Some(VirtualMachine::cpu_multiply_divide)),
+            .set_opcode(OpCode::MultiplyDouble)
+            .set_exec(Some(VirtualMachine::cpu_multiply_double)),
         Instruction::new()
             .set_name("ash".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o232).set_exec(Some(VirtualMachine::cpu_ash)),
+            .set_opcode(OpCode::Ash)
+            .set_exec(Some(VirtualMachine::cpu_ash)),
         Instruction::new()
             .set_name("%32-bit-plus".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o302).set_exec(Some(VirtualMachine::cpu_32_bit_plus)),
+            .set_opcode(OpCode::Op32BitPlus)
+            .set_exec(Some(VirtualMachine::cpu_32_bit_plus)),
         Instruction::new()
             .set_name("%32-bit-difference".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o303).set_exec(Some(VirtualMachine::cpu_32_bit_difference)),
+            .set_opcode(OpCode::Op32BitDifference)
+            .set_exec(Some(VirtualMachine::cpu_32_bit_difference)),
         Instruction::new()
             .set_name("%add-bignum-step".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o304).set_exec(Some(VirtualMachine::cpu_add_bignum_step)),
+            .set_opcode(OpCode::AddBignumStep)
+            .set_exec(Some(VirtualMachine::cpu_add_bignum_step)),
         Instruction::new()
             .set_name("%sub-bignum-step".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o305).set_exec(Some(VirtualMachine::cpu_sub_bignum_step)),
+            .set_opcode(OpCode::SubBignumStep)
+            .set_exec(Some(VirtualMachine::cpu_sub_bignum_step)),
         Instruction::new()
             .set_name("%multiply-bignum-step".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o306).set_exec(Some(VirtualMachine::cpu_multiply_bignum_step)),
+            .set_opcode(OpCode::MultiplyBignumStep)
+            .set_exec(Some(VirtualMachine::cpu_multiply_bignum_step)),
         Instruction::new()
             .set_name("%divide-bignum-step".to_string())
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
-            .set_opcode(0o307).set_exec(Some(VirtualMachine::cpu_divide_bignum_step)),
+            .set_opcode(OpCode::DivideBignumStep)
+            .set_exec(Some(VirtualMachine::cpu_divide_bignum_step))
     ];
 }

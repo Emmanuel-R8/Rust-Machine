@@ -99,7 +99,7 @@ impl VirtualMachine {
         return self;
     }
 
-    pub fn cpu_multiply_divide(&mut self) -> &mut Self {
+    pub fn cpu_multiply_double(&mut self) -> &mut Self {
         return self;
     }
 
