@@ -1,16 +1,11 @@
 use crate::common::constants::{
-    QTag,
-    TrapMode,
-    CDR,
-    IVORY_PAGE_SIZE_QS,
-    IVORY_STACK_CACHE_SIZE,
-    MEMORY_STACK_CACHE_BASE,
+    QTag, TrapMode, CDR, IVORY_PAGE_SIZE_QS, IVORY_STACK_CACHE_SIZE, MEMORY_STACK_CACHE_BASE,
 };
 use crate::common::memory_cell::MemoryCell;
 use crate::common::types::Address;
-use crate::utils::{ dpb, ldb };
+use crate::utils::{dpb, ldb};
 
-use super::cache_line::{ InstructionCacheLine, INSTRUCTION_CACHE_SIZE };
+use super::cache_line::{InstructionCacheLine, INSTRUCTION_CACHE_SIZE};
 use super::page_base::Bar;
 
 const CONTROL_ARGUMENT_SIZE: u32 = 0o377;
@@ -214,17 +209,15 @@ impl Default for CPU {
             pc: MemoryCell::new_cdr_tag_a(
                 CDR::Normal,
                 QTag::EvenPC, // See IMAS p. 59
-                PROGRAM_COUNTER_INIT
+                PROGRAM_COUNTER_INIT,
             ),
             continuation: MemoryCell::default(),
             instruction_cache: vec![
                 InstructionCacheLine::default();
                 INSTRUCTION_CACHE_SIZE as usize
             ],
-            stack_cache: [
-                MemoryCell::default();
-                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize
-            ],
+            stack_cache: [MemoryCell::default();
+                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize],
             stack_cache_limit: MemoryCell::default(),
             allocated_caches: false,
 
@@ -273,15 +266,13 @@ impl CPU {
             self.instruction_cache =
                 vec![InstructionCacheLine::default(); INSTRUCTION_CACHE_SIZE as usize];
 
-            self.stack_cache = [
-                MemoryCell::default();
-                (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize
-            ];
+            self.stack_cache =
+                [MemoryCell::default(); (IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE) as usize];
 
             self.stack_cache_limit = MemoryCell::new_cdr_tag_u(
                 CDR::Jump,
                 QTag::Fixnum,
-                IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128
+                IVORY_PAGE_SIZE_QS * IVORY_STACK_CACHE_SIZE - 128,
             );
 
             self.allocated_caches = true;

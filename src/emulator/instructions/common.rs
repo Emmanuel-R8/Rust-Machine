@@ -24,7 +24,7 @@
 // |   | +3 PC odd |  |
 // :CDR header {tbl-colwidths="[15, 15, 70]"}
 
-use crate::{hardware::machine::VirtualMachine, common::constants::OpCode};
+use crate::{common::constants::OpCode, hardware::machine::VirtualMachine};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
@@ -130,7 +130,7 @@ impl Instruction {
     }
     pub fn set_exec(
         mut self,
-        exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>
+        exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
     ) -> Self {
         self.exec = exec;
         return self;

@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_predicate() -> Vec<Instruction> {
     return vec![
@@ -148,6 +148,6 @@ pub fn make_instructions_predicate() -> Vec<Instruction> {
             .set_family(InstructionFamily::Predicate)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::Zerop)
-            .set_exec(Some(VirtualMachine::cpu_zerop))
+            .set_exec(Some(VirtualMachine::cpu_zerop)),
     ];
 }

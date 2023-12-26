@@ -1,13 +1,13 @@
-use std::io::{ self, Stdout };
+use std::io::{self, Stdout};
 use std::time::Duration;
 
-use anyhow::{ Context, Result };
+use anyhow::{Context, Result};
 use crossterm::{
-    event::{ self, Event, KeyCode, KeyEventKind, EnableMouseCapture, DisableMouseCapture },
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
-    terminal::{ disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen },
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::{ prelude::*, widgets::* };
+use ratatui::{prelude::*, widgets::*};
 
 // Contains all the state data for the UI
 pub struct AppUI<'a> {
@@ -24,7 +24,13 @@ impl<'a> AppUI<'a> {
             //
             // Global App statae
             tab_index: 0,
-            tab_names: vec!["Main Tab", "Table example", "Memory", "World File", "Other..."],
+            tab_names: vec![
+                "Main Tab",
+                "Table example",
+                "Memory",
+                "World File",
+                "Other...",
+            ],
             //
             // Tab: Table example
             table_state: TableState::default(),
@@ -37,7 +43,7 @@ impl<'a> AppUI<'a> {
                 vec!["Row61", "Row62\nTest", "Row63"],
                 vec!["Row71", "Row72", "Row73"],
                 vec!["Row81", "Row82", "Row83"],
-                vec!["Row91", "Row92", "Row93"]
+                vec!["Row91", "Row92", "Row93"],
             ],
         }
     }
@@ -59,16 +65,16 @@ impl<'a> AppUI<'a> {
     //
     pub fn next_cell(&mut self) {
         let i = match self.table_state.selected() {
-            Some(i) => (i + 1) % self.table_content.len(),
-            None => 0,
+            | Some(i) => (i + 1) % self.table_content.len(),
+            | None => 0,
         };
         self.table_state.select(Some(i));
     }
 
     pub fn previous_cell(&mut self) {
         let i = match self.table_state.selected() {
-            Some(i) => (i - 1) % self.table_content.len(),
-            None => 0,
+            | Some(i) => (i - 1) % self.table_content.len(),
+            | None => 0,
         };
         self.table_state.select(Some(i));
     }
@@ -94,12 +100,12 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: AppUI) -> Result
             if let Event::Key(key) = event::read().context("event read failed")? {
                 if key.kind == KeyEventKind::Press {
                     match key.code {
-                        KeyCode::Char('q') => {
+                        | KeyCode::Char('q') => {
                             return Ok(true);
-                        }
-                        KeyCode::Right | KeyCode::Char('l') => app.next_tab(),
-                        KeyCode::Left | KeyCode::Char('h') => app.previous_tab(),
-                        _ => {}
+                        },
+                        | KeyCode::Right | KeyCode::Char('l') => app.next_tab(),
+                        | KeyCode::Left | KeyCode::Char('h') => app.previous_tab(),
+                        | _ => {},
                     }
                 }
             }
@@ -119,7 +125,8 @@ pub fn ui(f: &mut Frame, app: &AppUI) {
     let block = Block::default().on_white().black();
     f.render_widget(block, size);
 
-    let titles = app.tab_names
+    let titles = app
+        .tab_names
         .iter()
         .map(|t| {
             let (first, rest) = t.split_at(1);
@@ -135,11 +142,11 @@ pub fn ui(f: &mut Frame, app: &AppUI) {
     f.render_widget(tabs, chunks[0]);
 
     let inner = match app.tab_index {
-        0 => Block::default().title("Inner 0").borders(Borders::ALL),
-        1 => Block::default().title("Inner 1").borders(Borders::ALL),
-        2 => Block::default().title("Inner 2").borders(Borders::ALL),
-        3 => Block::default().title("Inner 3").borders(Borders::ALL),
-        _ => unreachable!(),
+        | 0 => Block::default().title("Inner 0").borders(Borders::ALL),
+        | 1 => Block::default().title("Inner 1").borders(Borders::ALL),
+        | 2 => Block::default().title("Inner 2").borders(Borders::ALL),
+        | 3 => Block::default().title("Inner 3").borders(Borders::ALL),
+        | _ => unreachable!(),
     };
     f.render_widget(inner, chunks[1]);
 }
@@ -152,9 +159,8 @@ pub fn ui(f: &mut Frame, app: &AppUI) {
 pub fn setup_terminal() -> Result<Terminal<CrosstermBackend<Stdout>>> {
     let mut stdout = io::stdout();
     enable_raw_mode().context("failed to enable raw mode")?;
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture).context(
-        "unable to enter alternate screen"
-    )?;
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)
+        .context("unable to enter alternate screen")?;
     return Terminal::new(CrosstermBackend::new(stdout)).context("creating terminal failed");
 }
 
@@ -163,9 +169,12 @@ pub fn setup_terminal() -> Result<Terminal<CrosstermBackend<Stdout>>> {
 /// This is where you disable raw mode, leave the alternate screen, and show the cursor.
 pub fn restore_terminal(termui: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<()> {
     disable_raw_mode().context("failed to disable raw mode")?;
-    execute!(termui.backend_mut(), LeaveAlternateScreen, DisableMouseCapture).context(
-        "unable to switch to main screen"
-    )?;
+    execute!(
+        termui.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )
+    .context("unable to switch to main screen")?;
     termui.show_cursor().context("unable to show cursor")
 }
 
@@ -174,5 +183,8 @@ pub fn restore_terminal(termui: &mut Terminal<CrosstermBackend<Stdout>>) -> Resu
 pub fn render_frame(frame: &mut Frame) {
     let area = frame.size();
 
-    frame.render_widget(Paragraph::new("TODO (press 'q' to quit)").white().on_blue(), area);
+    frame.render_widget(
+        Paragraph::new("TODO (press 'q' to quit)").white().on_blue(),
+        area,
+    );
 }

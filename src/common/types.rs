@@ -1,22 +1,22 @@
 use c2rust_bitfields::BitfieldStruct;
 
-use std::fmt::{ Debug, Display, Formatter, Result };
-use std::ops::{ Add, AddAssign, Sub, SubAssign };
+use std::fmt::{Debug, Display, Formatter, Result};
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 // Representation of lisp objects
-use super::constants::{ QTag, CDR };
+use super::constants::{QTag, CDR};
 
 // See I-Machine specs p. 4
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub enum QList {
-    Cons(u32), // Conses TODO: decline
+    Cons(u32),        // Conses TODO: decline
     CompactList(u32), // Compact list TODO: decline
-    Closure(u32), // Closure
-    BigRatio(u32), // Big ratio
+    Closure(u32),     // Closure
+    BigRatio(u32),    // Big ratio
     DoubleFloat(f32), // f64 - Double precision floating point
-    Complex(u32), // Complex number
-    Generic(u32), // Generic function
+    Complex(u32),     // Complex number
+    Generic(u32),     // Generic function
 }
 
 impl Default for QList {
@@ -30,9 +30,9 @@ impl Default for QList {
 #[derive(Copy, Clone)]
 pub enum QStructure {
     CompiledFunc(u32), // Compiled function
-    Instance(u32), // Instances
-    Symbol(u32), // Symbols
-    Bignum(u32), // Bignums
+    Instance(u32),     // Instances
+    Symbol(u32),       // Symbols
+    Bignum(u32),       // Bignums
 }
 
 impl Default for QStructure {
@@ -49,11 +49,11 @@ pub type Address = usize;
 #[derive(Copy, Clone)]
 pub enum QImmediate {
     Unsigned(u32), // Fixnum
-    Signed(i32), // Signed fixed num
-    Float(f32), // 32-bit floating point (single precision)
+    Signed(i32),   // Signed fixed num
+    Float(f32),    // 32-bit floating point (single precision)
     // pub c: f32, // Characters
     // pub r: f32, // small ratio
-    Addr(u32), // Physical address
+    Addr(u32),       // Physical address
     PackedInst(u32), // Packed instructions - TODO: bitfield
 }
 
@@ -64,65 +64,65 @@ impl QImmediate {
 
     pub fn u(self) -> Option<u32> {
         match self {
-            QImmediate::Unsigned(val) => Some(val),
-            _ => None,
+            | QImmediate::Unsigned(val) => Some(val),
+            | _ => None,
         }
     }
 
     pub fn s(self) -> Option<i32> {
         match self {
-            QImmediate::Signed(val) => Some(val),
-            _ => None,
+            | QImmediate::Signed(val) => Some(val),
+            | _ => None,
         }
     }
 
     pub fn f(self) -> Option<f32> {
         match self {
-            QImmediate::Float(val) => Some(val),
-            _ => None,
+            | QImmediate::Float(val) => Some(val),
+            | _ => None,
         }
     }
 
     pub fn a(self) -> Option<u32> {
         match self {
-            QImmediate::Addr(val) => Some(val),
-            _ => None,
+            | QImmediate::Addr(val) => Some(val),
+            | _ => None,
         }
     }
 
     pub fn set_u(self, u: u32) {
         match self {
-            QImmediate::Unsigned(mut val) => {
+            | QImmediate::Unsigned(mut val) => {
                 val = u;
-            }
-            _ => {}
+            },
+            | _ => {},
         }
     }
 
     pub fn set_s(self, s: i32) {
         match self {
-            QImmediate::Signed(mut val) => {
+            | QImmediate::Signed(mut val) => {
                 val = s;
-            }
-            _ => {}
+            },
+            | _ => {},
         }
     }
 
     pub fn set_f(self, f: f32) {
         match self {
-            QImmediate::Float(mut val) => {
+            | QImmediate::Float(mut val) => {
                 val = f;
-            }
-            _ => {}
+            },
+            | _ => {},
         }
     }
 
     pub fn set_a(self, a: u32) {
         match self {
-            QImmediate::Addr(mut val) => {
+            | QImmediate::Addr(mut val) => {
                 val = a;
-            }
-            _ => {}
+            },
+            | _ => {},
         }
     }
 }
@@ -136,22 +136,19 @@ impl Default for QImmediate {
 impl PartialEq for QImmediate {
     fn eq(&self, other: &Self) -> bool {
         match self {
-            QImmediate::Unsigned(val1) =>
-                match other {
-                    QImmediate::Unsigned(val2) => val1 == val2,
-                    _ => false,
-                }
-            QImmediate::Signed(val1) =>
-                match other {
-                    QImmediate::Signed(val2) => val1 == val2,
-                    _ => false,
-                }
-            QImmediate::Float(val1) =>
-                match other {
-                    QImmediate::Float(val2) => val1 == val2,
-                    _ => false,
-                }
-            _ => false
+            | QImmediate::Unsigned(val1) => match other {
+                | QImmediate::Unsigned(val2) => val1 == val2,
+                | _ => false,
+            },
+            | QImmediate::Signed(val1) => match other {
+                | QImmediate::Signed(val2) => val1 == val2,
+                | _ => false,
+            },
+            | QImmediate::Float(val1) => match other {
+                | QImmediate::Float(val2) => val1 == val2,
+                | _ => false,
+            },
+            | _ => false,
         }
     }
 }
@@ -161,11 +158,11 @@ impl Eq for QImmediate {}
 impl Display for QImmediate {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            QImmediate::Unsigned(val) => write!(f, "QData u32: {}", val),
-            QImmediate::Signed(val) => write!(f, "QData s32: {}", val),
-            QImmediate::Float(val) => write!(f, "QData f32: {}", val),
-            QImmediate::Addr(val) => write!(f, "QData address: {}", val),
-            _ => write!(f, "UNKNOWN"),
+            | QImmediate::Unsigned(val) => write!(f, "QData u32: {}", val),
+            | QImmediate::Signed(val) => write!(f, "QData s32: {}", val),
+            | QImmediate::Float(val) => write!(f, "QData f32: {}", val),
+            | QImmediate::Addr(val) => write!(f, "QData address: {}", val),
+            | _ => write!(f, "UNKNOWN"),
         }
     }
 }
@@ -173,11 +170,11 @@ impl Display for QImmediate {
 impl Debug for QImmediate {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            QImmediate::Unsigned(val) => write!(f, "QData u32: {}", val),
-            QImmediate::Signed(val) => write!(f, "QData s32: {}", val),
-            QImmediate::Float(val) => write!(f, "QData f32: {}", val),
-            QImmediate::Addr(val) => write!(f, "QData address: {}", val),
-            _ => write!(f, "UNKNOWN"),
+            | QImmediate::Unsigned(val) => write!(f, "QData u32: {}", val),
+            | QImmediate::Signed(val) => write!(f, "QData s32: {}", val),
+            | QImmediate::Float(val) => write!(f, "QData f32: {}", val),
+            | QImmediate::Addr(val) => write!(f, "QData address: {}", val),
+            | _ => write!(f, "UNKNOWN"),
         }
     }
 }
@@ -188,35 +185,31 @@ impl Add for QImmediate {
         let q = self;
 
         match self {
-            QImmediate::Unsigned(mut val1) =>
-                match rhs {
-                    QImmediate::Unsigned(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Signed(mut val1) =>
-                match rhs {
-                    QImmediate::Signed(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Float(mut val1) =>
-                match rhs {
-                    QImmediate::Float(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Addr(mut val1) =>
-                match rhs {
-                    QImmediate::Addr(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            _ => {}
+            | QImmediate::Unsigned(mut val1) => match rhs {
+                | QImmediate::Unsigned(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Signed(mut val1) => match rhs {
+                | QImmediate::Signed(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Float(mut val1) => match rhs {
+                | QImmediate::Float(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Addr(mut val1) => match rhs {
+                | QImmediate::Addr(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | _ => {},
         }
 
         return q;
@@ -230,35 +223,31 @@ impl Sub for QImmediate {
         let q = self;
 
         match self {
-            QImmediate::Unsigned(mut val1) =>
-                match rhs {
-                    QImmediate::Unsigned(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Signed(mut val1) =>
-                match rhs {
-                    QImmediate::Signed(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Float(mut val1) =>
-                match rhs {
-                    QImmediate::Float(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Addr(mut val1) =>
-                match rhs {
-                    QImmediate::Addr(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            _ => {}
+            | QImmediate::Unsigned(mut val1) => match rhs {
+                | QImmediate::Unsigned(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Signed(mut val1) => match rhs {
+                | QImmediate::Signed(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Float(mut val1) => match rhs {
+                | QImmediate::Float(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Addr(mut val1) => match rhs {
+                | QImmediate::Addr(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | _ => {},
         }
 
         return q;
@@ -268,35 +257,31 @@ impl Sub for QImmediate {
 impl AddAssign for QImmediate {
     fn add_assign(&mut self, rhs: Self) {
         match self {
-            QImmediate::Unsigned(mut val1) =>
-                match rhs {
-                    QImmediate::Unsigned(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Signed(mut val1) =>
-                match rhs {
-                    QImmediate::Signed(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Float(mut val1) =>
-                match rhs {
-                    QImmediate::Float(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Addr(mut val1) =>
-                match rhs {
-                    QImmediate::Addr(val2) => {
-                        val1 += val2;
-                    }
-                    _ => {}
-                }
-            _ => {}
+            | QImmediate::Unsigned(mut val1) => match rhs {
+                | QImmediate::Unsigned(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Signed(mut val1) => match rhs {
+                | QImmediate::Signed(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Float(mut val1) => match rhs {
+                | QImmediate::Float(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Addr(mut val1) => match rhs {
+                | QImmediate::Addr(val2) => {
+                    val1 += val2;
+                },
+                | _ => {},
+            },
+            | _ => {},
         }
     }
 }
@@ -304,35 +289,31 @@ impl AddAssign for QImmediate {
 impl SubAssign for QImmediate {
     fn sub_assign(&mut self, rhs: Self) {
         match self {
-            QImmediate::Unsigned(mut val1) =>
-                match rhs {
-                    QImmediate::Unsigned(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Signed(mut val1) =>
-                match rhs {
-                    QImmediate::Signed(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Float(mut val1) =>
-                match rhs {
-                    QImmediate::Float(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            QImmediate::Addr(mut val1) =>
-                match rhs {
-                    QImmediate::Addr(val2) => {
-                        val1 -= val2;
-                    }
-                    _ => {}
-                }
-            _ => {}
+            | QImmediate::Unsigned(mut val1) => match rhs {
+                | QImmediate::Unsigned(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Signed(mut val1) => match rhs {
+                | QImmediate::Signed(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Float(mut val1) => match rhs {
+                | QImmediate::Float(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | QImmediate::Addr(mut val1) => match rhs {
+                | QImmediate::Addr(val2) => {
+                    val1 -= val2;
+                },
+                | _ => {},
+            },
+            | _ => {},
         }
     }
 }
@@ -340,8 +321,8 @@ impl SubAssign for QImmediate {
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
 pub struct QData {
     pub i: QImmediate, // Immediate data type
-    // pub l: QList,      // List objects
-    // pub s: QStructure, // Structures objects
+                       // pub l: QList,      // List objects
+                       // pub s: QStructure, // Structures objects
 }
 
 #[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]

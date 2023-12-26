@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_block() -> Vec<Instruction> {
     return vec![

@@ -13,8 +13,8 @@ use super::def_09_block::make_instructions_block;
 use super::def_10_function_calling::make_instructions_function_calling;
 use super::def_11_binding::make_instructions_binding;
 use super::def_12_catch::make_instructions_catch;
-use super::def_14_instance_variable::make_instructions_instance_variable;
 use super::def_13_lexical_variable::make_instructions_lexical_variable;
+use super::def_14_instance_variable::make_instructions_instance_variable;
 use super::def_15_subprimitive::make_instructions_subprimitive;
 
 pub fn build_instruction_vec_map() -> (Vec<Option<Box<Instruction>>>, HashMap<String, u32>) {
@@ -50,7 +50,8 @@ pub fn build_instruction_vec_map() -> (Vec<Option<Box<Instruction>>>, HashMap<St
         instructions_lexical_variable,
         instructions_instance_variable,
         instructions_subprimitive,
-    ].concat();
+    ]
+    .concat();
 
     // Create an array where instructions accessed by opcode
     let mut instruction_set: Vec<Option<Box<Instruction>>> = vec![None; 0o777];

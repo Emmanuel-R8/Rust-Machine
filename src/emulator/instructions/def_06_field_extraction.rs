@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_field_extraction() -> Vec<Instruction> {
     return vec![
@@ -52,6 +52,6 @@ pub fn make_instructions_field_extraction() -> Vec<Instruction> {
             .set_family(InstructionFamily::FieldExtraction)
             .set_format(InstructionFormat::FieldExtraction)
             .set_opcode(OpCode::PTagDpb)
-            .set_exec(Some(VirtualMachine::cpu_p_tag_dpb))
+            .set_exec(Some(VirtualMachine::cpu_p_tag_dpb)),
     ];
 }

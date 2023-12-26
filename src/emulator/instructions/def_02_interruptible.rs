@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_interruptible() -> Vec<Instruction> {
     return vec![
@@ -22,6 +22,6 @@ pub fn make_instructions_interruptible() -> Vec<Instruction> {
             .set_family(InstructionFamily::Interruptible)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::Assoc)
-            .set_exec(Some(VirtualMachine::cpu_assoc))
+            .set_exec(Some(VirtualMachine::cpu_assoc)),
     ];
 }

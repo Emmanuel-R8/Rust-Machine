@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_list() -> Vec<Instruction> {
     return vec![
@@ -45,7 +45,6 @@ pub fn make_instructions_list() -> Vec<Instruction> {
             .set_arg_count(1)
             .set_ret_count(1)
             .set_exec(Some(VirtualMachine::cpu_set_to_cdr_push_car)),
-
         Instruction::new()
             .set_name("rplaca".to_string())
             .set_family(InstructionFamily::List)
@@ -61,6 +60,6 @@ pub fn make_instructions_list() -> Vec<Instruction> {
             .set_opcode(OpCode::Rplacd)
             .set_arg_count(2)
             .set_ret_count(0)
-            .set_exec(Some(VirtualMachine::cpu_rplacd))
+            .set_exec(Some(VirtualMachine::cpu_rplacd)),
     ];
 }

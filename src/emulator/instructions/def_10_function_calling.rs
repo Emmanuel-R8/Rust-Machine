@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_function_calling() -> Vec<Instruction> {
     return vec![
@@ -14,7 +14,6 @@ pub fn make_instructions_function_calling() -> Vec<Instruction> {
         // Instruction::new().set_family(InstructionFamily::FUNCTION_CALLING).set_opcode(0o000).set_name("dtp-call-indirect-prefetch".to_string())
         // Instruction::new().set_family(InstructionFamily::FUNCTION_CALLING).set_opcode(0o000).set_name("dtp-call-generic".to_string())
         // Instruction::new().set_family(InstructionFamily::FUNCTION_CALLING).set_opcode(0o000).set_name("dtp-call-generic-prefetch".to_string())
-
         Instruction::new()
             .set_name("start-call".to_string())
             .set_family(InstructionFamily::FunctionCalling)
@@ -86,7 +85,7 @@ pub fn make_instructions_function_calling() -> Vec<Instruction> {
             .set_family(InstructionFamily::FunctionCalling)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::TakeValues)
-            .set_exec(Some(VirtualMachine::cpu_take_values))
+            .set_exec(Some(VirtualMachine::cpu_take_values)),
     ];
     //
     // Instruction::new().set_family(InstructionFamily::FUNCTION_CALLING).set_opcode(0o000).set_name("dtp-call-compile-even-prefetch".to_string()) // Instruction::new().set_family(InstructionFamily::FUNCTION_CALLING).set_opcode(0o000).set_name("dtp-call-compile-odd".to_string())

@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{ Instruction, InstructionFamily, InstructionFormat };
+use super::common::{Instruction, InstructionFamily, InstructionFormat};
 
 pub fn make_instructions_binding() -> Vec<Instruction> {
     return vec![
@@ -28,6 +28,6 @@ pub fn make_instructions_binding() -> Vec<Instruction> {
             .set_family(InstructionFamily::Binding)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::RestoreBindingStack)
-            .set_exec(Some(VirtualMachine::cpu_restore_binding_stack))
+            .set_exec(Some(VirtualMachine::cpu_restore_binding_stack)),
     ];
 }

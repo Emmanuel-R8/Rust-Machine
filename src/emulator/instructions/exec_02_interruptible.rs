@@ -13,5 +13,4 @@ impl VirtualMachine {
     pub fn cpu_assoc(&mut self) -> &mut Self {
         return self;
     }
-
 }

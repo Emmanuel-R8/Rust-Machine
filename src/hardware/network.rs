@@ -19,7 +19,7 @@ impl<'a> Default for NetworkInterface<'a> {
             present: false,
             device: PathBuf::from(""),
             my_protocol: 0,
-            my_address: 0xC0A8_0000, // 0xC0A8_0000 = 192.168.0.0
+            my_address: 0xc0a8_0000, // 0xC0A8_0000 = 192.168.0.0
             my_options: String::from(""),
             other_address: [None, None, None, None, None, None, None, None],
         }

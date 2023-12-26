@@ -1,8 +1,8 @@
 fn VLMIsRunning(mut ep: *mut EmbCommArea) -> Boole {
-    return ((*ep).spy_status == 0 && ((*ep).fep).status() != HaltedFEPStatus) as bool;
+    return ((*ep).spy_status == 0 && (*ep).fep.status() != HaltedFEPStatus) as bool;
 }
 fn VLMIsRunningLisp(mut ep: *mut EmbCommArea) -> Boole {
-    return (VLMIsRunning(ep) != 0 && ((*ep).fep).status() == IdleFEPStatus) as bool;
+    return (VLMIsRunning(ep) != 0 && (*ep).fep.status() == IdleFEPStatus) as bool;
 }
 fn UpdateVLMStatus() {
     let mut ep: *mut EmbCommArea = EmbCommAreaPtr;
@@ -42,9 +42,10 @@ fn ResetCommArea(mut fullReset: bool) {
     let mut channel: *mut EmbChannel = 0 as *mut EmbChannel;
     let mut channelP: EmbPtr = 0;
     channelP = (*EmbCommAreaPtr).channel_table;
-    while channelP != -(1) {
-        channel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(channelP) as *mut EmbWord as PtrV
-            as *mut EmbChannel;
+    while channelP != -1 {
+        channel = &mut *(EmbCommAreaPtr as *mut EmbWord).offset(
+            channelP
+        ) as *mut EmbWord as PtrV as *mut EmbChannel;
         match (*channel).type_0 {
             1 => {
                 if fullReset != 0 {
@@ -103,20 +104,23 @@ pub fn IvoryLifePolling(mut argument: pthread_addr_t) {
     pollingSleep.tv_sec = 0 as __time_t;
     pollingSleep.tv_nsec = 0 as __syscall_slong_t;
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
-        __cancel_jmp_buf: [__cancel_jmp_buf_tag {
-            __cancel_jmp_buf: [0; 8],
-            __mask_was_saved: 0,
-        }; 1],
+        __cancel_jmp_buf: [
+            __cancel_jmp_buf_tag {
+                __cancel_jmp_buf: [0; 8],
+                __mask_was_saved: 0,
+            };
+            1
+        ],
         __pad: [0; 4],
     };
-    let mut __cancel_routine: Option<fn(*mut libc::c_void) -> ()> =
-        ::std::mem::transmute::<Option<fn(u64) -> u32>, pthread_cleanuproutine_t>(Some(
-            pthread_detach as fn(u64) -> u32,
-        ));
+    let mut __cancel_routine: Option<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
+        Option<fn(u64) -> u32>,
+        pthread_cleanuproutine_t
+    >(Some(pthread_detach as fn(u64) -> u32));
     let mut __cancel_arg: *mut libc::c_void = self_0;
     let mut __not_first_call: u32 = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut __jmp_buf_tag,
-        0,
+        __cancel_buf.__cancel_jmp_buf.as_mut_ptr() as *mut __jmp_buf_tag,
+        0
     );
     if __not_first_call != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
@@ -125,20 +129,23 @@ pub fn IvoryLifePolling(mut argument: pthread_addr_t) {
     __pthread_register_cancel(&mut __cancel_buf);
     loop {
         let mut __cancel_buf_0: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
-            __cancel_jmp_buf: [__cancel_jmp_buf_tag {
-                __cancel_jmp_buf: [0; 8],
-                __mask_was_saved: 0,
-            }; 1],
+            __cancel_jmp_buf: [
+                __cancel_jmp_buf_tag {
+                    __cancel_jmp_buf: [0; 8],
+                    __mask_was_saved: 0,
+                };
+                1
+            ],
             __pad: [0; 4],
         };
-        let mut __cancel_routine_0: Option<fn(*mut libc::c_void) -> ()> =
-            ::std::mem::transmute::<Option<fn(*mut u64) -> u32>, pthread_cleanuproutine_t>(Some(
-                pthread_mutex_unlock as fn(*mut u64) -> u32,
-            ));
+        let mut __cancel_routine_0: Option<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
+            Option<fn(*mut u64) -> u32>,
+            pthread_cleanuproutine_t
+        >(Some(pthread_mutex_unlock as fn(*mut u64) -> u32));
         let mut __cancel_arg_0: *mut libc::c_void = &mut (*EmbCommAreaPtr).signalLock as *mut u64;
         let mut __not_first_call_0: u32 = __sigsetjmp(
-            (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr() as *mut __jmp_buf_tag,
-            0,
+            __cancel_buf_0.__cancel_jmp_buf.as_mut_ptr() as *mut __jmp_buf_tag,
+            0
         );
         if __not_first_call_0 != 0 {
             __cancel_routine_0.expect("non-null function pointer")(__cancel_arg_0);
@@ -148,7 +155,7 @@ pub fn IvoryLifePolling(mut argument: pthread_addr_t) {
         if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
             vpunt(
                 b"Unable to lock the Life Support signalLock in thread %lx\0" as &str,
-                pthread_self(),
+                pthread_self()
             );
         }
         (*EmbCommAreaPtr).pollTime += pollingSleep.tv_nsec;
@@ -160,26 +167,20 @@ pub fn IvoryLifePolling(mut argument: pthread_addr_t) {
             let ref mut fresh1 = (*EmbCommAreaPtr).guest_to_host_signals;
             *fresh1 |= (*EmbCommAreaPtr).live_guest_to_host_signals;
             if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).signalSignal) != 0 {
-                vpunt(
-                    b"Unable to send Life Support signal signal in thread %lx\0" as &str,
-                    self_0,
-                );
+                vpunt(b"Unable to send Life Support signal signal in thread %lx\0" as &str, self_0);
             }
         } else if (*EmbCommAreaPtr).reawaken != 0 {
             let ref mut fresh2 = (*EmbCommAreaPtr).guest_to_host_signals;
             *fresh2 |= (*EmbCommAreaPtr).reawaken;
             (*EmbCommAreaPtr).reawaken = 0 as SignalMask;
             if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).signalSignal) != 0 {
-                vpunt(
-                    b"Unable to send Life Support signal signal in thread %lx\0" as &str,
-                    self_0,
-                );
+                vpunt(b"Unable to send Life Support signal signal in thread %lx\0" as &str, self_0);
             }
         }
         if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
             vpunt(
                 b"Unable to unlock the Life Support signalLock in thread %lx\0" as &str,
-                pthread_self(),
+                pthread_self()
             );
         }
         __pthread_unregister_cancel(&mut __cancel_buf_0);
@@ -187,7 +188,7 @@ pub fn IvoryLifePolling(mut argument: pthread_addr_t) {
             (*EmbCommAreaPtr).pollClockTime -= pollingSleep.tv_nsec;
             if (*EmbCommAreaPtr).pollClockTime <= 0 {
                 EmbSendSignal((*EmbCommAreaPtr).clock_signal);
-                (*EmbCommAreaPtr).pollClockTime = (1000 * (*EmbCommAreaPtr).clock_interval);
+                (*EmbCommAreaPtr).pollClockTime = 1000 * (*EmbCommAreaPtr).clock_interval;
             }
             if (*EmbCommAreaPtr).pollClockTime > 250000000 {
                 pollingSleep.tv_nsec = 250000000;
@@ -218,20 +219,23 @@ pub fn IntervalTimerDriver(mut argument: pthread_addr_t) {
     };
     let mut result: u32 = 0;
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
-        __cancel_jmp_buf: [__cancel_jmp_buf_tag {
-            __cancel_jmp_buf: [0; 8],
-            __mask_was_saved: 0,
-        }; 1],
+        __cancel_jmp_buf: [
+            __cancel_jmp_buf_tag {
+                __cancel_jmp_buf: [0; 8],
+                __mask_was_saved: 0,
+            };
+            1
+        ],
         __pad: [0; 4],
     };
-    let mut __cancel_routine: Option<fn(*mut libc::c_void) -> ()> =
-        ::std::mem::transmute::<Option<fn(u64) -> u32>, pthread_cleanuproutine_t>(Some(
-            pthread_detach as fn(u64) -> u32,
-        ));
+    let mut __cancel_routine: Option<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
+        Option<fn(u64) -> u32>,
+        pthread_cleanuproutine_t
+    >(Some(pthread_detach as fn(u64) -> u32));
     let mut __cancel_arg: *mut libc::c_void = self_0;
     let mut __not_first_call: u32 = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut __jmp_buf_tag,
-        0,
+        __cancel_buf.__cancel_jmp_buf.as_mut_ptr() as *mut __jmp_buf_tag,
+        0
     );
     if __not_first_call != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
@@ -241,31 +245,34 @@ pub fn IntervalTimerDriver(mut argument: pthread_addr_t) {
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
             b"Unable to lock the Life Support signal lock in thread %lx\0" as &str,
-            pthread_self(),
+            pthread_self()
         );
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).signalLock) != 0 {
         vpunt(
             b"Unable to unlock the Life Support signal lock in thread %lx\0" as &str,
-            pthread_self(),
+            pthread_self()
         );
     }
-    (*EmbCommAreaPtr).clockTime = -(1);
+    (*EmbCommAreaPtr).clockTime = -1;
     let mut __cancel_buf_0: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
-        __cancel_jmp_buf: [__cancel_jmp_buf_tag {
-            __cancel_jmp_buf: [0; 8],
-            __mask_was_saved: 0,
-        }; 1],
+        __cancel_jmp_buf: [
+            __cancel_jmp_buf_tag {
+                __cancel_jmp_buf: [0; 8],
+                __mask_was_saved: 0,
+            };
+            1
+        ],
         __pad: [0; 4],
     };
-    let mut __cancel_routine_0: Option<fn(*mut libc::c_void) -> ()> =
-        ::std::mem::transmute::<Option<fn(*mut u64) -> u32>, pthread_cleanuproutine_t>(Some(
-            pthread_mutex_unlock as fn(*mut u64) -> u32,
-        ));
+    let mut __cancel_routine_0: Option<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
+        Option<fn(*mut u64) -> u32>,
+        pthread_cleanuproutine_t
+    >(Some(pthread_mutex_unlock as fn(*mut u64) -> u32));
     let mut __cancel_arg_0: *mut libc::c_void = &mut (*EmbCommAreaPtr).clockLock as *mut u64;
     let mut __not_first_call_0: u32 = __sigsetjmp(
-        (__cancel_buf_0.__cancel_jmp_buf).as_mut_ptr() as *mut __jmp_buf_tag,
-        0,
+        __cancel_buf_0.__cancel_jmp_buf.as_mut_ptr() as *mut __jmp_buf_tag,
+        0
     );
     if __not_first_call_0 != 0 {
         __cancel_routine_0.expect("non-null function pointer")(__cancel_arg_0);
@@ -273,10 +280,7 @@ pub fn IntervalTimerDriver(mut argument: pthread_addr_t) {
     }
     __pthread_register_cancel(&mut __cancel_buf_0);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).clockLock) != 0 {
-        vpunt(
-            b"Unable to lock the Life Support clockLock in thread %lx\0" as &str,
-            pthread_self(),
-        );
+        vpunt(b"Unable to lock the Life Support clockLock in thread %lx\0" as &str, pthread_self());
     }
     loop {
         if (*EmbCommAreaPtr).clockTime >= 0 {
@@ -292,37 +296,40 @@ pub fn IntervalTimerDriver(mut argument: pthread_addr_t) {
             result = u64imedwait(
                 &mut (*EmbCommAreaPtr).clockSignal,
                 &mut (*EmbCommAreaPtr).clockLock,
-                &mut expirationTime,
+                &mut expirationTime
             );
         } else {
             result = pthread_cond_wait(
                 &mut (*EmbCommAreaPtr).clockSignal,
-                &mut (*EmbCommAreaPtr).clockLock,
+                &mut (*EmbCommAreaPtr).clockLock
             );
         }
         if result == 110 {
             EmbSendSignal((*EmbCommAreaPtr).clock_signal);
-            (*EmbCommAreaPtr).clockTime = -(1);
+            (*EmbCommAreaPtr).clockTime = -1;
         }
     }
 }
 
 pub fn SetIntervalTimer(mut relativeTimeout: isize) {
     let mut __cancel_buf: __pthread_unwind_buf_t = __pthread_unwind_buf_t {
-        __cancel_jmp_buf: [__cancel_jmp_buf_tag {
-            __cancel_jmp_buf: [0; 8],
-            __mask_was_saved: 0,
-        }; 1],
+        __cancel_jmp_buf: [
+            __cancel_jmp_buf_tag {
+                __cancel_jmp_buf: [0; 8],
+                __mask_was_saved: 0,
+            };
+            1
+        ],
         __pad: [0; 4],
     };
-    let mut __cancel_routine: Option<fn(*mut libc::c_void) -> ()> =
-        ::std::mem::transmute::<Option<fn(*mut u64) -> u32>, pthread_cleanuproutine_t>(Some(
-            pthread_mutex_unlock as fn(*mut u64) -> u32,
-        ));
+    let mut __cancel_routine: Option<fn(*mut libc::c_void) -> ()> = ::std::mem::transmute::<
+        Option<fn(*mut u64) -> u32>,
+        pthread_cleanuproutine_t
+    >(Some(pthread_mutex_unlock as fn(*mut u64) -> u32));
     let mut __cancel_arg: *mut libc::c_void = &mut (*EmbCommAreaPtr).clockLock as *mut u64;
     let mut __not_first_call: u32 = __sigsetjmp(
-        (__cancel_buf.__cancel_jmp_buf).as_mut_ptr() as *mut __jmp_buf_tag,
-        0,
+        __cancel_buf.__cancel_jmp_buf.as_mut_ptr() as *mut __jmp_buf_tag,
+        0
     );
     if __not_first_call != 0 {
         __cancel_routine.expect("non-null function pointer")(__cancel_arg);
@@ -330,22 +337,16 @@ pub fn SetIntervalTimer(mut relativeTimeout: isize) {
     }
     __pthread_register_cancel(&mut __cancel_buf);
     if pthread_mutex_lock(&mut (*EmbCommAreaPtr).clockLock) != 0 {
-        vpunt(
-            b"Unable to lock the Life Support clockLock in thread %lx\0" as &str,
-            pthread_self(),
-        );
+        vpunt(b"Unable to lock the Life Support clockLock in thread %lx\0" as &str, pthread_self());
     }
     (*EmbCommAreaPtr).clockTime = relativeTimeout;
     if pthread_cond_broadcast(&mut (*EmbCommAreaPtr).clockSignal) < 0 {
-        vpunt(
-            b"Unable to send Life Support clock signal in thread %lx\0" as &str,
-            pthread_self(),
-        );
+        vpunt(b"Unable to send Life Support clock signal in thread %lx\0" as &str, pthread_self());
     }
     if pthread_mutex_unlock(&mut (*EmbCommAreaPtr).clockLock) != 0 {
         vpunt(
             b"Unable to unlock the Life Support clockLock in thread %lx\0" as &str,
-            pthread_self(),
+            pthread_self()
         );
     }
     __pthread_unregister_cancel(&mut __cancel_buf);
