@@ -17,79 +17,81 @@ pub enum QTag {
     //  Headers  special markers and forwarding pointers.
     #[default] // Default constructor
     Null = 0o_0, //  00 Unbound variable/function
-    MonitorForward = 0o_1,           //  01 This cell being monitored
-    HeaderP = 0o_2,                  //  02 Structure header
-    HeaderI = 0o_3,                  //  03 Structure header
-    ExternalValueCellPointer = 0o_4, //  04 Invisible except for binding
-    OneQForward = 0o_5,              //  05 Invisible pointer (forwards one cell)
-    HeaderForward = 0o_6,            //  06 Invisible pointer (forwards whole structure)
-    ElementForward = 0o_7,           //  07 Invisible pointer in element of structure
+    MonitorForward = 0o__1,           //  01 This cell being monitored
+    HeaderP = 0o__2,                  //  02 Structure header
+    HeaderI = 0o__3,                  //  03 Structure header
+    ExternalValueCellPointer = 0o__4, //  04 Invisible except for binding
+    OneQForward = 0o__5,              //  05 Invisible pointer (forwards one cell)
+    HeaderForward = 0o__6,            //  06 Invisible pointer (forwards whole structure)
+    ElementForward = 0o__7,           //  07 Invisible pointer in element of structure
     //
     //  Numeric data types. - All have the following bits on/off 000001xxxxxx
-    Fixnum = 0o10,      //  10 Small integer
-    SmallRatio = 0o11,  //  11 Ratio with small numerator and denominator
-    SingleFloat = 0o12, //  12 SinglePrecision floating point
-    DoubleFloat = 0o13, //  13 DoublePrecision floating point
-    Bignum = 0o14,      //  14 Big integer
-    BigRatio = 0o15,    //  15 Ratio with big numerator or denominator
-    Complex = 0o16,     //  16 Complex number
-    SpareNumber = 0o17, //  17 A number to the hardware trap mechanism
+    Fixnum = 0o_10,      //  10 Small integer
+    SmallRatio = 0o_11,  //  11 Ratio with small numerator and denominator
+    SingleFloat = 0o_12, //  12 SinglePrecision floating point
+    DoubleFloat = 0o_13, //  13 DoublePrecision floating point
+    Bignum = 0o_14,      //  14 Big integer
+    BigRatio = 0o_15,    //  15 Ratio with big numerator or denominator
+    Complex = 0o_16,     //  16 Complex number
+    SpareNumber = 0o_17, //  17 A number to the hardware trap mechanism
 
     //  Instance data types.
-    Instance = 0o20,       //  20 Ordinary instance
-    ListInstance = 0o21,   //  21 Instance that masquerades as a cons
-    ArrayInstance = 0o22,  //  22 Instance that masquerades as an array
-    StringInstance = 0o23, //  23 Instance that masquerades as a string
+    Instance = 0o_20,       //  20 Ordinary instance
+    ListInstance = 0o_21,   //  21 Instance that masquerades as a cons
+    ArrayInstance = 0o_22,  //  22 Instance that masquerades as an array
+    StringInstance = 0o_23, //  23 Instance that masquerades as a string
 
     //  Primitive data types.
-    NIL = 0o24,               //  24 The symbol NIL
-    List = 0o25,              //  25 A cons
-    Array = 0o26,             //  26 An array that is not a string
-    String = 0o27,            //  27 A string
-    Symbol = 0o30,            //  30 A symbol other than NIL
-    Locative = 0o31,          //  31 Locative pointer
-    LexicalClosure = 0o32,    //  32 Lexical closure of a function
-    DynamicClosure = 0o33,    //  33 Dynamic closure of a function
-    CompiledFunction = 0o34,  //  34 Compiled code
-    GenericFunction = 0o35,   //  35 Generic function (see later section)
-    SparePointer1 = 0o36,     //  36 Spare
-    SparePointer2 = 0o37,     //  37 Spare
-    PhysicalAddress = 0o40,   //  40 Physical address
-    NativeInstruction = 0o41, //  41 Spare
-    BoundLocation = 0o42,     //  42 Deep bound marker
-    Character = 0o43,         //  43 Common Lisp character object
-    LogicVariable = 0o44,     //  44 Unbound logic variable marker
-    GCForward = 0o45,         //  45 ObjectMoved flag for garbage collector
-    EvenPC = 0o46,            //  46 PC at first instruction in word
-    OddPC = 0o47,             //  47 PC at second instruction in word
+    NIL = 0o_24,               //  24 The symbol NIL
+    List = 0o_25,              //  25 A cons
+    Array = 0o_26,             //  26 An array that is not a string
+    String = 0o_27,            //  27 A string
+    Symbol = 0o_30,            //  30 A symbol other than NIL
+    Locative = 0o_31,          //  31 Locative pointer
+    LexicalClosure = 0o_32,    //  32 Lexical closure of a function
+    DynamicClosure = 0o_33,    //  33 Dynamic closure of a function
+    CompiledFunction = 0o_34,  //  34 Compiled code
+    GenericFunction = 0o_35,   //  35 Generic function (see later section)
+    SparePointer1 = 0o_36,     //  36 Spare
+    SparePointer2 = 0o_37,     //  37 Spare
+    PhysicalAddress = 0o_40,   //  40 Physical address
+    NativeInstruction = 0o_41, //  41 Spare
+    BoundLocation = 0o_42,     //  42 Deep bound marker
+    Character = 0o_43,         //  43 Common Lisp character object
+    LogicVariable = 0o_44,     //  44 Unbound logic variable marker
+    GCForward = 0o_45,         //  45 ObjectMoved flag for garbage collector
+    EvenPC = 0o_46,            //  46 PC at first instruction in word
+    OddPC = 0o_47,             //  47 PC at second instruction in word
 
     //  FullWord instructions.
-    CallCompiledEven = 40,         //  50 Start call
-    CallCompiledOdd = 41,          //  51 Start call
-    CallIndirect = 42,             //  52 Start call
-    CallGeneric = 43,              //  53 Start call
-    CallCompiledEvenPrefetch = 44, //  54 Like above
-    CallCompiledOddPrefetch = 45,  //  55 Like above
-    CallIndirectPrefetch = 46,     //  56 Like above
-    CallGenericPrefetch = 47,      //  57 Like above
+    CallCompiledEven = 0o_50,         //  50 Start call
+    CallCompiledOdd = 0o_51,          //  51 Start call
+    CallIndirect = 0o_52,             //  52 Start call
+    CallGeneric = 0o_53,              //  53 Start call
+    CallCompiledEvenPrefetch = 0o_54, //  54 Like above
+    CallCompiledOddPrefetch = 0o_55,  //  55 Like above
+    CallIndirectPrefetch = 0o_56,     //  56 Like above
+    CallGenericPrefetch = 0o_57,      //  57 Like above
 
     //  HalfWord (packed) instructions consume 4 bits of data type field (opcodes 60..77).
-    PackedInstruction60 = 48,
-    TypePackedInstruction61 = 49,
-    TypePackedInstruction62 = 50,
-    PackedInstruction63 = 51,
-    TypePackedInstruction64 = 52,
-    TypePackedInstruction65 = 53,
-    PackedInstruction66 = 54,
-    TypePackedInstruction67 = 55,
-    TypePackedInstruction70 = 56,
-    PackedInstruction71 = 57,
-    TypePackedInstruction72 = 58,
-    TypePackedInstruction73 = 59,
-    PackedInstruction74 = 60,
-    TypePackedInstruction75 = 61,
-    TypePackedInstruction76 = 62,
-    PackedInstruction77 = 63,
+    PackedInstruction60 = 0o_60,
+    TypePackedInstruction61 = 0o_61,
+    TypePackedInstruction62 = 0o_62,
+    PackedInstruction63 = 0o_63,
+    TypePackedInstruction64 = 0o_64,
+    TypePackedInstruction65 = 0o_65,
+    PackedInstruction66 = 0o_66,
+    TypePackedInstruction67 = 0o_67,
+    TypePackedInstruction70 = 0o_70,
+    PackedInstruction71 = 0o_71,
+    TypePackedInstruction72 = 0o_72,
+    TypePackedInstruction73 = 0o_73,
+    PackedInstruction74 = 0o_74,
+    TypePackedInstruction75 = 0o_75,
+    TypePackedInstruction76 = 0o_76,
+    PackedInstruction77 = 0o_77,
+
+    //
     TagCdrMask = 0o300,
 }
 
@@ -108,6 +110,7 @@ pub const CDR_NEXT: u8 = 0;
 pub const CDR_ILLEGAL: u8 = 1;
 pub const CDR_NORMAL: u8 = 2;
 pub const CDR_JUMP: u8 = 3;
+pub const CDR_DEFAULT: u8 = CDR_JUMP;
 
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq, FromPrimitive, TryFromPrimitive)]
 #[repr(u8)]
@@ -191,19 +194,27 @@ impl fmt::Display for ArrayElementType {
 // 32 bits = 0o37_777_777_777
 // The top 6 bits describes the type of array
 // Format of those 6 bits
+
+// Type field mask
 pub const ARRAY_TYPE_FIELD_MASK: u32 = 0b111111_000_00000000_00_0000000000_000;
 pub const ARRAY_ELEMENT_TYPE_MASK: u32 = 0b110000_000_00000000_00_0000000000_000;
 pub const ARRAY_BYTE_PACKING_MASK: u32 = 0b001110_000_00000000_00_0000000000_000;
 pub const ARRAY_LIST_BIT_MASK: u32 = 0b000001_000_00000000_00_0000000000_000;
+
+//
 pub const ARRAY_NAMED_STRUCTURE_BIT_MASK: u32 = 0b000000_100_00000000_00_0000000000_000;
 pub const ARRAY_SPARE1_MASK: u32 = 0b000000_010_00000000_00_0000000000_000;
 pub const ARRAY_LONG_PREFIX_BIT_MASK: u32 = 0b000000_001_00000000_00_0000000000_000;
-pub const ARRAY_LEADER_LENGTH_FIELD_MASK: u32 = 0b000000_000_11111111_00_0000000000_000;
+
+// Length field mask
 pub const ARRAY_LENGTH_MASK: u32 = 0b000000_000_00000000_11_1111111111_111;
+pub const ARRAY_LEADER_LENGTH_FIELD_MASK: u32 = 0b000000_000_11111111_00_0000000000_000;
 pub const ARRAY_LONG_DIMENSIONS_FIELD_MASK: u32 = 0b000000_000_00000000_00_0000000000_111;
 pub const ARRAY_LONG_SPARE_MASK: u32 = 0b000000_000_00000000_11_1111111111_000;
 pub const ARRAY_DISCONTIGUOUS_BIT_MASK: u32 = 0b000000_000_00000000_01_0000000000_000;
 pub const ARRAY_DISPLACED_BIT_MASK: u32 = 0b000000_000_00000000_10_0000000000_000;
+
+// Register masks
 pub const ARRAY_REGISTER_ELEMENT_TYPE_MASK: u32 = 0b110000_000_00000000_00_0000000000_000;
 pub const ARRAY_REGISTER_BYTE_PACKING_MASK: u32 = 0b001110_000_00000000_00_0000000000_000;
 pub const ARRAY_REGISTER_BYTE_OFFSET_MASK: u32 = 0b000001_111_10000000_00_0000000000_000;
@@ -801,30 +812,32 @@ impl fmt::Display for TrapMode {
 pub enum TrapVectors {
     #[default]
     ArithmeticInstructionException = 0o____0,
-    InstructionException = 0o4_000,               // 2048
-    InterpreterFunction = 0o4_400,                // 2304
-    GenericDispatch = 0o5_000,                    // 2560
-    ErrorTrap = 0o5_100,                          // 2624
-    ResetTrap = 0o5_101,                          // 2625
-    PullApplyArgsTrap = 0o5_102,                  // 2626
-    StackOverflowTrap = 0o5_103,                  // 2627
-    TraceTrap = 0o5_104,                          // 2628
-    PreemptRequestTrap = 0o5_105,                 // 2629
-    TransportTrap = 0o5_106,                      // 2630
-    FepModeTrap = 0o5_107,                        // 2631
-    LowPrioritySequenceBreakTrap = 0o5_110,       // 2632
-    HighPrioritySequenceBreakTrap = 0o5_111,      // 2633
-    MonitorTrap = 0o5_112,                        // 2634
-    GenericDispatchTrapVector = 0o5_114,          // 2636
-    MessageDispatchTrapVector = 0o5_116,          // 2638
-    PageNotResidentTrapVector = 0o5_120,          // 2640
-    PageFaultRequestTrapVector = 0o5_121,         // 2641
-    PageWriteFaultTrapVector = 0o5_122,           // 2642
-    UncorrectableMemoryErrorTrapVector = 0o5_123, // 2643
-    MemoryBusErrorTrapVector = 0o5_124,           // 2644
-    DBCacheMissTrapVector = 0o5_125,              // 2645
-    DBUnwindFrameTrapVector = 0o5_126,            // 2646
-    DBUnwindCatchTrapVector = 0o5_127,            // 2647
+    InstructionException = 0o4_000, // 2048
+    InterpreterFunction = 0o4_400,  // 2304
+    GenericDispatchMask = 0o5_000,  // 2560
+
+    // Trpps
+    Error = 0o5_100,                     // 2624
+    Reset = 0o5_101,                     // 2625
+    PullApplyArgs = 0o5_102,             // 2626
+    StackOverflow = 0o5_103,             // 2627
+    Trace = 0o5_104,                     // 2628
+    PreemptRequest = 0o5_105,            // 2629
+    Transport = 0o5_106,                 // 2630
+    FepMode = 0o5_107,                   // 2631
+    LowPrioritySequenceBreak = 0o5_110,  // 2632
+    HighPrioritySequenceBreak = 0o5_111, // 2633
+    Monitor = 0o5_112,                   // 2634
+    GenericDispatch = 0o5_114,           // 2636
+    MessageDispatch = 0o5_116,           // 2638
+    PageNotResident = 0o5_120,           // 2640
+    PageFaultRequest = 0o5_121,          // 2641
+    PageWriteFault = 0o5_122,            // 2642
+    UncorrectableMemoryError = 0o5_123,  // 2643
+    MemoryBusError = 0o5_124,            // 2644
+    DBCacheMiss = 0o5_125,               // 2645
+    DBUnwindFrame = 0o5_126,             // 2646
+    DBUnwindCatch = 0o5_127,             // 2647
 }
 
 impl fmt::Display for TrapVectors {

@@ -98,6 +98,24 @@ impl Instruction {
         return i;
     }
 
+    pub fn create(
+        name: &str,
+        family: InstructionFamily,
+        format: InstructionFormat,
+        opcode: OpCode,
+        arg_count: u32,
+        ret_count: u32,
+        instruction_code: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
+    ) -> Self {
+        return Instruction::new()
+            .set_name(name.to_string())
+            .set_family(family)
+            .set_format(format)
+            .set_opcode(opcode)
+            .set_arg_count(arg_count)
+            .set_ret_count(ret_count)
+            .set_exec(instruction_code);
+    }
     pub fn set_family(mut self, family: InstructionFamily) -> Self {
         self.family = family;
         return self;
