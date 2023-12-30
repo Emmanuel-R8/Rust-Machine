@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_branch_loop() -> Vec<Instruction> {
     return vec![
@@ -100,17 +100,13 @@ pub fn make_instructions_branch_loop() -> Vec<Instruction> {
             .set_family(InstructionFamily::BranchLoop)
             .set_format(InstructionFormat::Immediate10Bits)
             .set_opcode(OpCode::BranchTrueAndNoPopElseNoPopExtraPop)
-            .set_exec(Some(
-                VirtualMachine::cpu_branch_true_and_no_pop_else_no_pop_extra_pop,
-            )),
+            .set_exec(Some(VirtualMachine::cpu_branch_true_and_no_pop_else_no_pop_extra_pop)),
         Instruction::new()
             .set_name("branch-false-and-no-pop-else-no-pop-extra-pop".to_string())
             .set_family(InstructionFamily::BranchLoop)
             .set_format(InstructionFormat::Immediate10Bits)
             .set_opcode(OpCode::BranchFalseAndNoPopElseNoPopExtraPop)
-            .set_exec(Some(
-                VirtualMachine::cpu_branch_false_and_no_pop_else_no_pop_extra_pop,
-            )),
+            .set_exec(Some(VirtualMachine::cpu_branch_false_and_no_pop_else_no_pop_extra_pop)),
         Instruction::new()
             .set_name("loop-decrement-tos".to_string())
             .set_family(InstructionFamily::BranchLoop)
@@ -122,6 +118,6 @@ pub fn make_instructions_branch_loop() -> Vec<Instruction> {
             .set_family(InstructionFamily::BranchLoop)
             .set_format(InstructionFormat::Immediate10Bits)
             .set_opcode(OpCode::LoopIncrementTosLessThan)
-            .set_exec(Some(VirtualMachine::cpu_loop_decrement_tos_less_than)),
+            .set_exec(Some(VirtualMachine::cpu_loop_decrement_tos_less_than))
     ];
 }

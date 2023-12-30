@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_numeric() -> Vec<Instruction> {
     return vec![
@@ -174,6 +174,6 @@ pub fn make_instructions_numeric() -> Vec<Instruction> {
             .set_family(InstructionFamily::Numeric)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::DivideBignumStep)
-            .set_exec(Some(VirtualMachine::cpu_divide_bignum_step)),
+            .set_exec(Some(VirtualMachine::cpu_divide_bignum_step))
     ];
 }

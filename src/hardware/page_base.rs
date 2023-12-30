@@ -1,7 +1,7 @@
 use c2rust_bitfields::BitfieldStruct;
 
 use crate::common::{
-    constants::{QTag, VLMPAGE_SIZE_QS},
+    constants::{ QTag, VLMPAGE_SIZE_QS },
     memory_cell::MemoryCell,
     types::QImmediate,
 };

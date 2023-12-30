@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_data_movement() -> Vec<Instruction> {
     return vec![
@@ -64,6 +64,6 @@ pub fn make_instructions_data_movement() -> Vec<Instruction> {
             .set_family(InstructionFamily::DataMovement)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::StackBltAddress)
-            .set_exec(Some(VirtualMachine::cpu_stack_blt_address)),
+            .set_exec(Some(VirtualMachine::cpu_stack_blt_address))
     ];
 }

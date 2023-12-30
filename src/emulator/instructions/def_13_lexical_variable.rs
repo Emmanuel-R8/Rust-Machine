@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_lexical_variable() -> Vec<Instruction> {
     return vec![
@@ -148,6 +148,6 @@ pub fn make_instructions_lexical_variable() -> Vec<Instruction> {
             .set_family(InstructionFamily::LexicalVariableAccess)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::MovemLexicalVar7)
-            .set_exec(Some(VirtualMachine::cpu_movem_lexical_var_7)),
+            .set_exec(Some(VirtualMachine::cpu_movem_lexical_var_7))
     ];
 }

@@ -89,8 +89,8 @@ use std::fs::File;
 
 //// EXTERNAL IMPORTS
 //
-use anyhow::{Context, Result};
-use simplelog::{Config, LevelFilter, WriteLogger};
+use anyhow::{ Context, Result };
+use simplelog::{ Config, LevelFilter, WriteLogger };
 
 //
 // LOCAL IMPORTS
@@ -98,7 +98,7 @@ use simplelog::{Config, LevelFilter, WriteLogger};
 use emulator::config::VLMConfig;
 use emulator::emulator::GlobalContext;
 use emulator::instructions::def_build_set::build_instruction_vec_map;
-use ui::termui::{restore_terminal, run_app, setup_terminal, AppUI};
+use ui::termui::{ restore_terminal, run_app, setup_terminal, AppUI };
 
 //
 //
@@ -121,12 +121,12 @@ pub fn main() -> Result<()> {
     let ivory_page_log = WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("ivoryPageLog.log").unwrap(),
+        File::create("ivoryPageLog.log").unwrap()
     );
     let run_log = WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("run.log").unwrap(),
+        File::create("run.log").unwrap()
     );
 
     // let world_image_size: usize = 0;

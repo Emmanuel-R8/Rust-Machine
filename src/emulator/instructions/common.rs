@@ -24,7 +24,7 @@
 // |   | +3 PC odd |  |
 // :CDR header {tbl-colwidths="[15, 15, 70]"}
 
-use crate::{common::constants::OpCode, hardware::machine::VirtualMachine};
+use crate::{ common::constants::OpCode, hardware::machine::VirtualMachine };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ImmediateArgumentType {
@@ -105,7 +105,7 @@ impl Instruction {
         opcode: OpCode,
         arg_count: u32,
         ret_count: u32,
-        instruction_code: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
+        instruction_code: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>
     ) -> Self {
         return Instruction::new()
             .set_name(name.to_string())
@@ -148,7 +148,7 @@ impl Instruction {
     }
     pub fn set_exec(
         mut self,
-        exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>,
+        exec: Option<fn(&mut VirtualMachine) -> &mut VirtualMachine>
     ) -> Self {
         self.exec = exec;
         return self;

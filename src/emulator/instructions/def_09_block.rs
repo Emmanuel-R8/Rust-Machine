@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_block() -> Vec<Instruction> {
     return vec![
@@ -124,6 +124,6 @@ pub fn make_instructions_block() -> Vec<Instruction> {
             .set_family(InstructionFamily::Block)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::Block3Write)
-            .set_exec(Some(VirtualMachine::cpu_block_3_write)),
+            .set_exec(Some(VirtualMachine::cpu_block_3_write))
     ];
 }

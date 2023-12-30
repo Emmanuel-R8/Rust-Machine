@@ -48,10 +48,12 @@ pub fn close_world(world: World) {}
 
 #[inline]
 pub fn byte_swap_32(b32: u32) -> u32 {
-    return ((b32 & 0xff00_0000) >> 24)
-        | ((b32 & 0x00ff_0000) >> 8)
-        | ((b32 & 0x00_ff00) << 8)
-        | ((b32 & 0x0000_00ff) << 24);
+    return (
+        ((b32 & 0xff00_0000) >> 24) |
+        ((b32 & 0x00ff_0000) >> 8) |
+        ((b32 & 0x00_ff00) << 8) |
+        ((b32 & 0x0000_00ff) << 24)
+    );
 }
 
 #[inline]

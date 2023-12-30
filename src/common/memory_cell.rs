@@ -1,13 +1,13 @@
-use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+use std::ops::{ Add, AddAssign, Neg, Sub, SubAssign };
 
 use super::{
-    constants::{QTag, ADDRESS_NIL, ADDRESS_T, CDR, QTAG_FIXNUM, QTAG_SINGLEFLOAT},
+    constants::{ QTag, ADDRESS_NIL, ADDRESS_T, CDR, QTAG_FIXNUM, QTAG_SINGLEFLOAT },
     types::Address,
 };
 
 #[derive(Debug)]
 pub struct MemoryCell {
-    cdr_tag: u8,     // 3 bits for cdr and 5 bits for tag
+    cdr_tag: u8, // 3 bits for cdr and 5 bits for tag
     half_word1: u16, // 16 bits
     half_word2: u16, // 16 bits
 }
@@ -159,53 +159,53 @@ impl MemoryCell {
     // Non mutating
     pub fn inc(self) -> Self {
         match self.tag() {
-            | QTAG_FIXNUM => {
+            QTAG_FIXNUM => {
                 let mut m = self.clone();
                 let i = self.as_i32().unwrap() + 1;
                 m.set_i32(i);
                 return m;
-            },
-            | QTAG_SINGLEFLOAT => {
+            }
+            QTAG_SINGLEFLOAT => {
                 let mut m = self.clone();
                 let f = self.as_f32().unwrap() + 1.0;
                 m.set_f32(f);
                 return m;
-            },
-            | _ => todo!(),
+            }
+            _ => todo!(),
         }
     }
 
     // Non mutating
     pub fn dec(self) -> Self {
         match self.tag() {
-            | QTAG_FIXNUM => {
+            QTAG_FIXNUM => {
                 let mut m = self.clone();
                 let i = self.as_i32().unwrap() - 1;
                 m.set_i32(i);
                 return m;
-            },
-            | QTAG_SINGLEFLOAT => {
+            }
+            QTAG_SINGLEFLOAT => {
                 let mut m = self.clone();
                 let f = self.as_f32().unwrap() - 1.0;
                 m.set_f32(f);
                 return m;
-            },
-            | _ => todo!(),
+            }
+            _ => todo!(),
         }
     }
 
     // Mutating
     pub fn inc_mut(&mut self) -> &Self {
         match self.tag() {
-            | QTAG_FIXNUM => {
+            QTAG_FIXNUM => {
                 let i = self.as_i32().unwrap() + 1;
                 self.set_i32(i);
-            },
-            | QTAG_SINGLEFLOAT => {
+            }
+            QTAG_SINGLEFLOAT => {
                 let f = self.as_f32().unwrap() + 1.0;
                 self.set_f32(f);
-            },
-            | _ => todo!(),
+            }
+            _ => todo!(),
         }
 
         return self;
@@ -214,15 +214,15 @@ impl MemoryCell {
     // Non mutating
     pub fn dec_mut(&mut self) -> &Self {
         match self.tag() {
-            | QTAG_FIXNUM => {
+            QTAG_FIXNUM => {
                 let i = self.as_i32().unwrap() - 1;
                 self.set_i32(i);
-            },
-            | QTAG_SINGLEFLOAT => {
+            }
+            QTAG_SINGLEFLOAT => {
                 let f = self.as_f32().unwrap() - 1.0;
                 self.set_f32(f);
-            },
-            | _ => todo!(),
+            }
+            _ => todo!(),
         }
 
         return self;
@@ -250,9 +250,9 @@ impl Copy for MemoryCell {}
 // todo: tHIS PROBABLY ONLY WORKS FOR PRIMITIVE TYPES.
 impl PartialEq for MemoryCell {
     fn eq(&self, other: &Self) -> bool {
-        self.tag() == other.tag()
-            && self.half_word1 == other.half_word1
-            && self.half_word2 == other.half_word2
+        self.tag() == other.tag() &&
+            self.half_word1 == other.half_word1 &&
+            self.half_word2 == other.half_word2
     }
 }
 
@@ -266,12 +266,14 @@ impl Neg for MemoryCell {
             let val_i32 = -self.as_i32().unwrap();
             let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
 
-            return Some(MemoryCell::new(
-                self.cdr(),
-                self.tag(),
-                ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
-            ));
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
         }
 
         return None;
@@ -290,23 +292,27 @@ impl Add for MemoryCell {
             let val_i32 = self.as_i32().unwrap() + rhs.as_i32().unwrap();
             let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
 
-            return Some(MemoryCell::new(
-                self.cdr(),
-                self.tag(),
-                ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
-            ));
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
         }
 
         if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
             let val_f32 = self.as_f32().unwrap() + rhs.as_f32().unwrap();
             let val_u32 = f32::to_bits(val_f32);
-            return Some(MemoryCell::new(
-                self.cdr(),
-                self.tag(),
-                ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
-            ));
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
         }
 
         return None;
@@ -323,23 +329,27 @@ impl Sub for MemoryCell {
         if self.tag() == (QTag::Fixnum as u8) && rhs.tag() == (QTag::Fixnum as u8) {
             let val_i32 = self.as_i32().unwrap() - rhs.as_i32().unwrap();
             let val_u32 = unsafe { std::mem::transmute::<i32, u32>(val_i32) };
-            return Some(MemoryCell::new(
-                self.cdr(),
-                self.tag(),
-                ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
-            ));
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
         }
 
         if self.tag() == (QTag::SingleFloat as u8) && rhs.tag() == (QTag::SingleFloat as u8) {
             let val = self.as_f32().unwrap() - rhs.as_f32().unwrap();
             let val_u32 = f32::to_bits(val);
-            return Some(MemoryCell::new(
-                self.cdr(),
-                self.tag(),
-                ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
-            ));
+            return Some(
+                MemoryCell::new(
+                    self.cdr(),
+                    self.tag(),
+                    ((val_u32 & 0xffff_0000) >> 16) as u16,
+                    (val_u32 & 0x0000_ffff) as u16
+                )
+            );
         }
 
         return None;
@@ -360,7 +370,7 @@ impl AddAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -372,7 +382,7 @@ impl AddAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -392,7 +402,7 @@ impl SubAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }
@@ -404,7 +414,7 @@ impl SubAssign for MemoryCell {
                 self.cdr(),
                 self.tag(),
                 ((val_u32 & 0xffff_0000) >> 16) as u16,
-                (val_u32 & 0x0000_ffff) as u16,
+                (val_u32 & 0x0000_ffff) as u16
             );
             return;
         }

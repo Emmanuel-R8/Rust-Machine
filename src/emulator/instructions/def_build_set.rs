@@ -50,8 +50,7 @@ pub fn build_instruction_vec_map() -> (Vec<Option<Box<Instruction>>>, HashMap<St
         instructions_lexical_variable,
         instructions_instance_variable,
         instructions_subprimitive,
-    ]
-    .concat();
+    ].concat();
 
     // Create an array where instructions accessed by opcode
     let mut instruction_set: Vec<Option<Box<Instruction>>> = vec![None; 0o777];

@@ -1,13 +1,27 @@
 use crate::common::constants::{
-    QTag, VMAttribute, VMResultCode, CDR, MEMORYWAD_ADDRESS_SHIFT, MEMORY_ADDRESS_PAGE_SHIFT,
-    MEMORY_PAGE_MASK, PROT_EXEC, PROT_READ, PROT_WRITE, VMATTRIBUTE_ACCESS_FAULT,
-    VMATTRIBUTE_EMPTY, VMATTRIBUTE_EPHEMERAL, VMATTRIBUTE_EXISTS, VMATTRIBUTE_MODIFIED,
-    VMATTRIBUTE_TRANSPORT_DISABLE, VMATTRIBUTE_TRANSPORT_FAULT, VMATTRIBUTE_WRITE_FAULT,
+    QTag,
+    VMAttribute,
+    VMResultCode,
+    CDR,
+    MEMORYWAD_ADDRESS_SHIFT,
+    MEMORY_ADDRESS_PAGE_SHIFT,
+    MEMORY_PAGE_MASK,
+    PROT_EXEC,
+    PROT_READ,
+    PROT_WRITE,
+    VMATTRIBUTE_ACCESS_FAULT,
+    VMATTRIBUTE_EMPTY,
+    VMATTRIBUTE_EPHEMERAL,
+    VMATTRIBUTE_EXISTS,
+    VMATTRIBUTE_MODIFIED,
+    VMATTRIBUTE_TRANSPORT_DISABLE,
+    VMATTRIBUTE_TRANSPORT_FAULT,
+    VMATTRIBUTE_WRITE_FAULT,
 };
 use crate::common::memory_cell::MemoryCell;
 use crate::common::types::Address;
 use crate::emulator::emulator::GlobalContext;
-use crate::utils::{dpb, ldb};
+use crate::utils::{ dpb, ldb };
 
 // From https://github.com/mohanson/gameboy/blob/master/src/memory.rs
 pub trait Memory {
@@ -221,8 +235,8 @@ pub fn clear_vmexists(mut vma: VMAttribute) {
 
 #[derive(Debug)]
 pub struct VMMemory {
-    pub tags: [u8; 1 << 31],  /* 2^32 bytes of tags + data */
-    pub data: [u32; 1 << 31], /* 2^32 bytes of tags + data */
+    pub tags: [u8; 1 << 31] /* 2^32 bytes of tags + data */,
+    pub data: [u32; 1 << 31] /* 2^32 bytes of tags + data */,
     pub attribute: [VMAttribute; 1 << (32 - MEMORY_ADDRESS_PAGE_SHIFT)],
 }
 
@@ -260,8 +274,6 @@ impl VMMemory {
 
     pub fn write(&mut self, addr: MemoryCell, value: MemoryCell) -> &Self {
         let addr_u = addr.as_address();
-
-        let value_data = value.as_raw();
 
         self.tags[addr_u] = value.tag();
         self.data[addr_u] = value.as_raw();
@@ -342,15 +354,17 @@ pub fn compute_protection(vma: VMAttribute) -> u32 {
 
     // We would have liked Transport to use write-only pages, but that is not guaranteed by
     // OSF/Unix, so we just use none
-    if (vma & (VMATTRIBUTE_EXISTS | VMATTRIBUTE_TRANSPORT_FAULT | VMATTRIBUTE_ACCESS_FAULT))
-        != VMATTRIBUTE_EXISTS
+    if
+        (vma & (VMATTRIBUTE_EXISTS | VMATTRIBUTE_TRANSPORT_FAULT | VMATTRIBUTE_ACCESS_FAULT)) !=
+        VMATTRIBUTE_EXISTS
     {
         return PROT_READ | PROT_EXEC;
     }
 
     // Unless the modified and ephemeral bits are set, use read-only, so we can update them
-    if (vma & (VMATTRIBUTE_MODIFIED | VMATTRIBUTE_EPHEMERAL | VMATTRIBUTE_WRITE_FAULT))
-        != (VMATTRIBUTE_MODIFIED | VMATTRIBUTE_EPHEMERAL)
+    if
+        (vma & (VMATTRIBUTE_MODIFIED | VMATTRIBUTE_EPHEMERAL | VMATTRIBUTE_WRITE_FAULT)) !=
+        (VMATTRIBUTE_MODIFIED | VMATTRIBUTE_EPHEMERAL)
     {
         return PROT_READ | PROT_EXEC;
     }

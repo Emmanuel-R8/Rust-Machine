@@ -31,13 +31,13 @@ impl Default for InstructionCacheLine {
 impl Clone for InstructionCacheLine {
     fn clone(&self) -> Self {
         let next_pc = match self.next_pc.is_nil() {
-            | false => self.next_pc.clone(),
-            | true => MemoryCell::default(),
+            false => self.next_pc.clone(),
+            true => MemoryCell::default(),
         };
 
         let next_cp = match self.next_cp {
-            | None => None,
-            | _ => self.next_cp.clone(),
+            None => None,
+            _ => self.next_cp.clone(),
         };
 
         InstructionCacheLine {

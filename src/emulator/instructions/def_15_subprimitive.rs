@@ -1,7 +1,7 @@
 use crate::common::constants::OpCode;
 use crate::hardware::machine::VirtualMachine;
 
-use super::common::{Instruction, InstructionFamily, InstructionFormat};
+use super::common::{ Instruction, InstructionFamily, InstructionFormat };
 
 pub fn make_instructions_subprimitive() -> Vec<Instruction> {
     return vec![
@@ -172,6 +172,6 @@ pub fn make_instructions_subprimitive() -> Vec<Instruction> {
             .set_family(InstructionFamily::Subprimitive)
             .set_format(InstructionFormat::OperandFromStack)
             .set_opcode(OpCode::Halt)
-            .set_exec(Some(VirtualMachine::cpu_halt)),
+            .set_exec(Some(VirtualMachine::cpu_halt))
     ];
 }
