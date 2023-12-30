@@ -28,6 +28,7 @@ use crate::common::constants::{
     VMATTRIBUTE_EXISTS,
 };
 use crate::common::memory_cell::MemoryCell;
+use crate::common::types::Address;
 use crate::hardware::cpu::{
     read_control_argument_size,
     read_control_caller_frame_size,
@@ -296,9 +297,9 @@ impl<'a> GlobalContext<'a> {
     /// successful, the world.parentWorld slot will form a chain from the user's
     /// world to the base world
     /// TODO: REIMPLEMENT. THE CURRENT VERSION DOESN'T WORK AT ALL
-    fn find_parent_worlds(&mut self, world_search_path: String) {
+    fn find_parent_worlds(&mut self, _world_search_path: String) {
         // Get the list of all world files in the directory where that world is located
-        let list_world_files = self.scan_one_directory(&self.scanning_dir);
+        let _list_world_files = self.scan_one_directory(&self.scanning_dir);
 
         // Remove all worlds apart from current one
         let current_world = self.world;
@@ -306,8 +307,8 @@ impl<'a> GlobalContext<'a> {
 
         let w = *self.worlds.get(&current_world).unwrap();
         let mut dir_components = w.pathname.ancestors();
-        let full_path = dir_components.next();
-        let base_directory = dir_components.next();
+        let _full_path = dir_components.next();
+        let _base_directory = dir_components.next();
 
         let mut top_uuid = Uuid::nil();
         while w.generation > 0 {
@@ -367,7 +368,7 @@ impl<'a> GlobalContext<'a> {
 
     ///
     /// Load a map in to the GlobalContext world structure
-    pub fn map_world_load(&mut self, start: u32, length: u32, offset: u32) -> u32 {
+    pub fn map_world_load(&mut self, start: u32, length: u32, _offset: u32) -> u32 {
         // According to the doc, by mapping PRIVATE, writes to the address
         //  will not go to the file, so we get copy-on-write for free.  The
         //  only reason we map read-only, is to catch modified for IDS */
@@ -376,7 +377,7 @@ impl<'a> GlobalContext<'a> {
         let mut remaining = length;
 
         let attr = default_attributes(false, true);
-        let prot = compute_protection(attr);
+        let _prot = compute_protection(attr);
 
         let mut data_count: u32 = 0;
         let mut tag_count: u32 = 0;
@@ -388,7 +389,7 @@ impl<'a> GlobalContext<'a> {
 
         let w = self.worlds.get(&self.world).unwrap();
         let world_file = w.fd.as_ref().unwrap();
-        let mmap_buf = unsafe { Mmap::map(&world_file) };
+        let _mmap_buf = unsafe { Mmap::map(&world_file) };
 
         // sigh, have to copy partial pages and pages that already exist (e.g., shared FEP page)
         while remaining > 0 {
@@ -599,7 +600,7 @@ impl<'a> GlobalContext<'a> {
     //     return entry.count;
     // }
 
-    fn read_swapped_vlm_world_file_page(&self, page_number: u32) {
+    fn read_swapped_vlm_world_file_page(&self, _page_number: u32) {
         unimplemented!()
 
         // // If the page current loaded in the world is the page we are looking for, then nothing to do
@@ -662,7 +663,7 @@ impl<'a> GlobalContext<'a> {
     }
 
     fn read_swapped_vlm_world_file_next_q(&self) -> MemoryCell {
-        let w = self.worlds.get(&self.world).unwrap();
+        let _w = self.worlds.get(&self.world).unwrap();
 
         // while w.current_q_number >= VLMPAGE_SIZE_QS {
         //     self.read_swapped_vlm_world_file_page(w.current_page_number + 1);
@@ -703,7 +704,7 @@ impl<'a> GlobalContext<'a> {
         while i < n_wired_entries {
             let current_map_entry = &world.wired_map_entries.data[i as usize];
 
-            let (page_count, r) = current_map_entry.addr.div_rem(&VLMPAGE_SIZE_QS);
+            let (page_count, r) = current_map_entry.addr.div_rem(&(VLMPAGE_SIZE_QS as usize));
 
             if r == 0 {
                 // If the address of the page is a multiple of VLMPAGE_SIZE_QS, i.e. Page Aligned,
@@ -715,14 +716,14 @@ impl<'a> GlobalContext<'a> {
                     page_number
                 ); // Tag 8
                 new_wired_map_entries.insert(new_wired_map_entry);
-                page_number = page_number + page_count;
+                page_number = page_number + (page_count as u32);
                 i += 1;
             } else {
                 // Not Page Aligned:  Convert into a series of LoadMapConstant entries
                 for j in 0..current_map_entry.count {
                     let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
 
-                    new_wired_map_entry.addr = world.wired_map_entries.data[i as usize].addr + j;
+                    new_wired_map_entry.addr = world.wired_map_entries.data[i as usize].addr + j as Address;
                     new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
                     new_wired_map_entry.count = 1;
                     new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.addr);

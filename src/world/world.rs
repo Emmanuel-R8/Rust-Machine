@@ -23,13 +23,14 @@ use crate::common::constants::{
 };
 
 use crate::common::memory_cell::MemoryCell;
+use crate::common::types::Address;
 use crate::emulator::emulator::GlobalContext;
 use crate::utils::pack_8_to_32;
 
 // A single load map entry -- See SYS:NETBOOT;WORLD-SUBSTRATE.LISP for details
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct LoadMapEntry {
-    pub addr: u32, // VMA to be filled in by this load map entry
+    pub addr: Address, // VMA to be filled in by this load map entry
     // NOTE: opcount and opcode are field of a struct op{} in the C code
     pub count: u32, // Number of words to be filled in by this entry
     pub map_code: LoadMapEntryOpcode, // An LoadMapEntryOpcode specifying how to do so
@@ -297,7 +298,7 @@ impl World {
     }
 
     // Close a world file
-    pub fn close(&mut self, close_parent: bool) {
+    pub fn close(&mut self, _close_parent: bool) {
         self.fd = None;
         self.data_page = vec![];
         self.tags_page = vec![];
@@ -433,7 +434,7 @@ pub fn punt_world(ctx: &mut GlobalContext, msg: String) {
     panic_exit(msg);
 }
 
-pub fn read_ivory_world_file_page(w: &mut World, page_number: u32) {
+pub fn read_ivory_world_file_page(_w: &mut World, _page_number: u32) {
     todo!()
 }
 
@@ -462,7 +463,7 @@ pub fn merge_a_map<'a>(
         return new_map_entries;
     }
 
-    let page_size_qs = match world.format {
+    let _page_size_qs = match world.format {
         LoadFileFormat::VLM => VLMPAGE_SIZE_QS,
         _ => IVORY_PAGE_SIZE_QS,
     };
@@ -475,11 +476,13 @@ pub fn merge_a_map<'a>(
             continue;
         }
 
-        let fore_start = new_fore.data[fore_idx as usize].addr;
-        let fore_final = fore_start + new_fore.data[fore_idx as usize].count - 1;
+        let fore_start: Address = new_fore.data[fore_idx as usize].addr;
+        let fore_final: Address =
+            fore_start + (new_fore.data[fore_idx as Address].count as Address) - 1;
 
-        let back_start = new_back.data[fore_idx as usize].addr;
-        let back_final = back_start + new_back.data[fore_idx as usize].count - 1;
+        let back_start: Address = new_back.data[fore_idx as usize].addr;
+        let back_final: Address =
+            back_start + (new_back.data[fore_idx as Address].count as Address) - 1;
 
         // Possible situations:
         //  1: |--- BACK ---|
@@ -540,16 +543,17 @@ pub fn merge_a_map<'a>(
         if back_start < fore_start && back_final >= fore_start {
             new_map_entries.insert(LoadMapEntry {
                 addr: new_back.data[back_idx as usize].addr,
-                count: new_fore.data[fore_idx as usize].addr -
-                (new_back.data[back_idx as usize].addr +
+                count: (new_fore.data[fore_idx as usize].addr as u32) -
+                ((new_back.data[back_idx as usize].addr as u32) +
                     new_back.data[back_idx as usize].count -
                     1),
                 map_code: new_back.data[back_idx as usize].map_code,
                 data: new_back.data[back_idx as usize].data,
             });
             new_back.data[back_idx as usize].addr = new_fore.data[fore_idx as usize].addr;
-            new_back.data[back_idx as usize].count =
-                back_final - new_back.data[back_idx as usize].addr + 1;
+            new_back.data[back_idx as usize].count = (back_final -
+                new_back.data[back_idx as usize].addr +
+                1) as u32;
             continue;
         }
 
@@ -564,8 +568,9 @@ pub fn merge_a_map<'a>(
             new_map_entries.insert(new_fore.data[fore_idx as usize]);
             fore_idx += 1;
             new_back.data[back_idx as usize].addr = fore_final + 1;
-            new_back.data[back_idx as usize].count =
-                back_final - new_back.data[back_idx as usize].addr + 1;
+            new_back.data[back_idx as usize].count = (back_final -
+                new_back.data[back_idx as usize].addr +
+                1) as u32;
             continue;
         }
 
@@ -687,10 +692,10 @@ pub fn read_ivory_world_file_q(w: &World, address: u32) -> MemoryCell {
 //     return q;
 // }
 
-pub fn world_p(candidate_world: DirEntry) -> bool {
-    let a_world = World::default();
-    let mut new_worlds: Vec<World>;
-    let mut candidate_pathname: &Path;
+pub fn world_p(_candidate_world: DirEntry) -> bool {
+    let _a_world = World::default();
+    let mut _new_worlds: Vec<World>;
+    let mut _candidate_pathname: &Path;
 
     // if candidate_world.file_name().len() > VLMWORLD_SUFFIX.len() {
     //     a_world.pathname = PathBuf::from("/")
@@ -702,7 +707,7 @@ pub fn world_p(candidate_world: DirEntry) -> bool {
     unimplemented!()
 }
 
-pub fn write_ivory_world_file_next_q(w: &mut World, q: MemoryCell) {}
+pub fn write_ivory_world_file_next_q(_w: &mut World, _q: MemoryCell) {}
 // fn write_ivory_world_file_next_Q(mut world: *mut World, mut q: MemoryCell) {
 //     let mut pointerOffset: u32 = 0;
 //     let mut tagOffset: u32 = 0;
@@ -722,15 +727,15 @@ pub fn write_ivory_world_file_next_q(w: &mut World, q: MemoryCell) {}
 //     *fresh57 += 1;
 // }
 
-pub fn virtual_memory_read(addr: u32) -> MemoryCell {
+pub fn virtual_memory_read(_addr: Address) -> MemoryCell {
     todo!();
 }
-pub fn copy_ivory_world_file_next_q(world: &mut World, from: u32) {
+pub fn copy_ivory_world_file_next_q(world: &mut World, from: Address) {
     let q = virtual_memory_read(from);
     write_ivory_world_file_next_q(world, q);
 }
 
-fn write_vlmworld_file_header(world: &mut World) {
+fn write_vlmworld_file_header(_world: &mut World) {
     todo!()
     // let mut generation_Q: MemoryCell = make_lisp_obj_u(QTag::Null, 0);
 
@@ -780,21 +785,21 @@ fn write_vlmworld_file_header(world: &mut World) {
     // write_ivory_world_file_page(world);
 }
 
-pub fn map_virtual_address_data(addr: u32) -> u32 {
+pub fn map_virtual_address_data(_addr: Address) -> u32 {
     todo!()
 }
-pub fn map_virtual_address_tag(addr: u32) -> u32 {
+pub fn map_virtual_address_tag(_addr: Address) -> u32 {
     todo!()
 }
 
 impl World {
     pub fn write_vlm_world_file_pages(&self) {
-        let page_number: u32 = 0;
-        let word_count: u32 = 0;
-        let byte_count: u32 = 0;
-        let offset: u64 = 0;
-        let increment: u32 = 0;
-        let i: usize = 0;
+        let _page_number: u32 = 0;
+        let _word_count: u32 = 0;
+        let _byte_count: u32 = 0;
+        let _offset: u64 = 0;
+        let _increment: u32 = 0;
+        let _i: usize = 0;
 
         // MemoryCell = 1 byte tag / 4 bytes data
         // pages are stored as 1 block with all the tags / 3 blocks with all the data
@@ -884,7 +889,7 @@ impl World {
 // }
 // }
 
-fn byte_swap_one_world(world: &mut World) {
+fn byte_swap_one_world(_world: &mut World) {
     // let mut bakPathname =  Path::new("") ;
     // let mut block: Vec<u32>  = vec![0; VLMPAGE_SIZE_QS / 4];
     // let mut dataStart: usize = 0;
@@ -969,10 +974,10 @@ fn byte_swap_one_world(world: &mut World) {
 }
 
 pub fn virtual_memory_write_block_constant(
-    vma: u32,
-    object: *mut MemoryCell,
-    count: u32,
-    increment: bool
+    _vma: u32,
+    _object: *mut MemoryCell,
+    _count: u32,
+    _increment: bool
 ) -> u32 {
     // let mut data: *mut isize = &mut *DataSpace.offset(vma ) as *mut isize;
     // let mut tag: *mut Tag = &mut *TagSpace.offset(vma ) as *mut Tag;
@@ -1023,7 +1028,7 @@ pub fn virtual_memory_write_block_constant(
     return 0;
 }
 
-pub fn virtual_memory_write(vma: u32, object: MemoryCell) -> u32 {
+pub fn virtual_memory_write(_vma: u32, _object: MemoryCell) -> u32 {
     // memory_vma = vma;
     // *DataSpace.offset(vma ) = (*object).parts.data.u ;
     // *TagSpace.offset(vma ) = (*object).parts.tag as Tag;
