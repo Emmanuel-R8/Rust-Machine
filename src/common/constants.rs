@@ -1098,7 +1098,7 @@ pub enum SystemCommAreaSlot {
 
     // Address Spacemap
     AddressSpaceMapAddress = 0xf8_04_110c, // Maps quanta to regions.  See STORAGE for format info.
-    OblastFreeSize = 0xf8_04_11_10, // Contiguous free quanta in each oblast.
+    RegionFreeSize = 0xf8_04_11_10, // Contiguous free quanta in each region.
 
     // Per-area tables.  These are arrays.  They are here for the console program.
     AreaName = 0xf8_04_11_14, // A symbol
