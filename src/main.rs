@@ -1,87 +1,33 @@
 // #![allow(non_camel)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-#![allow(unused_variables)]
-
+// #![allow(dead_code)]
+// #![allow(unused_assignments)]
+// #![allow(unused_variables)]
 extern crate num;
 extern crate num_derive;
 
-//
-// CRATE FILES
-//
-mod common {
-    pub mod constants;
-    pub mod instruction_format;
-    pub mod memory_cell;
-    pub mod types;
+pub mod rust_library {
+    pub mod library;
 }
 
-mod world {
-    pub mod world;
-}
-mod hardware {
-    pub mod cache_line;
-    pub mod cpu;
-    pub mod machine;
-    pub mod memory;
-    pub mod network;
-    pub mod page_base;
-}
 
-mod life_support {
-    pub mod system_comm;
-}
+pub mod library  {
+    pub mod emulator {
+        pub mod config;
+        pub mod disassembly;
+        pub mod instructions {
+            pub mod common;
 
-mod emulator {
-    pub mod config;
-    pub mod disassembly;
-    pub mod emulator;
-    pub mod instructions {
-        pub mod common;
-
-        // File number matches documentation order
-        pub mod exec_01_list;
-        pub mod exec_02_interruptible;
-        pub mod exec_03_predicate;
-        pub mod exec_04_numeric;
-        pub mod exec_05_data_movement;
-        pub mod exec_06_field_extraction;
-        pub mod exec_07_array;
-        pub mod exec_08_branch_loop;
-        pub mod exec_09_block;
-        pub mod exec_10_function_calling;
-        pub mod exec_11_binding;
-        pub mod exec_12_catch;
-        pub mod exec_13_lexical_variable;
-        pub mod exec_14_instance_variable;
-        pub mod exec_15_subprimitive;
-
-        pub mod def_01_list;
-        pub mod def_02_interruptible;
-        pub mod def_03_predicate;
-        pub mod def_04_numeric;
-        pub mod def_05_data_movement;
-        pub mod def_06_field_extraction;
-        pub mod def_07_array;
-        pub mod def_08_branch_loop;
-        pub mod def_09_block;
-        pub mod def_10_function_calling;
-        pub mod def_11_binding;
-        pub mod def_12_catch;
-        pub mod def_13_lexical_variable;
-        pub mod def_14_instance_variable;
-        pub mod def_15_subprimitive;
-
-        pub mod def_build_set;
+        }
     }
 }
-
-mod utils;
 
 mod ui {
     pub mod termui;
 }
 
+//
+// CRATE FILES
+//
 //
 // STANDARD IMPORTS
 //
@@ -95,10 +41,12 @@ use simplelog::{Config, LevelFilter, WriteLogger};
 //
 // LOCAL IMPORTS
 //
-use emulator::config::VLMConfig;
-use emulator::emulator::GlobalContext;
+use crate::library;
+use emulator::{config::VLMConfig, emulator::GlobalContext};
 use emulator::instructions::def_build_set::build_instruction_vec_map;
+
 use ui::termui::{restore_terminal, run_app, setup_terminal, AppUI};
+
 
 //
 //
@@ -129,10 +77,10 @@ pub fn main() -> Result<()> {
         File::create("run.log").unwrap(),
     );
 
-    // let world_image_size: usize = 0;
-    // let world_image_MB: usize = 0;
-    // let message: &str = "";
-    // let reason: u32 = 0;
+    let world_image_size: usize = 0;
+    let world_image_mb: usize = 0;
+    let message: &str = "";
+    let reason: u32 = 0;
 
     let config = VLMConfig::default();
     let enable_ids_p = config.enable_ids;

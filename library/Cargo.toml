@@ -1,0 +1,10 @@
+[package]
+name = "rust_machine_library"
+path = "lib.rs"
+version = "0.1.0"
+edition = "2021"
+
+autobins = true
+autoexamples = true
+autotests = true
+autobenches = true

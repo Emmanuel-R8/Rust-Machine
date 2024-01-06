@@ -102,6 +102,9 @@ pub enum MapEntrySelector {
     MergedUnwired,
 }
 
+
+pub const WORLD_PATH: &str = "data/world/Genera-8-5-xlib-patched.vlod";
+
 // Description of an open world file
 #[derive()]
 pub struct World {
@@ -142,7 +145,7 @@ impl World {
     pub fn new() -> World {
         let w = Self {
             id: Uuid::new_v4(),
-            pathname: PathBuf::default(),
+            pathname: WORLD_PATH.to_string().into(),
             fd: None,
             format: LoadFileFormat::Ivory,
             byte_swapped: false,
@@ -291,7 +294,7 @@ impl World {
     }
 
     // Close a world file
-    pub fn close(&mut self, close_parent: bool) {
+    pub fn close(&mut self, _close_parent: bool) {
         self.fd = None;
         self.data_page = vec![];
         self.tags_page = vec![];
@@ -427,7 +430,7 @@ pub fn punt_world(ctx: &mut GlobalContext, msg: String) {
     panic_exit(msg);
 }
 
-pub fn read_ivory_world_file_page(w: &mut World, page_number: u32) {
+pub fn read_ivory_world_file_page(_w: &mut World, _page_number: u32) {
     todo!()
 }
 
@@ -456,7 +459,7 @@ pub fn merge_a_map<'a>(
         return new_map_entries;
     }
 
-    let page_size_qs = match world.format {
+    let _page_size_qs = match world.format {
         | LoadFileFormat::VLM => VLMPAGE_SIZE_QS,
         | _ => IVORY_PAGE_SIZE_QS,
     };
@@ -679,10 +682,10 @@ pub fn read_ivory_world_file_q(w: &World, address: u32) -> MemoryCell {
 //     return q;
 // }
 
-pub fn world_p(candidate_world: DirEntry) -> bool {
-    let a_world = World::default();
-    let mut new_worlds: Vec<World>;
-    let mut candidate_pathname: &Path;
+pub fn world_p(_candidate_world: DirEntry) -> bool {
+    let _a_world = World::default();
+    let _new_worlds: Vec<World>;
+    let _candidate_pathname: &Path;
 
     // if candidate_world.file_name().len() > VLMWORLD_SUFFIX.len() {
     //     a_world.pathname = PathBuf::from("/")
@@ -694,7 +697,7 @@ pub fn world_p(candidate_world: DirEntry) -> bool {
     unimplemented!()
 }
 
-pub fn write_ivory_world_file_next_q(w: &mut World, q: MemoryCell) {}
+pub fn write_ivory_world_file_next_q(_w: &mut World, _q: MemoryCell) {}
 // fn write_ivory_world_file_next_Q(mut world: *mut World, mut q: MemoryCell) {
 //     let mut pointerOffset: u32 = 0;
 //     let mut tagOffset: u32 = 0;
@@ -714,7 +717,7 @@ pub fn write_ivory_world_file_next_q(w: &mut World, q: MemoryCell) {}
 //     *fresh57 += 1;
 // }
 
-pub fn virtual_memory_read(addr: u32) -> MemoryCell {
+pub fn virtual_memory_read(_addr: u32) -> MemoryCell {
     todo!();
 }
 pub fn copy_ivory_world_file_next_q(world: &mut World, from: u32) {
@@ -722,7 +725,7 @@ pub fn copy_ivory_world_file_next_q(world: &mut World, from: u32) {
     write_ivory_world_file_next_q(world, q);
 }
 
-fn write_vlmworld_file_header(world: &mut World) {
+fn write_vlmworld_file_header(_world: &mut World) {
     todo!()
     // let mut generation_Q: MemoryCell = make_lisp_obj_u(QTag::Null, 0);
 
@@ -772,21 +775,21 @@ fn write_vlmworld_file_header(world: &mut World) {
     // write_ivory_world_file_page(world);
 }
 
-pub fn map_virtual_address_data(addr: u32) -> u32 {
+pub fn map_virtual_address_data(_addr: u32) -> u32 {
     todo!()
 }
-pub fn map_virtual_address_tag(addr: u32) -> u32 {
+pub fn map_virtual_address_tag(_addr: u32) -> u32 {
     todo!()
 }
 
 impl World {
     pub fn write_vlm_world_file_pages(&self) {
-        let page_number: u32 = 0;
-        let word_count: u32 = 0;
-        let byte_count: u32 = 0;
-        let offset: u64 = 0;
-        let increment: u32 = 0;
-        let i: usize = 0;
+        let _page_number: u32 = 0;
+        let _word_count: u32 = 0;
+        let _byte_count: u32 = 0;
+        let _offset: u64 = 0;
+        let _increment: u32 = 0;
+        let _i: usize = 0;
 
         // MemoryCell = 1 byte tag / 4 bytes data
         // pages are stored as 1 block with all the tags / 3 blocks with all the data
@@ -876,7 +879,7 @@ impl World {
 // }
 // }
 
-fn byte_swap_one_world(world: &mut World) {
+fn byte_swap_one_world(_world: &mut World) {
     // let mut bakPathname =  Path::new("") ;
     // let mut block: Vec<u32>  = vec![0; VLMPAGE_SIZE_QS / 4];
     // let mut dataStart: usize = 0;
@@ -961,10 +964,10 @@ fn byte_swap_one_world(world: &mut World) {
 }
 
 pub fn virtual_memory_write_block_constant(
-    vma: u32,
-    object: *mut MemoryCell,
-    count: u32,
-    increment: bool,
+    _vma: u32,
+    _object: *mut MemoryCell,
+    _count: u32,
+    _increment: bool,
 ) -> u32 {
     // let mut data: *mut isize = &mut *DataSpace.offset(vma ) as *mut isize;
     // let mut tag: *mut Tag = &mut *TagSpace.offset(vma ) as *mut Tag;
@@ -1015,7 +1018,7 @@ pub fn virtual_memory_write_block_constant(
     return 0;
 }
 
-pub fn virtual_memory_write(vma: u32, object: MemoryCell) -> u32 {
+pub fn virtual_memory_write(_vma: u32, _object: MemoryCell) -> u32 {
     // memory_vma = vma;
     // *DataSpace.offset(vma ) = (*object).parts.data.u ;
     // *TagSpace.offset(vma ) = (*object).parts.tag as Tag;
