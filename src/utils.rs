@@ -47,29 +47,30 @@ fn setup_logger(filename: &str) -> Result<(), fern::InitError> {
 pub fn close_world(_world: World) {}
 
 #[inline]
-pub fn byte_swap_32(b32: u32) -> u32 {
-    return ((b32 & 0xff00_0000) >> 24) |
-        ((b32 & 0x00ff_0000) >> 8) |
-        ((b32 & 0x00_ff00) << 8) |
-        ((b32 & 0x0000_00ff) << 24);
+pub fn byte_swap_32(val_u32: u32) -> u32 {
+    let b1 = val_u32 & 0x_______ff;
+    let b2 = val_u32 & 0x_____ff00;
+    let b3 = val_u32 & 0x__ff_0000;
+    let b4 = val_u32 & 0xff00_0000;
+    return (b1 << 24) | (b2 << 8) | (b3 >> 8) | (b4 >> 24);
 }
 
 #[inline]
-pub fn unpack_32_to_8(val: u32) -> [u8; 4] {
-    let b1 = (0xff00_0000 & val) >> 24;
-    let b2 = (0x00ff_0000 & val) >> 16;
-    let b3 = (0x0000_ff00 & val) >> 8;
-    let b4 = (0x0000_00ff & val) >> 0;
+pub fn unpack_32_to_8(val_u32: u32) -> [u8; 4] {
+    let b1 = (val_u32 & 0xff00_0000) >> 24;
+    let b2 = (val_u32 & 0x__ff_0000) >> 16;
+    let b3 = (val_u32 & 0x_____ff00) >> 8;
+    let b4 = (val_u32 & 0x_______ff) >> 0;
 
     return [b1 as u8, b2 as u8, b3 as u8, b4 as u8];
 }
 
 #[inline]
 pub fn pack_8_to_32(bytes: [u8; 4]) -> u32 {
-    let v1 = (bytes[0] as u32) << 24;
-    let v2 = (bytes[1] as u32) << 16;
-    let v3 = (bytes[2] as u32) << 8;
-    let v4 = (bytes[3] as u32) << 0;
+    let b1 = (bytes[0] as u32) << 24;
+    let b2 = (bytes[1] as u32) << 16;
+    let b3 = (bytes[2] as u32) << 8;
+    let b4 = (bytes[3] as u32) << 0;
 
-    return v1 + v2 + v3 + v4;
+    return b1 + b2 + b3 + b4;
 }

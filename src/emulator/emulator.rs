@@ -723,7 +723,8 @@ impl<'a> GlobalContext<'a> {
                 for j in 0..current_map_entry.count {
                     let mut new_wired_map_entry = world.wired_map_entries.data[(i + j) as usize];
 
-                    new_wired_map_entry.addr = world.wired_map_entries.data[i as usize].addr + j as Address;
+                    new_wired_map_entry.addr =
+                        world.wired_map_entries.data[i as usize].addr + (j as Address);
                     new_wired_map_entry.map_code = LoadMapEntryOpcode::Constant;
                     new_wired_map_entry.count = 1;
                     new_wired_map_entry.data = virtual_memory_read(new_wired_map_entry.addr);
