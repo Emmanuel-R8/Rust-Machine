@@ -43,34 +43,36 @@ impl<'a> AppUI<'a> {
     }
 
     pub fn next_tab(&mut self) {
-        self.tab_index = (self.tab_index + 1) % self.tab_names.len();
+        let l = self.tab_names.len();
+        self.tab_index = (self.tab_index + 1) % l;
     }
 
     pub fn previous_tab(&mut self) {
-        if self.tab_index > 0 {
-            self.tab_index -= 1;
-        } else {
-            self.tab_index = self.tab_names.len() - 1;
-        }
+        let l = self.tab_names.len();
+        // Adding l avoid doubts about the modulo if the index is at 0.
+        self.tab_index = (self.tab_index + l - 1) % l;
     }
 
     //
     // Tab example with a table content
     //
     pub fn next_cell(&mut self) {
-        let i = match self.table_state.selected() {
-            Some(i) => (i + 1) % self.table_content.len(),
+        let l = self.table_content.len();
+        let index = match self.table_state.selected() {
+            Some(i) => (i + 1) % l,
             None => 0,
         };
-        self.table_state.select(Some(i));
+        self.table_state.select(Some(index));
     }
 
     pub fn previous_cell(&mut self) {
-        let i = match self.table_state.selected() {
-            Some(i) => (i - 1) % self.table_content.len(),
+        let l = self.table_content.len();
+        let index = match self.table_state.selected() {
+            // Adding l avoid doubts about the modulo if the index is at 0.
+            Some(i) => (i + l - 1) % l,
             None => 0,
         };
-        self.table_state.select(Some(i));
+        self.table_state.select(Some(index));
     }
 }
 
